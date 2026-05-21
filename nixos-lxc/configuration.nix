@@ -24,6 +24,9 @@
     packages = with pkgs; [
       tree
       git
+      curl
+      wget
+      magic-wormhole
     ];
   };
 
