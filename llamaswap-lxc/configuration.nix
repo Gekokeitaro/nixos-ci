@@ -1,4 +1,8 @@
-{pkgs, ...}: {
+{
+  pkgs,
+  isLlamacppRocm,
+  ...
+}: {
   imports = [
     ./nvf
   ];
@@ -12,10 +16,10 @@
     "sys-fs-fuse-connections.mount"
   ];
 
-  users.users.nixos-ci = {
+  users.users.nixos-llamaswap-vulkan = {
     isNormalUser = true;
 
-    extraGroups = ["wheel"];
+    extraGroups = ["wheel" "render" "video"];
 
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGApUnvphJshC3LJ4QxDu8fm3JqEnSWZ6ewhf6gQuF7V PopOS OCT 2024"
@@ -27,7 +31,12 @@
       curl
       wget
       magic-wormhole
-      llama-cpp-vulkan
+      (import ./llama-cpp {
+        inherit
+          isLlamacppRocm
+          pkgs
+          ;
+      })
     ];
   };
 
@@ -41,9 +50,9 @@
   services.llama-swap = {
     enable = true;
     listenAddress = "0.0.0.0";
-    port = "8080";
+    port = 8080;
     # openFirewall = true; # Añade port a allowedTCPPorts. Necesario con Proxmox?
-    settings = import ./llamaswap-settings.nix;
+    settings = {};
   };
 
   security.sudo.wheelNeedsPassword = false;
