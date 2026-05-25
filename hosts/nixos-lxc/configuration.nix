@@ -1,15 +1,6 @@
 {pkgs, ...}: {
   imports = [
-    ./nvf
-  ];
-
-  services.dbus.implementation = "dbus";
-  boot.isContainer = true;
-
-  systemd.suppressedSystemUnits = [
-    "dev-mqueue.mount"
-    "sys-kernel-debug.mount"
-    "sys-fs-fuse-connections.mount"
+    ../../common
   ];
 
   users.users.nixos-ci = {
@@ -29,15 +20,6 @@
       magic-wormhole
     ];
   };
-
-  services.openssh = {
-    enable = true;
-    settings.PasswordAuthentication = false;
-    settings.KbdInteractiveAuthentication = false;
-    settings.PermitRootLogin = "no";
-  };
-
-  security.sudo.wheelNeedsPassword = false;
 
   nix.settings.experimental-features = ["nix-command" "flakes"];
 

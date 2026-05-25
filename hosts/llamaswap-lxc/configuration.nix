@@ -1,19 +1,12 @@
 {
   pkgs,
-  isLlamacppRocm,
+  isLlamacppRocm ? false,
   ...
 }: {
   imports = [
-    ./nvf
-  ];
-
-  services.dbus.implementation = "dbus";
-  boot.isContainer = true;
-
-  systemd.suppressedSystemUnits = [
-    "dev-mqueue.mount"
-    "sys-kernel-debug.mount"
-    "sys-fs-fuse-connections.mount"
+    ../../common
+    ../../packages/llama-cpp
+    {inherit isLlamacppRocm;}
   ];
 
   users.users.nixos-llamaswap-vulkan = {
@@ -40,13 +33,6 @@
     ];
   };
 
-  services.openssh = {
-    enable = true;
-    settings.PasswordAuthentication = false;
-    settings.KbdInteractiveAuthentication = false;
-    settings.PermitRootLogin = "no";
-  };
-
   services.llama-swap = {
     enable = true;
     listenAddress = "0.0.0.0";
@@ -54,8 +40,6 @@
     # openFirewall = true; # Añade port a allowedTCPPorts. Necesario con Proxmox?
     settings = {};
   };
-
-  security.sudo.wheelNeedsPassword = false;
 
   nix.settings.experimental-features = ["nix-command" "flakes"];
 
