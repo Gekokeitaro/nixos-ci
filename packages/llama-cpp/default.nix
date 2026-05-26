@@ -3,8 +3,8 @@
   isLlamacppRocm,
 }: let
   lib = pkgs.lib;
-  llamacppVersion = "9305";
-  llamacppHash = "sha256-TsleTV12rW+35OvHxkWJo42Lhp6FkSyozxiK71yjfRg=";
+  llamacppVersion = "9333";
+  llamacppHash = "sha256-+4iApx2JwrjyI5AKDotZz+lkf6vRKywMtQ4rVX4s8yg=";
   gpuArch = "gfx1035";
 in
   (
@@ -21,11 +21,6 @@ in
         repo = "llama.cpp";
         tag = "b${version}";
         hash = llamacppHash;
-        leaveDotGit = true;
-        postFetch = ''
-          git -C "$out" rev-parse --short HEAD > $out/COMMIT
-          find "$out" -name .git -print0 | xargs -0 rm -rf
-        '';
       };
 
       nativeBuildInputs =
@@ -37,7 +32,7 @@ in
 
       # Disable Nix's march=native stripping
       preConfigure = ''
-        prependToVar cmakeFlags "-DLLAMA_BUILD_COMMIT:STRING=$(cat COMMIT)"
+        prependToVar cmakeFlags "-DLLAMA_BUILD_COMMIT:STRING=b${llamacppVersion}"
       '';
 
       # Enable native CPU optimizations (AVX, AVX2, etc.)

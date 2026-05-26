@@ -25,8 +25,12 @@
       };
       nixos-llamaswap-vulkan = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = {inherit inputs;};
+        specialArgs = {
+          inherit inputs;
+          isLlamacppRocm = false;
+        };
         modules = [
+          nvf.nixosModules.default
           ./hosts/llamaswap-lxc/configuration.nix
         ];
       };
@@ -39,6 +43,7 @@
           isLlamacppRocm = true;
         };
         modules = [
+          nvf.nixosModules.default
           ./hosts/llamaswap-lxc/configuration.nix
         ];
       };
