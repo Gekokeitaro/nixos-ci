@@ -102,6 +102,12 @@ ready to deploy on Proxmox. It includes:
 - The path to the `llama-server` binary is interpolated with `${llama-server}`.
 - GGUF files are assumed to be mounted at `/models/`.
 
+### "Flakes aren't real" philosophy
+
+- **Thin Wrapper**: `flake.nix` must remain a very thin wrapper containing only inputs declarations and top-level schema mapping outputs.
+- **No Inline Logic**: Any package definition, complex NixOS module, custom helper, development script, or shell declaration must NOT live inside `flake.nix`.
+- **Modularity**: Move all logic to dedicated Nix files (e.g., under `packages/` or `utils/`) and import them into `flake.nix`. This preserves cross-compilation compatibility, clean parameterization, and makes evaluation logic testable outside of flakes.
+
 ## Rules for modifications
 
 ### Adding a new host
@@ -128,11 +134,12 @@ ready to deploy on Proxmox. It includes:
 
 ### Updating llama-cpp
 
-1. Edit `packages/llama-cpp/default.nix`:
-   - Change `llamacppVersion` to the new build number.
-   - Update `llamacppHash` (see instructions in
-     `hosts/llamaswap-lxc/README.md` for obtaining the hash with
-     `nix-prefetch-github`).
+Run the automated update command:
+```bash
+nix run .#update-llama-cpp
+```
+This script queries the GitHub API for the latest llama.cpp release, prefetches the new hash, and updates `packages/llama-cpp/default.nix` in place.
+
 
 ## Build and deployment
 

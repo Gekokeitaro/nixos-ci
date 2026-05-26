@@ -18,23 +18,30 @@ https://gysli.ng/posts/tech/proxmox-nixos/
 > - Los ficheros de configuración (`flake.nix`, `configuration.nix`...) no
 >   viajan a la imagen del contenedor, hay que volver a crearlos dentro.
 
-# Obtener hash del source de llama.cpp
+# Actualizar llama.cpp automáticamente
 
+Para actualizar `llama.cpp` a la última versión estable lanzada en GitHub y recalcular su hash de forma automática, ejecuta:
+
+```bash
+nix run .#update-llama-cpp
+```
+
+## Método manual (alternativo)
+
+Si prefieres obtener el hash y actualizar el archivo `packages/llama-cpp/default.nix` manualmente:
+
+```bash
 nix shell nixpkgs#nix-prefetch-github nixpkgs#jq nixpkgs#curl
 
-# Latest release de llama.cpp
-
-LATEST=$(curl -sf
-https://api.github.com/repos/ggml-org/llama.cpp/releases/latest | jq -r
-'.tag_name') echo "Latest: $LATEST"
+# Obtener latest release
+LATEST=$(curl -sf https://api.github.com/repos/ggml-org/llama.cpp/releases/latest | jq -r '.tag_name')
+echo "Latest: $LATEST"
 
 # Obtener hash SRI para fetchFromGitHub
-
-# Docs: https://nixos.org/manual/nixpkgs/stable/#fetchfromgithub
-
 nix-prefetch-github ggml-org llama.cpp --rev "$LATEST"
-
 # → { "hash": "sha256-XXXX=", "rev": "bNNNN" }
+```
+
 
 # Passthrough de iGPU AMD a LXC Unprivileged en Proxmox 9
 

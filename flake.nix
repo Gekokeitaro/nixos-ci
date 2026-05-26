@@ -13,7 +13,16 @@
     nixpkgs,
     nvf,
     ...
-  } @ inputs: {
+  } @ inputs: let
+    system = "x86_64-linux";
+    pkgs = nixpkgs.legacyPackages.${system};
+    updateScript = import ./utils/update-llama-cpp.nix {inherit pkgs;};
+  in {
+    apps.${system}.update-llama-cpp = {
+      type = "app";
+      program = "${updateScript}/bin/update-llama-cpp";
+    };
+
     nixosConfigurations = {
       nixos-ci = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";

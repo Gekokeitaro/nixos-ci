@@ -111,3 +111,13 @@ in the `llama-swap` systemd service environment, and enable systemd's
 `CacheDirectory = "llama-swap"` to dynamically create and manage the directory with
 proper permissions.
 
+---
+
+## 2026-05-26 — Automated llama-cpp updates
+
+**Context**: Upgrading llama.cpp required manually finding the latest GitHub release version and prefetching the SHA-256 hash using external commands, then manually editing `packages/llama-cpp/default.nix`.
+
+**Decision**: Implement a declarative flake application (`apps.x86_64-linux.update-llama-cpp`). Following the "flakes aren't real" philosophy (keeping `flake.nix` thin and free of heavy logic), the shell script definition is located in a dedicated file `utils/update-llama-cpp.nix` and imported inside `flake.nix`. When run manually, it queries the GitHub API for the latest release, prefetches the new hash using `nix-prefetch-github`, and edits `default.nix` in place.
+
+
+
