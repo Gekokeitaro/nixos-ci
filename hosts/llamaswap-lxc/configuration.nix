@@ -59,6 +59,30 @@ in {
     };
   };
 
+  # Drivers GPU de runtime según el perfil elegido.
+  # La compilación de llama-cpp ya los incluye como buildInputs via .override.
+  hardware.graphics.extraPackages = with pkgs;
+    if isLlamacppRocm
+    then [
+      rocmPackages.clr
+      rocmPackages.clr.icd
+    ]
+    else [
+      vulkan-loader
+      amdvlk
+    ];
+
+  environment.variables =
+    if isLlamacppRocm
+    then {
+      # gfx1035 no está en la lista oficial de ROCm; forzamos compatibilidad.
+      HSA_OVERRIDE_GFX_VERSION = "10.3.0";
+    }
+    else {
+      # RADV tiene mejor soporte RDNA2 que amdvlk.
+      AMD_VULKAN_ICD = "RADV";
+    };
+
   nix.settings.experimental-features = ["nix-command" "flakes"];
 
   system.stateVersion = "26.05";
