@@ -165,7 +165,7 @@ GPU support is split into two layers:
 | Layer | Location | What it provides |
 |---|---|---|
 | Base graphics stack | `common/config/default.nix` | `hardware.graphics.enable = true` (Mesa, libdrm) |
-| Profile-specific runtime | `hosts/llamaswap-lxc/configuration.nix` | Vulkan: `vulkan-loader`, `amdvlk`, `AMD_VULKAN_ICD=RADV` |
+| Profile-specific runtime | `hosts/llamaswap-lxc/configuration.nix` | Vulkan: `vulkan-loader`, `AMD_VULKAN_ICD=RADV` (RADV ships with Mesa) |
 | | | ROCm: `rocmPackages.clr{,.icd}`, `HSA_OVERRIDE_GFX_VERSION=10.3.0` |
 | Build-time dependencies | `packages/llama-cpp/default.nix` | Handled automatically by `.override { vulkanSupport/rocmSupport }` |
 | Proxmox host (outside Nix) | `/etc/pve/lxc/<id>.conf` | `lxc.cgroup2.devices.allow: c 226:* rwm` + `/dev/dri` bind mount |

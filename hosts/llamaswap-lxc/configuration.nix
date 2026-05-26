@@ -69,7 +69,6 @@ in {
     ]
     else [
       vulkan-loader
-      amdvlk
     ];
 
   environment.variables =
