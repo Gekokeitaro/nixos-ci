@@ -96,3 +96,18 @@ officially listed in ROCm's supported hardware.
 **Decision**: Set `HSA_OVERRIDE_GFX_VERSION = "10.3.0"` as an environment
 variable in the ROCm profile to force compatibility. This may need updating
 if ROCm adds official gfx1035 support in the future.
+
+---
+
+## 2026-05-26 — Mesa shader cache configuration for llama-swap
+
+**Context**: Using Vulkan in unprivileged containers caused warnings from Mesa:
+`Failed to create //.cache for shader cache (Read-only file system)---disabling.`
+This happened because the systemd service for llama-swap runs as a system user
+without a writeable home directory.
+
+**Decision**: Set `MESA_SHADER_CACHE_DIR` and `XDG_CACHE_HOME` to `/var/cache/llama-swap`
+in the `llama-swap` systemd service environment, and enable systemd's
+`CacheDirectory = "llama-swap"` to dynamically create and manage the directory with
+proper permissions.
+

@@ -59,6 +59,16 @@ in {
     };
   };
 
+  systemd.services.llama-swap = {
+    environment = {
+      MESA_SHADER_CACHE_DIR = "/var/cache/llama-swap";
+      XDG_CACHE_HOME = "/var/cache/llama-swap";
+    };
+    serviceConfig = {
+      CacheDirectory = "llama-swap";
+    };
+  };
+
   # Drivers GPU de runtime según el perfil elegido.
   # La compilación de llama-cpp ya los incluye como buildInputs via .override.
   hardware.graphics.extraPackages = with pkgs;
