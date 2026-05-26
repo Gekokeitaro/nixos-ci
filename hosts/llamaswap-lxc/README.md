@@ -35,3 +35,58 @@ https://api.github.com/repos/ggml-org/llama.cpp/releases/latest | jq -r
 nix-prefetch-github ggml-org llama.cpp --rev "$LATEST"
 
 # → { "hash": "sha256-XXXX=", "rev": "bNNNN" }
+
+# Passthrough de iGPU AMD a LXC Unprivileged en Proxmox 9
+
+Para usar la iGPU (AMD 680M) dentro del LXC no privilegiado en Proxmox VE 9, sigue estos pasos:
+
+## 1. Identificar el GID del grupo `render` en el LXC NixOS
+Inicia el contenedor y obtén el identificador de grupo (GID) de `render`:
+```bash
+getent group render | cut -d: -f3
+# → Ej: 108
+```
+
+## 2. Configurar el Passthrough en Proxmox
+
+### Método A: Desde la interfaz Web de Proxmox (Recomendado)
+1. Ve a tu contenedor LXC -> **Resources** -> **Add** -> **Device Passthrough**.
+2. Configura los siguientes campos:
+   - **Device Path**: `/dev/dri/renderD128`
+   - **Mode**: `0666`
+   - Marca **Advanced** y pon el **GID** obtenido en el paso 1 (ej: `108`), con **UID** `0`.
+3. Repite el proceso para `/dev/dri/card0` si es necesario.
+
+### Método B: Desde el archivo de configuración en el host Proxmox (CLI)
+Edita el archivo `/etc/pve/lxc/<CTID>.conf` en Proxmox y añade las siguientes líneas al final (ajustando el `gid` al valor obtenido en el paso 1):
+
+```text
+dev0: path=/dev/dri/renderD128,gid=108,uid=0,mode=0666
+dev1: path=/dev/dri/card0,gid=108,uid=0,mode=0666
+```
+
+> [!NOTE]
+> Si prefieres el método tradicional basado en cgroups y bind mounts, puedes añadir en su lugar:
+> ```text
+> lxc.cgroup2.devices.allow: c 226:* rwm
+> lxc.mount.entry: /dev/dri dev/dri none bind,optional,create=dir
+> ```
+
+Reinicia el contenedor LXC desde Proxmox tras aplicar los cambios.
+
+## 3. Verificar desde el LXC NixOS
+Comprueba que los dispositivos se listan y tienen permisos adecuados:
+```bash
+ls -l /dev/dri
+# Debe mostrar renderD128 y card0 accesibles por el grupo render.
+```
+
+Ejecuta el diagnóstico según el perfil (Vulkan o ROCm) usando Nix Shell:
+```bash
+# Para el perfil Vulkan (RADV)
+nix shell nixpkgs#vulkan-tools -c vulkaninfo --summary
+
+# Para el perfil ROCm
+nix shell nixpkgs#rocmPackages.rocminfo -c rocminfo
+```
+
