@@ -1,6 +1,17 @@
-# CLAUDE.md
+# AGENTS.md
 
 Context guide and best practices for LLM agents working on this repository.
+
+## Decision log
+
+All architectural and design decisions are recorded in
+[DECISIONS.md](./DECISIONS.md). **Agents must**:
+
+1. **Read** `DECISIONS.md` before making changes to understand prior context.
+2. **Append** a new entry whenever a decision is made (new pattern, dependency
+   change, architectural choice, deprecation, etc.).
+3. **Keep the file under 300 lines.** If approaching the limit, consolidate
+   older entries into summary bullets at the top.
 
 ## Project description
 
@@ -18,6 +29,8 @@ ready to deploy on Proxmox. It includes:
 .
 ├── flake.nix                  # Entry point. Defines nixosConfigurations.
 ├── flake.lock
+├── AGENTS.md                  # This file. Agent context and best practices.
+├── DECISIONS.md               # Decision log (see above).
 ├── common/
 │   ├── default.nix            # Aggregates config/ and modules/ via imports.
 │   ├── config/
