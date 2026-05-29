@@ -35,6 +35,14 @@ in
         prependToVar cmakeFlags "-DLLAMA_BUILD_COMMIT:STRING=b${llamacppVersion}"
       '';
 
+      # https://github.com/ggml-org/llama.cpp/issues/21724
+      # https://drakerossman.com/blog/how-to-patch-a-package-source-on-nixos
+      # FIX DeviceLost on AMD APUs. Asi se evita tener que cambiar amdgpu lockup timeout
+      postPatch = ''
+        substituteInPlace ggml/src/ggml-vulkan/ggml-vulkan.cpp \
+        --replace-fail "int nodes_per_submit = 100;" "int nodes_per_submit = 1;"
+      '';
+
       # Enable native CPU optimizations (AVX, AVX2, etc.)
       cmakeFlags =
         # Nos cargamos la flag con el valor por defecto para evitar que compile para todas las arquitecturas.
