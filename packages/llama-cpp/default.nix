@@ -3,9 +3,9 @@
   isLlamacppRocm,
 }: let
   lib = pkgs.lib;
-  llamacppVersion = "9333";
-  llamacppHash = "sha256-+4iApx2JwrjyI5AKDotZz+lkf6vRKywMtQ4rVX4s8yg=";
-  gpuArch = "gfx1035";
+  llamacppVersion = "9402";
+  llamacppHash = "sha256-gM4MDXNlQ5ZUiQtSqa9ICoh1gzrl6TlGIYcCN4rc7iE=";
+  gpuArch = "gfx1030";
 in
   (
     pkgs.llama-cpp.override {
