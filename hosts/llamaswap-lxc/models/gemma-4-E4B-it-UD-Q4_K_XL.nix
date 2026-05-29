@@ -4,15 +4,15 @@
     cmd = ''
       ${llama-server} --port ''${PORT}
       --model /models/gemma-4-E4B-it-UD-Q4_K_XL.gguf
-      --ctx-size 32768
-      --batch-size 256
-      --ubatch-size 128
-      --threads 8
-      --n-gpu-layers 0
-      --device none
-      --cache-type-k q8_0
-      --cache-type-v q4_0
+      --ctx-size 65536
+      --batch-size 512
+      --ubatch-size 512
+      --threads 1
+      --n-gpu-layers 999
       --flash-attn on
+      --cache-type-k q8_0
+      --cache-type-v q4_1
+      --swa-full
       --temp 0.1
       --top-p 0.9
       --top-k 40

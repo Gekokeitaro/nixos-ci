@@ -9,7 +9,7 @@
       --ctx-size 8192
       --batch-size 512
       --ubatch-size 512
-      --threads 4
+      --threads 1
       --parallel 1
     '';
     ttl = 600;
