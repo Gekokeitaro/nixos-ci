@@ -37,7 +37,9 @@ in
 
       # https://github.com/ggml-org/llama.cpp/issues/21724
       # https://drakerossman.com/blog/how-to-patch-a-package-source-on-nixos
-      # FIX DeviceLost on AMD APUs. Asi se evita tener que cambiar amdgpu lockup timeout
+      # 30-May-26: En mi caso, DeviceLost sólo se arregla con el valor a 1, a costa de una pérdida significativa de rendimiento. 
+      # El workaround viable sigue siendo aumentar el lockup_timeout.
+      # Sin embargo he encontrado mejoras de rendimiento experimentando con nodes_per_submit, por lo que dejo el parche para hacer fine-tuning.
       postPatch = ''
         substituteInPlace ggml/src/ggml-vulkan/ggml-vulkan.cpp \
         --replace-fail "int nodes_per_submit = 100;" "int nodes_per_submit = 1;"
