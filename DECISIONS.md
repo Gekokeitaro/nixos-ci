@@ -119,5 +119,10 @@ proper permissions.
 
 **Decision**: Implement a declarative flake application (`apps.x86_64-linux.update-llama-cpp`). Following the "flakes aren't real" philosophy (keeping `flake.nix` thin and free of heavy logic), the shell script definition is located in a dedicated file `utils/update-llama-cpp.nix` and imported inside `flake.nix`. When run manually, it queries the GitHub API for the latest release, prefetches the new hash using `nix-prefetch-github`, and edits `default.nix` in place.
 
+---
 
+## 2026-05-30 — lockup_timeout over nodes_per_submit for DeviceLost
 
+**Context**: Attempting to fix the `DeviceLost` error on the AMD iGPU by lowering `nodes_per_submit` to `1` in `llama-cpp` resulted in an unacceptable performance loss.
+
+**Decision**: The `nodes_per_submit` patch in the `llama-cpp` package is retained strictly for performance fine-tuning, as it is not a viable fix for stability in this case. The viable solution to prevent `DeviceLost` crashes remains the host-level workaround of increasing `amdgpu.lockup_timeout`.

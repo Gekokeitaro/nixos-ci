@@ -140,6 +140,22 @@ nix run .#update-llama-cpp
 ```
 This script queries the GitHub API for the latest llama.cpp release, prefetches the new hash, and updates `packages/llama-cpp/default.nix` in place.
 
+#### Manual method (alternative)
+
+If you prefer to get the hash and update the file `packages/llama-cpp/default.nix` manually:
+
+```bash
+nix shell nixpkgs#nix-prefetch-github nixpkgs#jq nixpkgs#curl
+
+# Get latest release
+LATEST=$(curl -sf https://api.github.com/repos/ggml-org/llama.cpp/releases/latest | jq -r '.tag_name')
+echo "Latest: $LATEST"
+
+# Get SRI hash for fetchFromGitHub
+nix-prefetch-github ggml-org llama.cpp --rev "$LATEST"
+# → { "hash": "sha256-XXXX=", "rev": "bNNNN" }
+```
+
 
 ## Build and deployment
 
@@ -152,6 +168,9 @@ nixos-rebuild build-image --image-variant lxc --flake .#nixos-llamaswap-vulkan
 
 # Build LXC image (llamaswap with ROCm)
 nixos-rebuild build-image --image-variant lxc --flake .#nixos-llamaswap-rocm
+
+# Apply configuration to an existing machine
+nixos-rebuild switch --flake .#<host>
 ```
 
 The result is a **symlink** (`result`) pointing to the `.tar.gz` in the Nix
@@ -175,6 +194,7 @@ store. This tarball is imported directly into Proxmox as an LXC template.
   to avoid duplication.
 - **Configuration files do not travel to the image**: after creating the
   container, you must re-clone or recreate the configuration inside it.
+  Immediately after starting the container for the first time, run `nix-channel --update`.
 - **Fixed GPU target**: the llama-cpp override targets `gfx1035` (AMD 680M).
   Change `gpuArch` if using a different GPU.
 
@@ -189,6 +209,51 @@ GPU support is split into two layers:
 | | | ROCm: `rocmPackages.clr{,.icd}`, `HSA_OVERRIDE_GFX_VERSION=10.3.0` |
 | Build-time dependencies | `packages/llama-cpp/default.nix` | Handled automatically by `.override { vulkanSupport/rocmSupport }` |
 | Proxmox host (outside Nix) | `/etc/pve/lxc/<id>.conf` | `lxc.cgroup2.devices.allow: c 226:* rwm` + `/dev/dri` bind mount |
+
+### AMD iGPU Passthrough to Unprivileged LXC in Proxmox 9
+
+To use the AMD iGPU/GPU from an LXC in Proxmox 9 (or newer):
+
+1. **Identify the GID of the `render` group in the NixOS LXC**:
+   Start the container and obtain the group identifier (GID) for `render` and `video` (for ROCm):
+   ```bash
+   getent group render | cut -d: -f3
+   getent group video | cut -d: -f3
+   # → Ex: 303, 26
+   ```
+
+2. **Configure Passthrough in Proxmox**:
+   - Go to your LXC container -> **Resources** -> **Add** -> **Device Passthrough**.
+   - Set **Device Path**: `/dev/dri/renderD128`
+   - Set **Mode**: `0666`
+   - Check **Advanced** and set the **GID** obtained in step 1 (e.g., `108`), with **UID** `0`.
+   - Repeat for `/dev/dri/card0` and `/dev/kfd` (for ROCm) if necessary.
+   - Restart the LXC container from Proxmox.
+
+3. **Verify from the NixOS LXC**:
+   ```bash
+   ls -l /dev/dri
+   # Should show renderD128 and card0 accessible by the render group.
+   ```
+   Run the diagnostics according to the profile (Vulkan or ROCm):
+   ```bash
+   # For Vulkan profile (RADV)
+   nix shell nixpkgs#vulkan-tools -c vulkaninfo --summary
+
+   # For ROCm profile
+   nix shell nixpkgs#rocmPackages.rocminfo -c rocminfo
+   ```
+
+### GPU job timeout (Workaround)
+
+On slow integrated GPUs/APUs, the accumulated GPU work in a single submission can exceed the default timeout, causing the kernel to reset the compute ring.
+See [ggml-org/llama.cpp#21724](https://github.com/ggml-org/llama.cpp/issues/21724).
+
+As a workaround, increase the `lockup_timeout` on the **Proxmox host**:
+
+> [!NOTE]
+> 1. `echo "options amdgpu lockup_timeout=30000" > /etc/modprobe.d/amdgpu.conf`
+> 2. `update-initramfs -u -k all && reboot`
 
 ## Critical rules
 
