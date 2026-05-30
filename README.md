@@ -1,27 +1,29 @@
 # NixOS LXC
 
-Plantilla para crear LXC de NixOS, utilizando de base: -
-https://gysli.ng/posts/tech/proxmox-nixos/
+Plantilla para crear LXC de NixOS, utilizando de base:
+- https://gysli.ng/posts/tech/proxmox-nixos/
+ 
 
-## Instrucciones
+# Comandos
 
-1. Editar el hostName y SSH public key (para conexión por SSH)
-2. Generamos el LXC con:
-   `nixos-rebuild build-image --image-variant lxc --flake .`
+- `nix flake show .` - Muestra información sobre la flake.
+- `nix run .#update-llama-cpp` - Actualiza llama.cpp a la última versión disponible en GitHub.
+- `nixos-rebuild build-image --image-variant lxc --flake .#<host>` - Genera la imagen LXC.
+- `nixos-rebuild switch --flake .#<host>` - Aplica la configuración a la máquina.
 
-## Notas
+## Configuración básica
 
-> [!NOTE]
->
-> - El resultado es un softlink apuntando al `tar.gz` de la imagen en `store`
-> - Nada más iniciar el contenedor, lanzar `nix-channel --update`
-> - Los ficheros de configuración (`flake.nix`, `configuration.nix`...) no
->   viajan a la imagen del contenedor, hay que volver a crearlos dentro.
+- Editar <host> y la ssh key para acceso por SSH.
+
+## build-image --image-variant lxc
+
+- El resultado es un softlink apuntando al `tar.gz` de la imagen en `store`
+- Nada más iniciar el contenedor, lanzar `nix-channel --update`
+- Los ficheros de configuración (`flake.nix`, `configuration.nix`...) no viajan a la imagen del contenedor, para mantener la config y hacer cambios, clona el repo dentro del contenedor.
 
 # Actualizar llama.cpp automáticamente
 
-Para actualizar `llama.cpp` a la última versión estable lanzada en GitHub y
-recalcular su hash de forma automática, ejecuta:
+Para actualizar `llama.cpp` a la última versión estable lanzada en GitHub y recalcular su hash de forma automática, ejecuta:
 
 ```bash
 nix run .#update-llama-cpp
@@ -46,21 +48,19 @@ nix-prefetch-github ggml-org llama.cpp --rev "$LATEST"
 
 # Passthrough de iGPU AMD a LXC Unprivileged en Proxmox 9
 
-Para usar la iGPU (AMD 680M) dentro del LXC no privilegiado en Proxmox VE 9,
-sigue estos pasos:
+Para usar la iGPU/GPU de AMD desde un LXC en Proxmox 9 (o más reciente):
 
 ## 1. Identificar el GID del grupo `render` en el LXC NixOS
 
-Inicia el contenedor y obtén el identificador de grupo (GID) de `render`:
+Inicia el contenedor y obtén el identificador de grupo (GID) de `render` y `video` (para ROCm):
 
 ```bash
 getent group render | cut -d: -f3
-# → Ej: 108
+getent group video | cut -d: -f3
+# → Ej: 303, 26
 ```
 
 ## 2. Configurar el Passthrough en Proxmox
-
-### Método A: Desde la interfaz Web de Proxmox (Recomendado)
 
 1. Ve a tu contenedor LXC -> **Resources** -> **Add** -> **Device Passthrough**.
 2. Configura los siguientes campos:
@@ -68,26 +68,7 @@ getent group render | cut -d: -f3
    - **Mode**: `0666`
    - Marca **Advanced** y pon el **GID** obtenido en el paso 1 (ej: `108`), con
      **UID** `0`.
-3. Repite el proceso para `/dev/dri/card0` si es necesario.
-
-### Método B: Desde el archivo de configuración en el host Proxmox (CLI)
-
-Edita el archivo `/etc/pve/lxc/<CTID>.conf` en Proxmox y añade las siguientes
-líneas al final (ajustando el `gid` al valor obtenido en el paso 1):
-
-```text
-dev0: path=/dev/dri/renderD128,gid=108,uid=0,mode=0666
-dev1: path=/dev/dri/card0,gid=108,uid=0,mode=0666
-```
-
-> [!NOTE]
-> Si prefieres el método tradicional basado en cgroups y bind mounts, puedes
-> añadir en su lugar:
->
-> ```text
-> lxc.cgroup2.devices.allow: c 226:* rwm
-> lxc.mount.entry: /dev/dri dev/dri none bind,optional,create=dir
-> ```
+3. Repite el proceso para `/dev/dri/card0` y `/dev/kfd` (para ROCm) si es necesario.
 
 Reinicia el contenedor LXC desde Proxmox tras aplicar los cambios.
 
@@ -126,7 +107,7 @@ Proxmox 9.1.:
 
 > [!NOTE]
 >
-> 1. echo "options amdgpu lockup_timeout=60000" > /etc/modprobe.d/amdgpu.conf
+> 1. echo "options amdgpu lockup_timeout=30000" > /etc/modprobe.d/amdgpu.conf
 > 2. update-initramfs -u -k all && reboot
 
 Necesita ajustes, pero es un workaround que funciona.
