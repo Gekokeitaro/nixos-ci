@@ -3,8 +3,8 @@
   isLlamacppRocm,
 }: let
   lib = pkgs.lib;
-  llamacppVersion = "9402";
-  llamacppHash = "sha256-gM4MDXNlQ5ZUiQtSqa9ICoh1gzrl6TlGIYcCN4rc7iE=";
+  llamacppVersion = "9481";
+  llamacppHash = "sha256-jwwsQNZs+XxGRG/DeR523mCORl/nxiVv6kuacHqdorM=";
   gpuArch = "gfx1030";
 in
   (
@@ -37,7 +37,7 @@ in
 
       # https://github.com/ggml-org/llama.cpp/issues/21724
       # https://drakerossman.com/blog/how-to-patch-a-package-source-on-nixos
-      # 30-May-26: En mi caso, DeviceLost sólo se arregla con el valor a 1, a costa de una pérdida significativa de rendimiento. 
+      # 30-May-26: En mi caso, DeviceLost sólo se arregla con el valor a 1, a costa de una pérdida significativa de rendimiento.
       # El workaround viable sigue siendo aumentar el lockup_timeout.
       # Sin embargo he encontrado mejoras de rendimiento experimentando con nodes_per_submit, por lo que dejo el parche para hacer fine-tuning.
       postPatch = ''
