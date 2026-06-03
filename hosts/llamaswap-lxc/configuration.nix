@@ -45,15 +45,15 @@ in {
     openFirewall = true; # Añade port a allowedTCPPorts. Necesario con Proxmox?
     settings = {
       models = lib.mkMerge [
-        (import ./models/qwen3-embedding-0.6B_Q8_0.nix {inherit llama-server;})
-        (import ./models/gemma-4-E4B-it-UD-Q4_K_XL.nix {inherit llama-server;})
-        (import ./models/bge-reranker-v2-m3-q8_0.nix {inherit llama-server;})
-        (import ./models/Qwen3.5-9B-UD-Q4_K_XL.nix {inherit llama-server;})
-        (import ./models/gpt-oss-20b-Q4_K_M.nix {inherit llama-server;})
-        (import ./models/Gemma-4-19B.i1-Q4_K_M.nix {inherit llama-server;})
-        (import ./models/Qwen2.5-14B-Instruct-Q4_K_M.nix {inherit llama-server;})
-        (import ./models/gemma-4-E4B-it-Q4_K_M.nix {inherit llama-server;})
-        (import ./models/Qwen2.5-Coder-14B-Instruct-Q4_K_M.nix {inherit llama-server;})
+        (import ./models/qwen3-embedding-0.6B_Q8_0.nix {llama-server = llama-server-delayed;})
+        (import ./models/gemma-4-E4B-it-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
+        (import ./models/bge-reranker-v2-m3-q8_0.nix {llama-server = llama-server-delayed;})
+        (import ./models/Qwen3.5-9B-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
+        (import ./models/gpt-oss-20b-Q4_K_M.nix {llama-server = llama-server-delayed;})
+        (import ./models/Gemma-4-19B.i1-Q4_K_M.nix {llama-server = llama-server-delayed;})
+        (import ./models/Qwen2.5-14B-Instruct-Q4_K_M.nix {llama-server = llama-server-delayed;})
+        (import ./models/gemma-4-E4B-it-Q4_K_M.nix {llama-server = llama-server-delayed;})
+        (import ./models/Qwen2.5-Coder-14B-Instruct-Q4_K_M.nix {llama-server = llama-server-delayed;})
       ];
       matrix = {
         vars = {
