@@ -10,7 +10,7 @@
       --flash-attn 1
       --batch-size 1024
       --ubatch-size 512
-      --mmap 1
+      --mmap
       --parallel 1
       --fit off
       --no-warmup
