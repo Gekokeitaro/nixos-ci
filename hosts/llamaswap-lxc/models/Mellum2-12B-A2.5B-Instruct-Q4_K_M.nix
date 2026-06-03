@@ -1,15 +1,17 @@
 {llama-server}: {
-  "Gemma-4-19B.i1-Q4_K_M" = {
-    name = "Gemma-4-19B.i1-Q4_K_M";
+  "Mellum2-12B-A2.5B-Instruct-Q4_K_M" = {
+    name = "Mellum2-12B-A2.5B-Instruct-Q4_K_M";
     cmd = ''
       ${llama-server} --port ''${PORT}
-      --model /models/Gemma-4-19B.i1-Q4_K_M.gguf
+      --model /models/Mellum2-12B-A2.5B-Instruct-Q4_K_M.gguf
       --n-gpu-layers 99
+      --n-cpu-moe 32
       --ctx-size 32768
-      --batch-size 512
+      --batch-size 4096
       --ubatch-size 512
-      --threads 1
+      --threads 4
       --parallel 1
+      --flash-attn on
       --jinja
       --fit off
       --no-warmup

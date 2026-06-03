@@ -11,6 +11,8 @@
       --ubatch-size 512
       --threads 1
       --parallel 1
+      --fit off
+      --no-warmup
     '';
     ttl = 600;
   };
