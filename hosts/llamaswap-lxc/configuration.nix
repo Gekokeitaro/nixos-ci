@@ -64,7 +64,7 @@ in {
           gemma = "gemma-4-E4B-it-UD-Q4_K_XL";
           chat  = "Mellum2-12B-A2.5B-Instruct-Q4_K_M";
           tooling = "LFM2.5-8B-A1B-UD-Q4_K_XL";
-          orchestrator = "gpt-oss-20b-Q4_K_M";
+          lead = "gpt-oss-20b-Q4_K_M";
         };
         evict_costs = {
           embed = 99;
@@ -72,13 +72,13 @@ in {
           gemma = 50;
           chat = 80;
           tooling = 60;
-          orchestrator = 40;
+          lead = 40;
         };
         sets = {
           rag-process = "gemma & embed & reranker";
           simple-chat = "chat & tooling";
           tools = "tooling & embed";
-          orchestrate = "orchestrator & chat";
+          orchestrate = "lead & chat";
         };
       };
     };
