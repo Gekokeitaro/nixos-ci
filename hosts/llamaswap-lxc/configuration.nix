@@ -46,22 +46,23 @@ in {
     settings = {
       models = lib.mkMerge [
         (import ./models/qwen3-embedding-0.6B_Q8_0.nix {llama-server = llama-server-delayed;})
-        (import ./models/gemma-4-E4B-it-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
         (import ./models/bge-reranker-v2-m3-q8_0.nix {llama-server = llama-server-delayed;})
         (import ./models/gpt-oss-20b-Q4_K_M.nix {llama-server = llama-server-delayed;})
-        #(import ./models/Gemma-4-19B.i1-Q4_K_M.nix {llama-server = llama-server-delayed;})
         (import ./models/Mellum2-12B-A2.5B-Instruct-Q4_K_M.nix {llama-server = llama-server-delayed;})
         (import ./models/LFM2.5-8B-A1B-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
-        #(import ./models/granite-4.1-8b-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
         (import ./models/gemma-4-12B-it-qat-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
         (import ./models/gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
         (import ./models/gemma-4-E4B-it-qat-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
+        #(import ./models/gemma-4-E4B-it-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
+        
+        #(import ./models/Gemma-4-19B.i1-Q4_K_M.nix {llama-server = llama-server-delayed;})
+        #(import ./models/granite-4.1-8b-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
       ];
       matrix = {
         vars = {
           embed = "Qwen3-Embedding-0.6B-Q8_0";
           reranker = "bge-reranker-v2-m3-q8_0";
-          gemma = "gemma-4-E4B-it-UD-Q4_K_XL";
+          gemma = "gemma-4-E4B-it-qat-UD-Q4_K_XL";
           chat  = "Mellum2-12B-A2.5B-Instruct-Q4_K_M";
           tooling = "LFM2.5-8B-A1B-UD-Q4_K_XL";
           lead = "gpt-oss-20b-Q4_K_M";
