@@ -53,6 +53,9 @@ in {
         (import ./models/Mellum2-12B-A2.5B-Instruct-Q4_K_M.nix {llama-server = llama-server-delayed;})
         (import ./models/LFM2.5-8B-A1B-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
         #(import ./models/granite-4.1-8b-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
+        (import ./models/gemma-4-12B-it-qat-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
+        (import ./models/gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
+        (import ./models/gemma-4-E4B-it-qat-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
       ];
       matrix = {
         vars = {
