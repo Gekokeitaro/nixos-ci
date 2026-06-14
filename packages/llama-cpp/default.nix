@@ -5,7 +5,7 @@
   lib = pkgs.lib;
   llamacppVersion = "9632";
   llamacppHash = "sha256-pyRXQhHuVAJ51LPgG/oGoMann2guhEePRSOrAE6QtjQ=";
-  llamacppNpmHash = "sha256-pjdbI6NcZRlJVd62xhgbLhWrwFYwgsIwjORqvo1+VD8=";
+  llamacppNpmHash = "sha256-TU4Gv+dd48WDpswhfVtm79IVIOwoCXz1fZ/DI/z40Wg=";
   rocmArch = "gfx1030";
 in
   (
