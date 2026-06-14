@@ -24,7 +24,7 @@ in
         hash = llamacppHash;
       };
 
-      npmDepsHash = llamacppNpmHash
+      npmDepsHash = llamacppNpmHash;
 
       # Disable Nix's march=native stripping
       preConfigure = ''
