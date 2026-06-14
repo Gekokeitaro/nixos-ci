@@ -35,6 +35,8 @@ in {
       curl
       wget
       magic-wormhole
+      vulkan-tools
+      radeon-top
     ];
   };
 
