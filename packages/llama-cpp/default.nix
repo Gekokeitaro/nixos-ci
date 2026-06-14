@@ -3,9 +3,10 @@
   isLlamacppRocm,
 }: let
   lib = pkgs.lib;
-  llamacppVersion = "9550";
-  llamacppHash = "sha256-Tr2GoT1h5Dx78UMzzpPdRMLJIzqYQO10rtXxZoCGUC0=";
-  gpuArch = "gfx1030";
+  llamacppVersion = "9632";
+  llamacppHash = "sha256-pyRXQhHuVAJ51LPgG/oGoMann2guhEePRSOrAE6QtjQ=";
+  llamacppNpmHash = "sha256-pjdbI6NcZRlJVd62xhgbLhWrwFYwgsIwjORqvo1+VD8=";
+  rocmArch = "gfx1030";
 in
   (
     pkgs.llama-cpp.override {
@@ -23,12 +24,7 @@ in
         hash = llamacppHash;
       };
 
-      nativeBuildInputs =
-        builtins.filter
-        (x: x != pkgs.npmHooks.npmConfigHook && (x.pname or "") != "nodejs")
-        oldAttrs.nativeBuildInputs;
-
-      npmDeps = null;
+      npmDepsHash = llamacppNpmHash
 
       # Disable Nix's march=native stripping
       preConfigure = ''
@@ -52,10 +48,9 @@ in
         ++ [
           "-DCMAKE_BUILD_TYPE=Release"
           "-DGGML_NATIVE=ON"
-          "-DLLAMA_BUILD_UI=OFF"
         ]
         ++ lib.optionals isLlamacppRocm [
-          "-DCMAKE_HIP_ARCHITECTURES=${gpuArch}"
+          "-DCMAKE_HIP_ARCHITECTURES=${rocmArch}"
         ];
     }
   )
