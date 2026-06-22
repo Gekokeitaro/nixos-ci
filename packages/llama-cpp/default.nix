@@ -3,10 +3,10 @@
   isLlamacppRocm,
 }: let
   lib = pkgs.lib;
-  llamacppVersion = "9632";
-  llamacppHash = "sha256-pyRXQhHuVAJ51LPgG/oGoMann2guhEePRSOrAE6QtjQ=";
-  llamacppNpmHash = "sha256-TU4Gv+dd48WDpswhfVtm79IVIOwoCXz1fZ/DI/z40Wg=";
-  rocmArch = "gfx1030";
+  llamacppVersion = "9760";
+  llamacppHash = "sha256-6zX1XJgj+Lyx+MRR6IgMu2bSL5Lh+86GEHsPBUovNxg=";
+  llamacppNpmHash = "sha256-0dctM/apI3ysMIEVBaBXO9hZMWskpJpNpOws1gwiOYc=";
+  rocmArch = "gfx1035";
 in
   (
     pkgs.llama-cpp.override {
