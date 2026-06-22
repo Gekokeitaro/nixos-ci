@@ -1,6 +1,7 @@
 {
   pkgs,
   isLlamacppRocm ? false,
+  hostName,
   ...
 }: let
   lib = pkgs.lib;
@@ -20,7 +21,7 @@ in {
     ../../common
   ];
 
-  users.users.nixos-llamaswap-vulkan = {
+  users.users.${hostName} = {
     isNormalUser = true;
 
     extraGroups = ["wheel" "render" "video"];
