@@ -112,7 +112,10 @@ in {
 
   environment.variables = lib.mkMerge [
     # Común a ambos perfiles: limita el tamaño de las submissions Vulkan/ROCm.
-    {GGML_VK_MAX_NODES_PER_SUBMIT = "1";}
+    {
+      GGML_VK_MAX_NODES_PER_SUBMIT = 1;
+      GGML_CUDA_ENABLE_UNIFIED_MEMORY = 1;
+    }
     (lib.optionalAttrs isLlamacppRocm {
       # gfx1035 no está en la lista oficial de ROCm; forzamos compatibilidad.
       HSA_OVERRIDE_GFX_VERSION = "10.3.0";
