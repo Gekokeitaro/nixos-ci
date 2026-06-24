@@ -3,9 +3,9 @@
   isLlamacppRocm,
 }: let
   lib = pkgs.lib;
-  llamacppVersion = "9760";
-  llamacppHash = "sha256-6zX1XJgj+Lyx+MRR6IgMu2bSL5Lh+86GEHsPBUovNxg=";
-  llamacppNpmHash = "sha256-0dctM/apI3ysMIEVBaBXO9hZMWskpJpNpOws1gwiOYc=";
+  llamacppVersion = "9782";
+  llamacppHash = "sha256-bAZymldT+hwTX4OyPvYjkTJ6EcIf3Quv6qJCTAHvvEk=";
+  llamacppNpmHash = "sha256-X1DZgmhS/zHTqDT5zq0kywwntthcJ9vRXeqyO3zz6UU=";
   rocmArch = "gfx1035";
 in
   (
@@ -36,10 +36,11 @@ in
       # 30-May-26: En mi caso, DeviceLost sólo se arregla con el valor a 1, a costa de una pérdida significativa de rendimiento.
       # El workaround viable sigue siendo aumentar el lockup_timeout.
       # Sin embargo he encontrado mejoras de rendimiento experimentando con nodes_per_submit, por lo que dejo el parche para hacer fine-tuning.
-      postPatch = ''
-        substituteInPlace ggml/src/ggml-vulkan/ggml-vulkan.cpp \
-        --replace-fail "int nodes_per_submit = 100;" "int nodes_per_submit = 1;"
-      '';
+      # 24-Jun-26: https://github.com/ggml-org/llama.cpp/pull/24872 -> FIXED b9782
+      #postPatch = ''
+      #  substituteInPlace ggml/src/ggml-vulkan/ggml-vulkan.cpp \
+      #  --replace-fail "int nodes_per_submit = 100;" "int nodes_per_submit = 1;"
+      #'';
 
       # Enable native CPU optimizations (AVX, AVX2, etc.)
       cmakeFlags =
