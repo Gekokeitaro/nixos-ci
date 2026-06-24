@@ -3,10 +3,10 @@
   isLlamacppRocm,
 }: let
   lib = pkgs.lib;
-  llamacppVersion = "9632";
-  llamacppHash = "sha256-pyRXQhHuVAJ51LPgG/oGoMann2guhEePRSOrAE6QtjQ=";
-  llamacppNpmHash = "sha256-pjdbI6NcZRlJVd62xhgbLhWrwFYwgsIwjORqvo1+VD8=";
-  rocmArch = "gfx1030";
+  llamacppVersion = "9760";
+  llamacppHash = "sha256-6zX1XJgj+Lyx+MRR6IgMu2bSL5Lh+86GEHsPBUovNxg=";
+  llamacppNpmHash = "sha256-0dctM/apI3ysMIEVBaBXO9hZMWskpJpNpOws1gwiOYc=";
+  rocmArch = "gfx1035";
 in
   (
     pkgs.llama-cpp.override {
@@ -24,7 +24,7 @@ in
         hash = llamacppHash;
       };
 
-      npmDepsHash = llamacppNpmHash
+      npmDepsHash = llamacppNpmHash;
 
       # Disable Nix's march=native stripping
       preConfigure = ''

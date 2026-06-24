@@ -37,6 +37,7 @@
         specialArgs = {
           inherit inputs;
           isLlamacppRocm = false;
+          hostName = "nixos-llamaswap-vulkan";
         };
         modules = [
           nvf.nixosModules.default
@@ -50,6 +51,7 @@
           # https://discourse.nixos.org/t/flakes-idiomatic-way-to-pass-inputs-to-configuration-nix/12379/2
           # specialArgs permite pasar valores arbitrarios.
           isLlamacppRocm = true;
+          hostName = "nixos-llamaswap-rocm";
         };
         modules = [
           nvf.nixosModules.default
