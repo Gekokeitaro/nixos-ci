@@ -6,7 +6,7 @@
   llamacppVersion = "9782";
   llamacppHash = "sha256-bAZymldT+hwTX4OyPvYjkTJ6EcIf3Quv6qJCTAHvvEk=";
   llamacppNpmHash = "sha256-X1DZgmhS/zHTqDT5zq0kywwntthcJ9vRXeqyO3zz6UU=";
-  rocmArch = "gfx1035";
+  targetGPU = "gfx1035";
 in
   (
     pkgs.llama-cpp.override {
@@ -51,7 +51,8 @@ in
           "-DGGML_NATIVE=ON"
         ]
         ++ lib.optionals isLlamacppRocm [
-          "-DCMAKE_HIP_ARCHITECTURES=${rocmArch}"
+          "-DCMAKE_HIP_ARCHITECTURES=${targetGPU}"
+          "-DGPU_TARGETS=${targetGPU}"
         ];
     }
   )
