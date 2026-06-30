@@ -14,7 +14,6 @@
       --ctx-size 65536
       --parallel 1
       --jinja
-      --mlock
       --no-mmap
     '';
     ttl = 600;
