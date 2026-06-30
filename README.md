@@ -11,3 +11,4 @@ Aquí sólo estarán las configuraciones y modelos que se haya comprobado que fu
 - `ls -lut /nix/store/ | grep llama-cpp` - Muestra los últimos paquetes de llama-cpp compilados.
   - En la carpeta `bin` se encuentra `llama-bench` para poder hacer las pruebas de rendimiento y configuración.
   - `llama-bench -h`
+- `sudo journalctl -u llama-swap.service --no-pager -n 200` - Debug de llamaswap
