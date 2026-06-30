@@ -50,6 +50,7 @@ in {
       models = lib.mkMerge [
         (import ./models/JetBrains-Mellum2-12B-A2.5B-Instruct-MXFPA4_MOE.nix {llama-server = llama-server-delayed;})
         (import ./models/Unsloth-gpt-oss-20b-Q4_K_M.nix {llama-server = llama-server-delayed;})
+        (import ./models/Yuxinlu1-mellum2-claude-Q4_K_M.nix {llama-server = llama-server-delayed;})
       ];
       #matrix = {
       #  vars = {
