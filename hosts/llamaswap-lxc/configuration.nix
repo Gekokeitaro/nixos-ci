@@ -48,8 +48,8 @@ in {
     openFirewall = true; # Añade port a allowedTCPPorts. Necesario con Proxmox?
     settings = {
       models = lib.mkMerge [
-        #(import ./models/qwen3-embedding-0.6B_Q8_0.nix {llama-server = llama-server-delayed;})
-        
+        (import ./models/JetBrains-Mellum2-12B-A2.5B-Instruct-MXFPA4_MOE.nix {llama-server = llama-server-delayed;})
+        (import ./models/Unsloth-GPT-OSS-20B-Q4_K_M.nix {llama-server = llama-server-delayed;})
       ];
       matrix = {
         vars = {
