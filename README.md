@@ -1,8 +1,13 @@
-> [!NOTE] Rama de desarrollo para los LXC de LlamaSwap
-> Es una rama para desarrollar y mergear cambios comunes a los backend.
+> [!NOTE] Rama de desarrollo para el LXC de llamaswap con backend Vulkan.
 
+Aquí sólo estarán las configuraciones y modelos que se haya comprobado que funcionan de manera estable y mejor que en ROCm.
 
-Explicación:
-- Cómo los modelos se comportan distinto en cada backend, es mucho más sostenible mantener los cambios en ramas separadas.
-- De esta manera puede haber modelos con configuraciones distintas según el backend sin conflicto ni crear más fichero.
-- Del mismo modo, algunos modelos sólo funcionan en un backend, y la división ayuda a mantener todo ordenado.
+## Comandos
+
+- `nix flake show .` - Muestra información sobre la flake.
+- `sudo nixos-rebuild switch --flake .#nixos-llamaswap-vulkan`.
+- `nix run .#update-llama-cpp` - Sube la versión de llama-cpp a la última del repo.
+  - La sincronización del hash de la WebUI no está implementada, por lo que si cambia habrá que copiarla desde el error que aparecerá cuando se haga `nixos-rebuild`.
+- `ls -lut /nix/store/ | grep llama-cpp` - Muestra los últimos paquetes de llama-cpp compilados.
+  - En la carpeta `bin` se encuentra `llama-bench` para poder hacer las pruebas de rendimiento y configuración.
+  - `llama-bench -h`
