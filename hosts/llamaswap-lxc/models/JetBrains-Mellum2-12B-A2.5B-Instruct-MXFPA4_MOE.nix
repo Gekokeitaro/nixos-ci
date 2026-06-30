@@ -15,7 +15,6 @@
       --parallel 1
       --jinja
       --no-mmap
-      --mlock
     '';
     ttl = 600;
   };
