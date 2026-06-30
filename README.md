@@ -6,3 +6,5 @@ Explicación:
 - Cómo los modelos se comportan distinto en cada backend, es mucho más sostenible mantener los cambios en ramas separadas.
 - De esta manera puede haber modelos con configuraciones distintas según el backend sin conflicto ni crear más fichero.
 - Del mismo modo, algunos modelos sólo funcionan en un backend, y la división ayuda a mantener todo ordenado.
+
+> [!WARNING] Dado que las actualizaciones de llama-cpp son frecuentes y pueden afectar a la estabilidad y funcionamiento de los backend, se recomienda subir las versiones por separado en cada backend en lugar de hacerlo en esta rama.
