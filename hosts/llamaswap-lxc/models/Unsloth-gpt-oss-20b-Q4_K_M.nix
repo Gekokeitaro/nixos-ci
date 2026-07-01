@@ -3,7 +3,7 @@
     name = "Unsloth GPT OSS 20B Q4_K_M";
     cmd = ''
       ${llama-server} --port ''${PORT}
-      --model /models/gpt-oss-20b-UD-Q6_K_XL.gguf
+      --model /models/gpt-oss-20b-UD-Q4_K_M.gguf
       --spec-type ngram-mod
       --ctx-size 32768
       --n-gpu-layers 99
