@@ -6,8 +6,7 @@
     cmd = ''
       ${llama-server} --port ''${PORT}
       --model /models/gpt-oss-20b-Q4_K_M.gguf
-      --model-draft /models/EAGLE3-gpt-oss-20b.gguf
-      --spec-type draft-eagle3,ngram-mod
+      --spec-type ngram-mod
       --ctx-size 32768
       -ngl 99 -t 4
       -b 512 -ub 512
