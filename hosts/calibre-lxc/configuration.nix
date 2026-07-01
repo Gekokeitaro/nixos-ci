@@ -4,7 +4,7 @@
     ../../common
   ];
 
-  users.users.nixos-ci = {
+  users.users.nixos-calibre-web-auto = {
     isNormalUser = true;
 
     extraGroups = ["wheel"];
