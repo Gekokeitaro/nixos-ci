@@ -22,7 +22,7 @@
   #   la carpeta en el LXC y el próximo boot vuelve a clonar.
   #
   # Type = oneshot → arranca, hace su trabajo, termina; no es un daemon.
-  systemd.services."clone nixos-ci repo" = {
+  systemd.services.clone-nixos-ci-repo = {
     description = "Clone nixos-ci repo into /home/nixos-ci if not exists";
     wantedBy = ["multi-user.target"];
     after = ["network-online.target"];
