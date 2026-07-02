@@ -77,9 +77,9 @@ in {
       };
 
       volumes = [
-        "/home/.local/share/calibre-web-automated/config:/config"
+        "/home/nixos-calibre-web-auto/.config/calibre-web-automated/config:/config"
+        "/home/nixos-calibre-web-auto/.config/calibre-web-automated/plugins:/config/.config/calibre/plugins"
         "/mnt/pcloud:/calibre-library" # librería pCloud montada por rclone
-        "/home/.local/share/calibre-web-automated/plugins:/config/.config/calibre/plugins"
       ];
 
       ports = [
@@ -101,6 +101,8 @@ in {
 
   systemd.tmpfiles.rules = [
     "d /mnt/pcloud 0755 root root -"
+    "d /home/nixos-calibre-web-auto/.config/calibre-web-automated/config 0755 root root -"
+    "d /home/nixos-calibre-web-auto/.config/calibre-web-automated/plugins 0755 root root -"
     "d /home/nixos-calibre-web-auto/.config/rclone 0700 nixos-calibre-web-auto users -"
     # Symlink al rclone.conf del Nix store: config bajo control de Nix,
     # no hay que tocar ficheros a mano.
