@@ -1,3 +1,4 @@
+{ pkgs }:
 {
   services.dbus.implementation = "dbus";
   boot.isContainer = true;
