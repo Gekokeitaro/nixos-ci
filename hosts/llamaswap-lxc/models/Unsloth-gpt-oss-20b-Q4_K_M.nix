@@ -15,6 +15,19 @@
       --parallel 1
       --no-mmap
     '';
+    filters = {
+      setParamsByID = {
+        "\${MODEL_ID}" = {
+          chat_template_kwargs.reasoning_effort = "medium";
+        };
+        "\${MODEL_ID}:high" = {
+          chat_template_kwargs.reasoning_effort = "high";
+        };
+        "\${MODEL_ID}:low" = {
+          chat_template_kwargs.reasoning_effort = "low";
+        };
+      };
+    };
     ttl = 600;
   };
 }
