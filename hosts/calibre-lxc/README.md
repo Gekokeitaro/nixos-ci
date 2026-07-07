@@ -1,0 +1,1 @@
+> [!NOTE] LXC para levantar Calibre Web Automated con la biblioteca sincronizada en PCloud
