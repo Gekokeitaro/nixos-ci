@@ -3,8 +3,8 @@
   isLlamacppRocm,
 }: let
   lib = pkgs.lib;
-  llamacppVersion = "9886";
-  llamacppHash = "sha256-xxcZZOr9t4uSZ60Jv9vBtW5suy0OVSf712qh6TuzB5k=";
+  llamacppVersion = "9894";
+  llamacppHash = "sha256-BRZVtM67+Vw+vjv/ROLlr7YizZoIAMZ1uPIwNwTDtRE=";
   llamacppNpmHash = "sha256-X1DZgmhS/zHTqDT5zq0kywwntthcJ9vRXeqyO3zz6UU=";
   targetGPU = "gfx1035";
 in
