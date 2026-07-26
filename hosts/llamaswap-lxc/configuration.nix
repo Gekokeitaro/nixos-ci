@@ -38,6 +38,7 @@ in {
       magic-wormhole
       vulkan-tools
       radeontop
+      cowsay
     ];
   };
 
@@ -64,7 +65,7 @@ in {
   virtualisation.oci-containers.containers = {
     omniroute = {
       image = "diegosouzapw/omniroute:latest";
-    
+
       environment = {
         # PUID/PGID deben coincidir con dueño de los volúmenes en host,
         # si no: errores de permisos.
@@ -72,13 +73,12 @@ in {
         PGID = "1000";
         TZ = "Europe/Madrid";
       };
-    
+
       ports = [
-          "20128:20128"
+        "20128:20128"
       ];
     };
   };
-
 
   # Drivers GPU de runtime según el perfil elegido.
   # La compilación de llama-cpp ya los incluye como buildInputs via .override.
