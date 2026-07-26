@@ -70,12 +70,12 @@
         # Dominio que Forgejo usa para construir URLs absolutas (clones, emails…).
         # Con "localhost" solo funciona desde el propio contenedor; cambiar a la
         # IP o FQDN real del LXC cuando se configure un dominio permanente.
-        DOMAIN = "localhost";
+        DOMAIN = "0.0.0.0";
 
         # URL raíz que aparece en los enlaces de la interfaz y en los hooks.
         # Debe coincidir con DOMAIN. Si se añade un proxy inverso con HTTPS,
         # cambiar a https://<dominio>/.
-        ROOT_URL = "http://localhost:3000/";
+        ROOT_URL = "http://0.0.0.0:3000/";
       };
     };
   };

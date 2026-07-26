@@ -134,3 +134,13 @@ proper permissions.
 **Context**: El host `nixos-forgejo` usaba `users.users.nixos-forgejo.packages`, que no está soportado en NixOS (solo existe en home-manager).
 
 **Decision**: Todos los paquetes del sistema (herramientas CLI, utilidades) se declaran en `environment.systemPackages`. La opción `users.users.<name>.packages` queda reservada exclusivamente para configuraciones home-manager, nunca en módulos NixOS puros.
+
+---
+
+## 2026-07-26 — Fix de /sbin/init para que nixos-rebuild switch persista entre reboots
+
+**Context**: En imágenes LXC construidas con `nixos-rebuild build-image`, `/sbin/init` es un fichero estático copiado del store original (permisos `-r-xr-xr-x`, timestamp epoch 1970). Proxmox lo ejecuta directamente en cada arranque, ignorando el perfil actualizado por `nixos-rebuild switch`. Resultado: cualquier cambio aplicado dentro del LXC desaparecía tras un reinicio.
+
+**Decision**: Añadir `system.activationScripts.updateSbinInit` en `common/config/default.nix`. Este script se ejecuta en cada `nixos-rebuild switch` y reemplaza el fichero estático con un symlink a `/nix/var/nix/profiles/system/init`. Así, cada boot usa la generación correcta del perfil activo.
+
+**Rationale**: La alternativa (reconstruir y redesplegar la imagen completa tras cada cambio) es costosa y rompe el flujo de desarrollo habitual. El activation script es mínimo, idempotente y aplica a todos los hosts vía `common/`.
