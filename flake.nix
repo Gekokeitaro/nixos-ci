@@ -32,6 +32,14 @@
           ./hosts/nixos-lxc/configuration.nix
         ];
       };
+      nixos-forgejo = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = {inherit inputs;};
+        modules = [
+          nvf.nixosModules.default
+          ./hosts/nixos-forgejo/configuration.nix
+        ];
+      };
       nixos-calibre-web-auto = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = {inherit inputs;};

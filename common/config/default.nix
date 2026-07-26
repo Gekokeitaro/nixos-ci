@@ -47,4 +47,17 @@
     automatic = true;
     options = "--delete-older-than 3d";
   };
+
+  # /sbin/init en imágenes LXC construidas con nixos-rebuild build-image es un
+  # fichero estático copiado del store original. Proxmox lo ejecuta en cada
+  # arranque, lo que provoca que el sistema vuelva siempre a la generación
+  # inicial ignorando cualquier nixos-rebuild switch posterior.
+  #
+  # Este activation script lo reemplaza por un symlink al perfil activo
+  # (/nix/var/nix/profiles/system/init) en cada nixos-rebuild switch, de modo
+  # que el próximo arranque use la generación correcta.
+  system.activationScripts.updateSbinInit = ''
+    rm -f /sbin/init
+    ln -sfn /nix/var/nix/profiles/system/init /sbin/init
+  '';
 }
