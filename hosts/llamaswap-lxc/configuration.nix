@@ -39,7 +39,6 @@ in {
       magic-wormhole
       vulkan-tools
       radeontop
-      cowsay
     ];
   };
 
