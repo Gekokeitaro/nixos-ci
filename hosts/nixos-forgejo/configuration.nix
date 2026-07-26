@@ -24,10 +24,11 @@
   services.forgejo = {
     enable = true;
     database.type = "sqlite3";
-    # `true` para habilitar temporalmente la creación de cuentas de usuario, `false` para deshabilitarla y `nil` para usar la configuración por defecto.
-    service.DISABLE_REGISTRATION = true;
-
+    # Permitir Large File Storage (LFS) para subir archivos grandes a los repositorios.
+    #lfs.enable = true;
     settings = {
+      # `true` para habilitar temporalmente la creación de cuentas de usuario, `false` para deshabilitarla y `nil` para usar la configuración por defecto.
+      service.DISABLE_REGISTRATION = true;
       # Soporte para actions, basado en act: https://github.com/nektos/act
       actions = {
         ENABLED = true;
