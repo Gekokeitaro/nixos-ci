@@ -126,3 +126,11 @@ proper permissions.
 **Context**: Attempting to fix the `DeviceLost` error on the AMD iGPU by lowering `nodes_per_submit` to `1` in `llama-cpp` resulted in an unacceptable performance loss.
 
 **Decision**: The `nodes_per_submit` patch in the `llama-cpp` package is retained strictly for performance fine-tuning, as it is not a viable fix for stability in this case. The viable solution to prevent `DeviceLost` crashes remains the host-level workaround of increasing `amdgpu.lockup_timeout`.
+
+---
+
+## 2026-07-26 — environment.systemPackages en lugar de users.users.\<name\>.packages
+
+**Context**: El host `nixos-forgejo` usaba `users.users.nixos-forgejo.packages`, que no está soportado en NixOS (solo existe en home-manager).
+
+**Decision**: Todos los paquetes del sistema (herramientas CLI, utilidades) se declaran en `environment.systemPackages`. La opción `users.users.<name>.packages` queda reservada exclusivamente para configuraciones home-manager, nunca en módulos NixOS puros.
