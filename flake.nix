@@ -6,12 +6,16 @@
 
     nvf.url = "github:NotAShelf/nvf";
     nvf.inputs.nixpkgs.follows = "nixpkgs";
+
+    sops-nix.url = "github:Mic92/sops-nix";
+    sops-nix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = {
     self,
     nixpkgs,
     nvf,
+    sops-nix,
     ...
   } @ inputs: let
     system = "x86_64-linux";
@@ -29,7 +33,16 @@
         specialArgs = {inherit inputs;};
         modules = [
           nvf.nixosModules.default
+          sops-nix.nixosModules.sops
           ./hosts/nixos-lxc/configuration.nix
+        ];
+      };
+      nixos-forgejo = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = {inherit inputs;};
+        modules = [
+          nvf.nixosModules.default
+          ./hosts/nixos-forgejo/configuration.nix
         ];
       };
       nixos-calibre-web-auto = nixpkgs.lib.nixosSystem {
