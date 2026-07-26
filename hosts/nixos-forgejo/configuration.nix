@@ -27,11 +27,13 @@
     # `true` para habilitar temporalmente la creación de cuentas de usuario, `false` para deshabilitarla y `nil` para usar la configuración por defecto.
     service.DISABLE_REGISTRATION = true;
 
-    # Soporte para actions, basado en act: https://github.com/nektos/act
-    actions = {
-      ENABLED = true;
-      DEFAULT_ACTIONS_URL = "github";
-    };
+    settings = {
+      # Soporte para actions, basado en act: https://github.com/nektos/act
+      actions = {
+        ENABLED = true;
+        DEFAULT_ACTIONS_URL = "github";
+      };
+    }:
   };
 
   nix.settings.experimental-features = ["nix-command" "flakes"];
