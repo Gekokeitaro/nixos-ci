@@ -47,34 +47,7 @@ in {
     port = 8080;
     openFirewall = true; # Añade port a allowedTCPPorts. Necesario con Proxmox?
     settings = {
-      models = lib.mkMerge [
-        #(import ./models/qwen3-embedding-0.6B_Q8_0.nix {llama-server = llama-server-delayed;})
-        
-      ];
-      matrix = {
-        vars = {
-        #  embed = "Qwen3-Embedding-0.6B-Q8_0";
-        #  reranker = "bge-reranker-v2-m3-q8_0";
-        #  gemma = "Unsloth Gemma4 E4B QAT Q4_K_XL";
-        #  chat = "JetBrains Mellum2 12B A2.5B Instruct";
-        #  tooling = "Unsloth LFM2.5 8B A1B UD";
-        #  lead = "Unsloth GPT OSS 20B Q4_K_M";
-        };
-        evict_costs = {
-        #  embed = 99;
-        #  reranker = 20;
-        #  gemma = 50;
-        #  chat = 80;
-        #  tooling = 60;
-        #  lead = 40;
-        };
-        sets = {
-        #  rag-process = "gemma & embed & reranker";
-        #  simple-chat = "chat & tooling";
-        #  tools = "tooling & embed";
-        #  orchestrate = "lead & chat";
-        };
-      };
+      models = lib.mkMerge [];
     };
   };
 
