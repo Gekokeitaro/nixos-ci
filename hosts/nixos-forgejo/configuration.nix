@@ -31,7 +31,7 @@
     actions = {
       ENABLED = true;
       DEFAULT_ACTIONS_URL = "github";
-    }
+    };
   };
 
   nix.settings.experimental-features = ["nix-command" "flakes"];
