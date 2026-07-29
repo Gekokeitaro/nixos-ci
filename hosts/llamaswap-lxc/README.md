@@ -77,7 +77,7 @@ detectarlo.
 > ggml_backend_vk_graph_compute batches up to 100 nodes per vkQueueSubmit. On
 > slow integrated GPUs/APUs, the accumulated GPU work in a single submission
 > exceeds this timeout, causing the kernel to reset the compute ring.' -
-> https://github.com/mostlygeek/llama-swap
+> https://github.com/ggml-org/llama.cpp/issues/21724
 
 > [!NOTE] Solución aplicada:
 >
