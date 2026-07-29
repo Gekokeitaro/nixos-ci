@@ -4,31 +4,38 @@ Repo para crear, desplegar y actualizar los LXC de mi homelab.
 
 ## Hosts
 
-- nixos-ci: Máquina de desarrollo, creación de imágenes LXC y actualización de
-  contenedores.
-- nixos-llamaswap-vulkan: llama.cpp + llamaswap para servir modelos locales.
-  - También incluye Omniroute, aunque la idea será migrarlo a otro LXC.
-- nixos-calibre-web-auto: Levanta
-  [Calibre Web Automated](https://github.com/crocodilestick/Calibre-Web-Automated)
-  para servir mis ebooks entre varios dispositivos.
-- nixos-pihole: Abandonado. Nice to have pero ahora mismo no me sale a cuenta.
-- (WIP) nixos-forgejo: Servidor para mantener mis repos y sincronizarlos con
-  otros servicios, con CI/CD para los LXC.
+| Hostname               | Función                                                                                                                                    |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| nixos-ci               | En vías de deprecación [^*]. Máquina de desarrollo, creación y actualización de LXC.                                                       |
+| nixos-llamaswap-vulkan | llama.cpp + llamaswap para servir modelos locales. [^**]                                                                                   |
+| nixos-calibre-web-auto | Levanta [Calibre Web Automated](https://github.com/crocodilestick/Calibre-Web-Automated) para servir mis ebooks entre varios dispositivos. |
+| nixos-pihole           | Abandonado. Nice to have pero ahora mismo no me sale a cuenta.                                                                             |
+| (WIP) nixos-forgejo    | Servidor para mantener mis repos y sincronizarlos con otros servicios, con CI/CD para los LXC.                                             |
+
+[^*] Seguramente se quede en modo mantenimiento, pero la idea es llevar el CI/CD
+de los LXC a Forgejo.
+
+[^**] También incluye Omniroute, aunque la idea será migrarlo a otro LXC.
 
 ## Comandos
 
-- `nix flake show .` muestra los comandos y hosts del `flake.nix`
-- `nixos-rebuild build-image --image-variant lxc --flake .#<host>` genera la
-  imagen LXC del host. Se deprecará próximamente para aplicar las config
-  directamente sobre una imagen mínima.
-- `nixos-rebuild switch --flake .#<host> --target-host <user>@<ip> --elevate=sudo`
-  actualiza la configuración del LXC. ES MANDATORY QUE EL LXC TENGA CARGADA LA
-  CLAVE PUBLICA DE nixos-ci EN `configuration.nix` -> Actualiza la configuración
-  del LXC
-- `nixos-rebuild switch --flake .#<host>` - Recompila la configuración actual
-  con la definida en el host.
+| Comando                                                                          | Acción                                                                   |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `nix flake show .`                                                               | Muestra los comandos y hosts del `flake.nix`                             |
+| `nixos-rebuild build-image --image-variant lxc --flake .#<host>`                 | Deprecado[^*]. Genera una imagen LXC basada en la configuración del host |
+| `nixos-rebuild switch --flake .#<host> --target-host <user>@<ip> --elevate=sudo` | Aplica la configuración del host al LXC vía remoto (SSH)[^**]            |
+| `nixos-rebuild switch --flake .#<host>`                                          | Aplica la configuración del host a la máquina actual                     |
 
-> [!DANGER] CUIDADO CON APLICAR LA CONFIG DE UN HOST EN LA MÁQUINA EQUIVOCADA
+[^*] Ya no es necesario ya que puedo aplicar la config al LXC vía SSH.
+
+[^**] Obviamente, es MANDATORY haber añadido las claves SSH previamente en el
+`configuration.nix`, por comodidad.
+
+actualiza la configuración del LXC. ES MANDATORY QUE EL LXC TENGA CARGADA LA
+CLAVE PUBLICA DE nixos-ci EN `configuration.nix` -> Actualiza la configuración
+del LXC con la definida en el host.
+
+> [!CAUTION] CUIDADO CON APLICAR LA CONFIG DE UN HOST EN LA MÁQUINA EQUIVOCADA
 >
 > `nixos-rebuild` recompila la configuración del sistema con lo que se describe
 > en el `configuration.nix` del host seleccionado. Al usar un host distinto al
@@ -36,31 +43,19 @@ Repo para crear, desplegar y actualizar los LXC de mi homelab.
 > sistema y hardware actuales, además de romper las credenciales del login al
 > cambiarse el hostname sin asignar una nueva contraseña.
 
+> [!NOTE]+ `nixos-rebuild build-image --image-variant lxc --flake .#<host>`
+>
+> Esto genera un softlink `result/` al directorio de la store de NixOS donde se
+> encuentra la imagen LXC en formato `tar.gz`. Sin embargo, aunque el LXC tiene
+> aplicada la configuración, no incluye los ficheros de configuración dentro de
+> la carpeta del sistema de NixOS, lo que va a provocar que siempre que se
+> inicie el contenedor, utilice la configuración con la que fue generada la
+> imagen, aún con `nixos-rebuild switch`.
+
 ## Configuración común
 
 - Todos los LXC tienen por defecto NVF (Neovim) para hacer pequeñas
   modificaciones con vistas a testing.
-
-> [!IMPORTANT] Ahora mismo, probablemente por ignorancia, los LXC vuelven a la
-> configuración del sistema original cada vez que se reinician. Osea, ninguno de
-> los cambios que se haga en `configuration.nix` se aplicará a menos que se haga
-> `nixos-rebuild` cada vez que se levante el contenedor.
->
-> Entonces, cualquier mejora se tiene que llevar al repo y regenerar la imagen.
->
-> Para facilitar las pruebas, todos los LXC tienen descargado el repo por
-> defecto dentro de /home/ (a falta de hacer que esté dentro de la carpeta del
-> usuario en /home/)
-
-- Todos los LXC son accesibles por SSH, cambiando la clave SSH.
-
-# build-image --image-variant lxc
-
-- El resultado es un softlink apuntando al `tar.gz` de la imagen en `store`
-- Nada más iniciar el contenedor, lanzar `nix-channel --update`
-- Los ficheros de configuración (`flake.nix`, `configuration.nix`...) no viajan
-  a la imagen del contenedor, para mantener la config y hacer cambios, clona el
-  repo dentro del contenedor.
 
 ## Passthrough de iGPU AMD a LXC Unprivileged en Proxmox 9
 
