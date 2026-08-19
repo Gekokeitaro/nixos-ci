@@ -33,7 +33,7 @@ in {
     settings = {
       # false → el registro está abierto; cualquiera puede crear cuenta.
       # Poner a true una vez creado el admin para cerrar el registro público.
-      service.DISABLE_REGISTRATION = false;
+      service.DISABLE_REGISTRATION = true;
 
       server = {
         HTTP_PORT = port;
@@ -43,7 +43,7 @@ in {
     };
   };
 
-  networking.firewall.allowedTCPPorts = [3000];
+  networking.firewall.allowedTCPPorts = [port];
 
   nix.settings.experimental-features = ["nix-command" "flakes"];
 
