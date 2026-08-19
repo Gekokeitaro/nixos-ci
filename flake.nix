@@ -34,7 +34,7 @@
         modules = [
           nvf.nixosModules.default
           sops-nix.nixosModules.sops
-          ./hosts/nixos-lxc/configuration.nix
+          ./hosts/nixos-ci/configuration.nix
         ];
       };
       nixos-forgejo = nixpkgs.lib.nixosSystem {
