@@ -17,6 +17,7 @@
       git
       curl
       wget
+      bat
       magic-wormhole
     ];
   };
