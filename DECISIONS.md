@@ -126,3 +126,21 @@ proper permissions.
 **Context**: Attempting to fix the `DeviceLost` error on the AMD iGPU by lowering `nodes_per_submit` to `1` in `llama-cpp` resulted in an unacceptable performance loss.
 
 **Decision**: The `nodes_per_submit` patch in the `llama-cpp` package is retained strictly for performance fine-tuning, as it is not a viable fix for stability in this case. The viable solution to prevent `DeviceLost` crashes remains the host-level workaround of increasing `amdgpu.lockup_timeout`.
+
+---
+
+## 2026-09-03 — Host nixos-omnirouter con OmniRoute
+
+**Context**: Se necesita un nuevo host que implemente OmniRoute, el AI gateway de Diego Souza (`diegosouzapw/OmniRoute`), como aplicación auto-contenida en un LXC unprivilegiado.
+
+**Decision**:
+- El paquete se define en `hosts/nixos-omnirouter/packages/omniroute/default.nix` usando `fetchFromGitHub` + `fetchPnpmDeps` + `pnpmConfigHook` + `pnpmBuildHook` con `pkgs.pnpm_11`. No se usa `buildNpmPackage` (npm).
+- Los hashes usan `lib.fakeHash` para generación posterior.
+- El módulo de host se separa en `hosts/nixos-omnirouter/modules/omniroute/default.nix`.
+- El paquete es privado del host, importado directamente desde `../packages/omniroute`, sin exposición en el flake surface.
+- El servicio systemd escucha en el puerto `20128` con `Restart = "on-failure"`.
+- Las claves secretas (`JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `OMNIROUTE_WS_BRIDGE_SECRET`) se inyectan fuera de la imagen.
+
+**Rationale**: `fetchPnpmDeps` + `pnpmConfigHook` es el patrón oficial de nixpkgs para proyectos con `pnpm-lock.yaml`, respetando workspaces y el lock file. `buildNpmPackage` es específico para npm y no soporta `pnpm-lock.yaml`.
+
+---
