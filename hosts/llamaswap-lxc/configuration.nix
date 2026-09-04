@@ -28,6 +28,7 @@ in {
 
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGApUnvphJshC3LJ4QxDu8fm3JqEnSWZ6ewhf6gQuF7V PopOS OCT 2024"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFeASXjLf7TjNTxO5CZ4Aa6z8hyFG0CXAe4FhcpZOEp6 NixOS-CI MAY 2026"
     ];
 
     packages = with pkgs; [
@@ -48,33 +49,10 @@ in {
     openFirewall = true; # Añade port a allowedTCPPorts. Necesario con Proxmox?
     settings = {
       models = lib.mkMerge [
-        #(import ./models/qwen3-embedding-0.6B_Q8_0.nix {llama-server = llama-server-delayed;})
-        
+        (import ./models/JetBrains-Mellum2-12B-A2.5B-Instruct-MXFPA4_MOE.nix {llama-server = llama-server-delayed;})
+        (import ./models/Unsloth-gpt-oss-20b-Q4_K_M.nix {llama-server = llama-server-delayed;})
+        (import ./models/Yuxinlu1-mellum2-claude-Q4_K_M.nix {llama-server = llama-server-delayed;})
       ];
-      matrix = {
-        vars = {
-        #  embed = "Qwen3-Embedding-0.6B-Q8_0";
-        #  reranker = "bge-reranker-v2-m3-q8_0";
-        #  gemma = "Unsloth Gemma4 E4B QAT Q4_K_XL";
-        #  chat = "JetBrains Mellum2 12B A2.5B Instruct";
-        #  tooling = "Unsloth LFM2.5 8B A1B UD";
-        #  lead = "Unsloth GPT OSS 20B Q4_K_M";
-        };
-        evict_costs = {
-        #  embed = 99;
-        #  reranker = 20;
-        #  gemma = 50;
-        #  chat = 80;
-        #  tooling = 60;
-        #  lead = 40;
-        };
-        sets = {
-        #  rag-process = "gemma & embed & reranker";
-        #  simple-chat = "chat & tooling";
-        #  tools = "tooling & embed";
-        #  orchestrate = "lead & chat";
-        };
-      };
     };
   };
 
@@ -91,7 +69,7 @@ in {
   virtualisation.oci-containers.containers = {
     omniroute = {
       image = "diegosouzapw/omniroute:latest";
-    
+
       environment = {
         # PUID/PGID deben coincidir con dueño de los volúmenes en host,
         # si no: errores de permisos.
@@ -99,13 +77,12 @@ in {
         PGID = "1000";
         TZ = "Europe/Madrid";
       };
-    
+
       ports = [
-          "20128:20128"
+        "20128:20128"
       ];
     };
   };
-
 
   # Drivers GPU de runtime según el perfil elegido.
   # La compilación de llama-cpp ya los incluye como buildInputs via .override.
