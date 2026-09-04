@@ -1,17 +1,33 @@
+# 010726
+# ./llama-bench --delay 10 -m /models/gpt-oss-20b-Q4_K_M.gguf -ngl 99 -t 4 -b 512 -ub 512 -ctk q8_0 -ctv q4_0 -fa 1 -ot ".ffn_(up|down)_exps.=CPU"
 {llama-server}: {
   "Unsloth GPT OSS 20B Q4_K_M" = {
     name = "Unsloth GPT OSS 20B Q4_K_M";
     cmd = ''
       ${llama-server} --port ''${PORT}
-      --model /models/gpt-oss-20b-UD-Q6_K_XL.gguf
+      --model /models/gpt-oss-20b-Q4_K_M.gguf
       --spec-type ngram-mod
       --ctx-size 32768
-      --n-gpu-layers 99
-      --threads 2
-      --n-cpu-moe 4
+      -ngl 99 -t 4
+      -b 512 -ub 512
+      -ctk q8_0 -ctv q4_0 -fa 1
+      -ot ".ffn_(up|down)_exps.=CPU"
       --parallel 1
-      --no-warmup
+      --no-mmap
     '';
+    filters = {
+      setParamsByID = {
+        "\${MODEL_ID}" = {
+          chat_template_kwargs.reasoning_effort = "medium";
+        };
+        "\${MODEL_ID}:high" = {
+          chat_template_kwargs.reasoning_effort = "high";
+        };
+        "\${MODEL_ID}:low" = {
+          chat_template_kwargs.reasoning_effort = "low";
+        };
+      };
+    };
     ttl = 600;
   };
 }

@@ -1,113 +1,52 @@
 # NixOS LXC
 
-Plantilla para crear LXC de NixOS, utilizando de base:
-- https://gysli.ng/posts/tech/proxmox-nixos/
- 
+> [!summary] Repo para crear, desplegar y actualizar los LXC de mi homelab.
 
-# Comandos
+## Hosts
 
-- `nix flake show .` - Muestra información sobre la flake.
-- `nix run .#update-llama-cpp` - Actualiza llama.cpp a la última versión disponible en GitHub.
-- `nixos-rebuild build-image --image-variant lxc --flake .#<host>` - Genera la imagen LXC.
-- `nixos-rebuild switch --flake .#<host>` - Aplica la configuración a la máquina.
+| Hostname               | Función                                                                                                                                    |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| nixos-ci               | En vías de deprecación [^*]. Máquina de desarrollo, creación y actualización de LXC.                                                       |
+| nixos-llamaswap-vulkan | llama.cpp + llamaswap para servir modelos locales. [^**]                                                                                   |
+| nixos-calibre-web-auto | Levanta [Calibre Web Automated](https://github.com/crocodilestick/Calibre-Web-Automated) para servir mis ebooks entre varios dispositivos. |
+| nixos-pihole           | Abandonado. Nice to have pero ahora mismo no me sale a cuenta.                                                                             |
+| (WIP) nixos-forgejo    | Servidor para mantener mis repos y sincronizarlos con otros servicios, con CI/CD para los LXC.                                             |
 
-## Configuración básica
+[^*] Seguramente se quede en modo mantenimiento, pero la idea es llevar el CI/CD
+de los LXC a Forgejo.
 
-- Editar <host> y la ssh key para acceso por SSH.
+[^**] También incluye Omniroute, aunque la idea será migrarlo a otro LXC.
 
-## build-image --image-variant lxc
+> [!note] Todos los LXC tienen NVF (Neovim) cómo editor de texto para realizar
+> ajustes y tests.
 
-- El resultado es un softlink apuntando al `tar.gz` de la imagen en `store`
-- Nada más iniciar el contenedor, lanzar `nix-channel --update`
-- Los ficheros de configuración (`flake.nix`, `configuration.nix`...) no viajan a la imagen del contenedor, para mantener la config y hacer cambios, clona el repo dentro del contenedor.
+## Comandos
 
-# Actualizar llama.cpp automáticamente
+| Comando                                                                          | Acción                                                                   |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `nix flake show .`                                                               | Muestra los comandos y hosts del `flake.nix`                             |
+| `nixos-rebuild build-image --image-variant lxc --flake .#<host>`                 | Deprecado[^*]. Genera una imagen LXC basada en la configuración del host |
+| `nixos-rebuild switch --flake .#<host> --target-host <user>@<ip> --elevate=sudo` | Aplica la configuración del host al LXC vía remoto (SSH)[^**]            |
+| `nixos-rebuild switch --flake .#<host>`                                          | Aplica la configuración del host a la máquina actual                     |
 
-Para actualizar `llama.cpp` a la última versión estable lanzada en GitHub y recalcular su hash de forma automática, ejecuta:
+[^*] Ya no es necesario ya que puedo aplicar la config al LXC vía SSH.
 
-```bash
-nix run .#update-llama-cpp
-```
+[^**] Obviamente, es MANDATORY haber añadido las claves SSH previamente en el
+`configuration.nix`, por comodidad.
 
-## Método manual (alternativo)
-
-Si prefieres obtener el hash y actualizar el archivo
-`packages/llama-cpp/default.nix` manualmente:
-
-```bash
-nix shell nixpkgs#nix-prefetch-github nixpkgs#jq nixpkgs#curl
-
-# Obtener latest release
-LATEST=$(curl -sf https://api.github.com/repos/ggml-org/llama.cpp/releases/latest | jq -r '.tag_name')
-echo "Latest: $LATEST"
-
-# Obtener hash SRI para fetchFromGitHub
-nix-prefetch-github ggml-org llama.cpp --rev "$LATEST"
-# → { "hash": "sha256-XXXX=", "rev": "bNNNN" }
-```
-
-# Passthrough de iGPU AMD a LXC Unprivileged en Proxmox 9
-
-Para usar la iGPU/GPU de AMD desde un LXC en Proxmox 9 (o más reciente):
-
-## 1. Identificar el GID del grupo `render` en el LXC NixOS
-
-Inicia el contenedor y obtén el identificador de grupo (GID) de `render` y `video` (para ROCm):
-
-```bash
-getent group render | cut -d: -f3
-getent group video | cut -d: -f3
-# → Ej: 303, 26
-```
-
-## 2. Configurar el Passthrough en Proxmox
-
-1. Ve a tu contenedor LXC -> **Resources** -> **Add** -> **Device Passthrough**.
-2. Configura los siguientes campos:
-   - **Device Path**: `/dev/dri/renderD128`
-   - **Mode**: `0666`
-   - Marca **Advanced** y pon el **GID** obtenido en el paso 1 (ej: `108`), con
-     **UID** `0`.
-3. Repite el proceso para `/dev/dri/card0` y `/dev/kfd` (para ROCm) si es necesario.
-
-Reinicia el contenedor LXC desde Proxmox tras aplicar los cambios.
-
-## 3. Verificar desde el LXC NixOS
-
-Comprueba que los dispositivos se listan y tienen permisos adecuados:
-
-```bash
-ls -l /dev/dri
-# Debe mostrar renderD128 y card0 accesibles por el grupo render.
-```
-
-Ejecuta el diagnóstico según el perfil (Vulkan o ROCm) usando Nix Shell:
-
-```bash
-# Para el perfil Vulkan (RADV)
-nix shell nixpkgs#vulkan-tools -c vulkaninfo --summary
-
-# Para el perfil ROCm
-nix shell nixpkgs#rocmPackages.rocminfo -c rocminfo
-```
-
-## 4. GPU job timeout
-
--> https://github.com/ggml-org/llama.cpp/issues/21724
-
-> [!QUOTE] 'The default Linux amdgpu.lockup_timeout is 2000ms.
-> ggml_backend_vk_graph_compute batches up to 100 nodes per vkQueueSubmit. On
-> slow integrated GPUs/APUs, the accumulated GPU work in a single submission
-> exceeds this timeout, causing the kernel to reset the compute ring.'
-
-Estaba teniendo este mismo problema al utilizar Lightrag. Aún no hay fix
-oficial, así que la solución pasa por aumentar el `lockup_timeout`. Puede tener
-side-effects ya que el timeout se utiliza para evitar posibles cuelgues. En
-Proxmox 9.1.:
-
-> [!NOTE]
+> [!CAUTION] CUIDADO CON APLICAR LA CONFIG DE UN HOST EN LA MÁQUINA EQUIVOCADA
 >
-> 1. echo "options amdgpu lockup_timeout=30000" > /etc/modprobe.d/amdgpu.conf
-> 2. update-initramfs -u -k all && reboot
+> `nixos-rebuild` recompila la configuración del sistema con lo que se describe
+> en el `configuration.nix` del host seleccionado. Al usar un host distinto al
+> original puede ocurrir que se apliquen configuraciones incompatibles con el
+> sistema y hardware actuales, además de romper las credenciales del login al
+> cambiarse el hostname sin asignar una nueva contraseña.
 
-Necesita ajustes, pero es un workaround que funciona.
+> [!NOTE]+ `nixos-rebuild build-image --image-variant lxc --flake .#<host>`
+>
+> Esto genera un softlink `result/` al directorio de la store de NixOS donde se
+> encuentra la imagen LXC en formato `tar.gz`. Sin embargo, aunque el LXC tiene
+> aplicada la configuración, no incluye los ficheros de configuración dentro de
+> la carpeta del sistema de NixOS, lo que va a provocar que siempre que se
+> inicie el contenedor, utilice la configuración con la que fue generada la
+> imagen, aún con `nixos-rebuild switch`.
