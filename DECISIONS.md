@@ -175,29 +175,28 @@ script es mínimo, idempotente y aplica a todos los hosts vía `common/`.
 
 ---
 
-## 2026-09-03 — Host nixos-omnirouter con OmniRoute
+## 2026-09-04 — Host nixos-omniroute con OmniRoute como OCI container
 
-**Context**: Se necesita un nuevo host que implemente OmniRoute, el AI gateway
-de Diego Souza (`diegosouzapw/OmniRoute`), como aplicación auto-contenida en un
-LXC unprivilegiado.
+**Context**: Se necesita un host que implemente OmniRoute, el AI gateway
+de Diego Souza (`diegosouzapw/OmniRoute`), en un LXC unprivilegiado.
 
 **Decision**:
 
-- El paquete se define en
-  `hosts/nixos-omnirouter/packages/omniroute/default.nix` usando
-  `fetchFromGitHub` + `fetchPnpmDeps` + `pnpmConfigHook` + `pnpmBuildHook` con
-  `pkgs.pnpm_11`. No se usa `buildNpmPackage` (npm).
-- Los hashes usan `lib.fakeHash` para generación posterior.
-- El módulo de host se separa en
-  `hosts/nixos-omnirouter/modules/omniroute/default.nix`.
-- El paquete es privado del host, importado directamente desde
-  `../packages/omniroute`, sin exposición en el flake surface.
-- El servicio systemd escucha en el puerto `20128` con `Restart = "on-failure"`.
-- Las claves secretas (`JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`,
-  `OMNIROUTE_WS_BRIDGE_SECRET`) se inyectan fuera de la imagen.
+- Se ejecuta como contenedor OCI con Podman (`virtualisation.oci-containers`),
+  siguiendo el patrón de `hosts/calibre-lxc`.
+- Imagen: `diegosouzapw/omniroute:latest`.
+- Puerto expuesto: `20128:20128`.
+- Volumen persistente: `omniroute-data:/app/data`.
+- Variables de entorno (`OMNIROUTE_MEMORY_MB`, `OMNIROUTE_WS_BRIDGE_SECRET`,
+  `INITIAL_PASSWORD`, `TZ`) configurables en el `environment` del contenedor
+  OCI, comentadas por defecto.
+- El usuario del host es `nixos-omniroute` (sin la "r" final).
+- El antiguo enfoque de `packages/omniroute/default.nix` con `buildNpmPackage`
+  se eliminó completamente.
 
-**Rationale**: `fetchPnpmDeps` + `pnpmConfigHook` es el patrón oficial de
-nixpkgs para proyectos con `pnpm-lock.yaml`, respetando workspaces y el lock
-file. `buildNpmPackage` es específico para npm y no soporta `pnpm-lock.yaml`.
+**Rationale**: Dockerizar la aplicación simplifica el despliegue, elimina la
+necesidad de build-from-source en el host, y permite usar la imagen oficial
+con todas sus dependencias resueltas. El patrón OCI-container es consistente
+con otros hosts del repo (calibre-lxc).
 
 ---

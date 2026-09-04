@@ -2,12 +2,10 @@
   pkgs,
   lib,
   ...
-}: let
-  omniroute = import ../packages/omniroute {inherit pkgs;};
-in {
+}: {
   imports = [../../common];
 
-  users.users.nixos-omnirouter = {
+  users.users.nixos-omniroute = {
     isNormalUser = true;
     extraGroups = ["wheel"];
     openssh.authorizedKeys.keys = [
@@ -22,16 +20,28 @@ in {
     ];
   };
 
-  systemd.services.omniroute = {
+  virtualisation.podman = {
     enable = true;
-    description = "OmniRoute AI Gateway";
-    wantedBy = ["multi-user.target"];
-    after = ["network.target"];
-    serviceConfig = {
-      Type = "simple";
-      ExecStart = "${omniroute}/bin/omniroute";
-      Restart = "on-failure";
+    defaultNetwork.settings.dns_enabled = true;
+  };
+
+  virtualisation.oci-containers.containers.omniroute = {
+    image = "diegosouzapw/omniroute:latest";
+
+    environment = {
+      # OMNIROUTE_MEMORY_MB = "1024";
+      # OMNIROUTE_WS_BRIDGE_SECRET = "<generar>";
+      # INITIAL_PASSWORD = "<generar>";
+      # TZ = "Europe/Madrid";
     };
+
+    volumes = [
+      "omniroute-data:/app/data"
+    ];
+
+    ports = [
+      "20128:20128"
+    ];
   };
 
   networking.firewall.allowedTCPPorts = [20128];
