@@ -1,12 +1,11 @@
-{ nodejs, lib, stdenv, fetchFromGitHub, fetchPnpmDeps, pnpmConfigHook, pnpmBuildHook, pnpm_11 }:
+{ lib, stdenv, fetchFromGitHub, buildNpmPackage, fetchNpmDeps, nodejs }:
 
 let
   omnirouteVersion = "3.8.50";
   omnirouteHash = lib.fakeHash;
-  omniroutePnpmDepsHash = lib.fakeHash;
-  pnpm = pnpm_11;
+  omnirouteNpmDepsHash = lib.fakeHash;
 in
-stdenv.mkDerivation (finalAttrs: {
+buildNpmPackage (finalAttrs: {
   pname = "omniroute";
   version = omnirouteVersion;
 
@@ -17,27 +16,14 @@ stdenv.mkDerivation (finalAttrs: {
     hash = omnirouteHash;
   };
 
-  nativeBuildInputs = [
-    nodejs
-    pnpmConfigHook
-    pnpm
-    pnpmBuildHook
-  ];
-
-  pnpmDeps = fetchPnpmDeps {
+  npmDeps = fetchNpmDeps {
     inherit (finalAttrs) pname version src;
-    inherit pnpm;
-    fetcherVersion = 4;
-    hash = omniroutePnpmDepsHash;
+    fetcherVersion = 2;
+    hash = omnirouteNpmDepsHash;
   };
 
-  pnpmWorkspaces = [ "open-sse" "packages/browser-pool" ];
-
-  buildPhase = ''
-    runHook preBuild
-    pnpm run build
-    runHook postBuild
-  '';
+  npmFlags = [ "--ignore-scripts" ];
+  dontStrip = true;
 
   installPhase = ''
     runHook preInstall
