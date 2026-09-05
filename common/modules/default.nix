@@ -1,3 +1,3 @@
 {
-  imports = [./nvf];
+  imports = [./nvf ./sops-nix];
 }
