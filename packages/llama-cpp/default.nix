@@ -3,9 +3,9 @@
   isLlamacppRocm,
 }: let
   lib = pkgs.lib;
-  llamacppVersion = "10107";
-  llamacppHash = "sha256-79ENuzOpmyDam89LUksOf/acXEwwilGAvciN2OYtg30=";
-  llamacppNpmHash = "sha256-B7uEynAG70a3xauBKc20RuFa9cnWaWzVBCh+LPLBnIM=";
+  llamacppVersion = "v0.3.0";
+  llamacppHash = "sha256-vVq7+eUN6NXZuqm7Jwlr4iFDV1PjNzQ6nK9AR2zvZYM=";
+  llamacppNpmHash = "sha256-2Q7XhaLAArmviOLdQsNbYTfdyDE5pW9lR26cRHEVl9k=";
   targetGPU = "gfx1035";
 in
   (
@@ -20,7 +20,7 @@ in
       src = pkgs.fetchFromGitHub {
         owner = "ggml-org";
         repo = "llama.cpp";
-        tag = "b${version}";
+        tag = "${version}";
         hash = llamacppHash;
       };
 

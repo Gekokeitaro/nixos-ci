@@ -1,7 +1,7 @@
 # Decision Log
 
-Architectural and design decisions for the nixos-ci project.
-Agents must append new entries here and keep this file under 300 lines.
+Architectural and design decisions for the nixos-ci project. Agents must append
+new entries here and keep this file under 300 lines.
 
 ---
 
@@ -11,8 +11,8 @@ Agents must append new entries here and keep this file under 300 lines.
 
 **Decision**: Split GPU support into two layers:
 
-- `common/config/default.nix` enables `hardware.graphics` (Mesa/libdrm base)
-  for all hosts.
+- `common/config/default.nix` enables `hardware.graphics` (Mesa/libdrm base) for
+  all hosts.
 - `hosts/llamaswap-lxc/configuration.nix` conditionally loads Vulkan or ROCm
   runtime packages based on the `isLlamacppRocm` flag passed via `specialArgs`.
 
@@ -38,9 +38,9 @@ installed via `hardware.graphics.enable = true`.
 
 **Context**: Project targets Proxmox deployment.
 
-**Decision**: All LXC containers are and will always be **unprivileged**.
-No configuration should rely on privileged container features. GPU device
-access must go through Proxmox's unprivileged passthrough
+**Decision**: All LXC containers are and will always be **unprivileged**. No
+configuration should rely on privileged container features. GPU device access
+must go through Proxmox's unprivileged passthrough
 (`lxc.cgroup2.devices.allow`).
 
 ---
@@ -50,9 +50,9 @@ access must go through Proxmox's unprivileged passthrough
 **Context**: The development machine is not NixOS.
 
 **Decision**: Agents must never run `nix`, `nix-build`, `nix-shell`,
-`nixos-rebuild`, or any Nix CLI command on the dev host. Validation is done
-by reading and reasoning about the Nix expressions, or by the user on the
-actual NixOS LXC containers.
+`nixos-rebuild`, or any Nix CLI command on the dev host. Validation is done by
+reading and reasoning about the Nix expressions, or by the user on the actual
+NixOS LXC containers.
 
 ---
 
@@ -69,12 +69,13 @@ This keeps the flake surface minimal and the dependency chain explicit.
 
 ## 2026-05-26 — One model per .nix file
 
-**Context**: llama-swap serves multiple LLM models with different configurations.
+**Context**: llama-swap serves multiple LLM models with different
+configurations.
 
 **Decision**: Each model is defined in its own `.nix` file under
-`hosts/llamaswap-lxc/models/`, with signature `{llama-server}: { ... }`.
-Models are composed via `lib.mkMerge`. This keeps model configs isolated,
-easy to add/remove, and avoids monolithic configuration files.
+`hosts/llamaswap-lxc/models/`, with signature `{llama-server}: { ... }`. Models
+are composed via `lib.mkMerge`. This keeps model configs isolated, easy to
+add/remove, and avoids monolithic configuration files.
 
 ---
 
@@ -94,8 +95,8 @@ agent compatibility.
 officially listed in ROCm's supported hardware.
 
 **Decision**: Set `HSA_OVERRIDE_GFX_VERSION = "10.3.0"` as an environment
-variable in the ROCm profile to force compatibility. This may need updating
-if ROCm adds official gfx1035 support in the future.
+variable in the ROCm profile to force compatibility. This may need updating if
+ROCm adds official gfx1035 support in the future.
 
 ---
 
@@ -106,41 +107,96 @@ if ROCm adds official gfx1035 support in the future.
 This happened because the systemd service for llama-swap runs as a system user
 without a writeable home directory.
 
-**Decision**: Set `MESA_SHADER_CACHE_DIR` and `XDG_CACHE_HOME` to `/var/cache/llama-swap`
-in the `llama-swap` systemd service environment, and enable systemd's
-`CacheDirectory = "llama-swap"` to dynamically create and manage the directory with
-proper permissions.
+**Decision**: Set `MESA_SHADER_CACHE_DIR` and `XDG_CACHE_HOME` to
+`/var/cache/llama-swap` in the `llama-swap` systemd service environment, and
+enable systemd's `CacheDirectory = "llama-swap"` to dynamically create and
+manage the directory with proper permissions.
 
 ---
 
 ## 2026-05-26 — Automated llama-cpp updates
 
-**Context**: Upgrading llama.cpp required manually finding the latest GitHub release version and prefetching the SHA-256 hash using external commands, then manually editing `packages/llama-cpp/default.nix`.
+**Context**: Upgrading llama.cpp required manually finding the latest GitHub
+release version and prefetching the SHA-256 hash using external commands, then
+manually editing `packages/llama-cpp/default.nix`.
 
-**Decision**: Implement a declarative flake application (`apps.x86_64-linux.update-llama-cpp`). Following the "flakes aren't real" philosophy (keeping `flake.nix` thin and free of heavy logic), the shell script definition is located in a dedicated file `utils/update-llama-cpp.nix` and imported inside `flake.nix`. When run manually, it queries the GitHub API for the latest release, prefetches the new hash using `nix-prefetch-github`, and edits `default.nix` in place.
+**Decision**: Implement a declarative flake application
+(`apps.x86_64-linux.update-llama-cpp`). Following the "flakes aren't real"
+philosophy (keeping `flake.nix` thin and free of heavy logic), the shell script
+definition is located in a dedicated file `utils/update-llama-cpp.nix` and
+imported inside `flake.nix`. When run manually, it queries the GitHub API for
+the latest release, prefetches the new hash using `nix-prefetch-github`, and
+edits `default.nix` in place.
 
 ---
 
 ## 2026-05-30 — lockup_timeout over nodes_per_submit for DeviceLost
 
-**Context**: Attempting to fix the `DeviceLost` error on the AMD iGPU by lowering `nodes_per_submit` to `1` in `llama-cpp` resulted in an unacceptable performance loss.
+**Context**: Attempting to fix the `DeviceLost` error on the AMD iGPU by
+lowering `nodes_per_submit` to `1` in `llama-cpp` resulted in an unacceptable
+performance loss.
 
-**Decision**: The `nodes_per_submit` patch in the `llama-cpp` package is retained strictly for performance fine-tuning, as it is not a viable fix for stability in this case. The viable solution to prevent `DeviceLost` crashes remains the host-level workaround of increasing `amdgpu.lockup_timeout`.
+**Decision**: The `nodes_per_submit` patch in the `llama-cpp` package is
+retained strictly for performance fine-tuning, as it is not a viable fix for
+stability in this case. The viable solution to prevent `DeviceLost` crashes
+remains the host-level workaround of increasing `amdgpu.lockup_timeout`.
 
 ---
 
 ## 2026-07-26 — environment.systemPackages en lugar de users.users.\<name\>.packages
 
-**Context**: El host `nixos-forgejo` usaba `users.users.nixos-forgejo.packages`, que no está soportado en NixOS (solo existe en home-manager).
+**Context**: El host `nixos-forgejo` usaba `users.users.nixos-forgejo.packages`,
+que no está soportado en NixOS (solo existe en home-manager).
 
-**Decision**: Todos los paquetes del sistema (herramientas CLI, utilidades) se declaran en `environment.systemPackages`. La opción `users.users.<name>.packages` queda reservada exclusivamente para configuraciones home-manager, nunca en módulos NixOS puros.
+**Decision**: Todos los paquetes del sistema (herramientas CLI, utilidades) se
+declaran en `environment.systemPackages`. La opción
+`users.users.<name>.packages` queda reservada exclusivamente para
+configuraciones home-manager, nunca en módulos NixOS puros.
 
 ---
 
 ## 2026-07-26 — Fix de /sbin/init para que nixos-rebuild switch persista entre reboots
 
-**Context**: En imágenes LXC construidas con `nixos-rebuild build-image`, `/sbin/init` es un fichero estático copiado del store original (permisos `-r-xr-xr-x`, timestamp epoch 1970). Proxmox lo ejecuta directamente en cada arranque, ignorando el perfil actualizado por `nixos-rebuild switch`. Resultado: cualquier cambio aplicado dentro del LXC desaparecía tras un reinicio.
+**Context**: En imágenes LXC construidas con `nixos-rebuild build-image`,
+`/sbin/init` es un fichero estático copiado del store original (permisos
+`-r-xr-xr-x`, timestamp epoch 1970). Proxmox lo ejecuta directamente en cada
+arranque, ignorando el perfil actualizado por `nixos-rebuild switch`. Resultado:
+cualquier cambio aplicado dentro del LXC desaparecía tras un reinicio.
 
-**Decision**: Añadir `system.activationScripts.updateSbinInit` en `common/config/default.nix`. Este script se ejecuta en cada `nixos-rebuild switch` y reemplaza el fichero estático con un symlink a `/nix/var/nix/profiles/system/init`. Así, cada boot usa la generación correcta del perfil activo.
+**Decision**: Añadir `system.activationScripts.updateSbinInit` en
+`common/config/default.nix`. Este script se ejecuta en cada
+`nixos-rebuild switch` y reemplaza el fichero estático con un symlink a
+`/nix/var/nix/profiles/system/init`. Así, cada boot usa la generación correcta
+del perfil activo.
 
-**Rationale**: La alternativa (reconstruir y redesplegar la imagen completa tras cada cambio) es costosa y rompe el flujo de desarrollo habitual. El activation script es mínimo, idempotente y aplica a todos los hosts vía `common/`.
+**Rationale**: La alternativa (reconstruir y redesplegar la imagen completa tras
+cada cambio) es costosa y rompe el flujo de desarrollo habitual. El activation
+script es mínimo, idempotente y aplica a todos los hosts vía `common/`.
+
+---
+
+## 2026-09-04 — Host nixos-omniroute con OmniRoute como OCI container
+
+**Context**: Se necesita un host que implemente OmniRoute, el AI gateway
+de Diego Souza (`diegosouzapw/OmniRoute`), en un LXC unprivilegiado.
+
+**Decision**:
+
+- Se ejecuta como contenedor OCI con Podman (`virtualisation.oci-containers`),
+  siguiendo el patrón de `hosts/calibre-lxc`.
+- Imagen: `diegosouzapw/omniroute:latest`.
+- Puerto expuesto: `20128:20128`.
+- Volumen persistente: `omniroute-data:/app/data`.
+- Variables de entorno (`OMNIROUTE_MEMORY_MB`, `OMNIROUTE_WS_BRIDGE_SECRET`,
+  `INITIAL_PASSWORD`, `TZ`) configurables en el `environment` del contenedor
+  OCI, comentadas por defecto.
+- El usuario del host es `nixos-omniroute` (sin la "r" final).
+- El antiguo enfoque de `packages/omniroute/default.nix` con `buildNpmPackage`
+  se eliminó completamente.
+
+**Rationale**: Dockerizar la aplicación simplifica el despliegue, elimina la
+necesidad de build-from-source en el host, y permite usar la imagen oficial
+con todas sus dependencias resueltas. El patrón OCI-container es consistente
+con otros hosts del repo (calibre-lxc).
+
+---

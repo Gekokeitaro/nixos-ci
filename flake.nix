@@ -87,6 +87,14 @@
           ./hosts/llamaswap-lxc/configuration.nix
         ];
       };
+      nixos-omniroute = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = {inherit inputs;};
+        modules = [
+          nvf.nixosModules.default
+          ./hosts/nixos-omniroute/configuration.nix
+        ];
+      };
     };
   };
 }
