@@ -53,6 +53,14 @@
           ./hosts/calibre-lxc/configuration.nix
         ];
       };
+      nixos-n8n = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = {inherit inputs;};
+        modules = [
+          nvf.nixosModules.default
+          ./hosts/nixos-n8n/configuration.nix
+        ];
+      };
       nixos-llamaswap-vulkan = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = {
