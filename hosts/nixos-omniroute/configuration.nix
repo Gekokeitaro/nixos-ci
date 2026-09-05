@@ -18,8 +18,11 @@
       curl
       wget
       magic-wormhole
+      jq
     ];
   };
+
+  systemd.tmpfiles.rules = ["d /var/lib/omniroute 0750 1000 1000 -"];
 
   virtualisation.oci-containers.containers = {
     omniroute = {
@@ -31,7 +34,10 @@
         PUID = "1000";
         PGID = "1000";
         TZ = "Europe/Madrid";
+        OMNIROUTE_BOOTSTRAPPED = "true";
       };
+
+      volumes = ["/var/lib/omniroute:/app/data"];
 
       ports = [
         "20128:20128"
@@ -39,7 +45,7 @@
     };
   };
 
-  nix.settings.allowed-users = ["nixos-omniroute"];
+  nix.settings.trusted-users = ["nixos-omniroute"];
 
   nix.settings.experimental-features = ["nix-command" "flakes"];
 
