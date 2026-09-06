@@ -9,7 +9,7 @@ with lib; let
 in {
   imports = [inputs.sops-nix.nixosModules.sops];
 
-  options.rootModules.sops = {
+  options.commonModules.sops = {
     enable = mkEnableOption "enable sops-nix root module";
 
     defaultSopsFile = mkOption {
