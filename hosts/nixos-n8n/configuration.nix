@@ -44,16 +44,16 @@
 
   services.n8n = {
     enable = true;
-
-    # Puerto donde escucha el servidor HTTP interno de n8n.
-    # Nginx u otro proxy inverso puede reenviar aquí si se quiere HTTPS.
-    port = 5678;
-
-    # Escucha en todas las interfaces para acceso externo desde la red Proxmox.
-    host = "0.0.0.0";
-
+    environment = {
+      GENERIC_TIMEZONE = "Europe/Madrid";
+      N8N_PORT = "5678";
+      N8N_SECURE_COOKIE = "false";
+      N8N_RUNNERS_MODE = "internal";
+    };
     # Abre el puerto en el firewall interno del LXC.
     openFirewall = true;
+
+    taskRunners = {enable = true;};
   };
 
   # Usuario trusted para nix: puede ejecutar comandos nix sin restricciones
