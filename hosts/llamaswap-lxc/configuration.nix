@@ -52,6 +52,7 @@ in {
         (import ./models/JetBrains-Mellum2-12B-A2.5B-Instruct-MXFPA4_MOE.nix {llama-server = llama-server-delayed;})
         (import ./models/Unsloth-gpt-oss-20b-Q4_K_M.nix {llama-server = llama-server-delayed;})
         (import ./models/Yuxinlu1-mellum2-claude-Q4_K_M.nix {llama-server = llama-server-delayed;})
+        (import ./models/Qwen3.8-27B-Ridge-3.7bpw.nix {llama-server = llama-server-delayed;})
       ];
     };
   };
@@ -111,6 +112,8 @@ in {
       AMD_VULKAN_ICD = "RADV";
     })
   ];
+
+  nix.settings.trusted-users = ["nixos-llamaswap-vulkan"];
 
   nix.settings.experimental-features = ["nix-command" "flakes"];
 
