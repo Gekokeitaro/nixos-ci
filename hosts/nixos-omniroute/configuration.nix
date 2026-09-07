@@ -1,16 +1,23 @@
 {
   pkgs,
   lib,
+  config,
   ...
 }: {
   imports = [../../common];
+
+  sops = {
+    defaultSopsFile = ../../common/secrets.yaml;
+    age.keyFile = "/var/lib/sops-nix/key.yaml";
+    secrets."ssh_authorized_keys/nixos-ci" = {};
+  };
 
   users.users.nixos-omniroute = {
     isNormalUser = true;
     extraGroups = ["wheel"];
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGApUnvphJshC3LJ4QxDu8fm3JqEnSWZ6ewhf6gQuF7V PopOS OCT 2024"
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFeASXjLf7TjNTxO5CZ4Aa6z8hyFG0CXAe4FhcpZOEp6 NixOS-CI MAY 2026"
+      config.sops.secrets."ssh_authorized_keys/nixos-ci".path
     ];
     packages = with pkgs; [
       tree
