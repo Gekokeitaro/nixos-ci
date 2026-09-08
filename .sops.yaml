@@ -1,5 +1,5 @@
 keys:
-  - &nixos-ci age1cetr3z86xz03v3chpdg24cr7dccxkxtahqr7dvkldf33rdrj8cxqzn6vnd
+  - &nixos-ci age1rlsrvzx0gndfdm04nev2y67lvt5v7kke80gljfl7d8lc3ul4f9us8n7k0x
   - &nixos-omniroute age1knw4d24wuk3423dp0fwwncsjyafj98xas7p5nus7yjmpg8fg230swsuj9w
 creation_rules:
   - path_regex: common/[^/]+\.(yaml|json|env|ini)$
