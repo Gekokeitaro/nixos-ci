@@ -1,7 +1,16 @@
-{pkgs, ...}: {
+{
+  pkgs,
+  config,
+  ...
+}: {
   imports = [
     ../../common
   ];
+
+  sops = {
+    defaultSopsFile = ../../common/secrets.yaml;
+    age.keyFile = "/home/.config/sops/age/key.txt";
+  };
 
   users.users.nixos-ci = {
     isNormalUser = true;
