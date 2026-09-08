@@ -9,7 +9,7 @@
 
   sops = {
     defaultSopsFile = ../../common/secrets.yaml;
-    age.keyFile = "/var/lib/sops-nix/key.yaml";
+    age.keyFile = "/home/.config/sops/age/key.txt";
   };
 
   users.users.nixos-ci = {

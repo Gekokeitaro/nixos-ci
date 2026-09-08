@@ -84,7 +84,6 @@
         specialArgs = {inherit inputs;};
         modules = [
           nvf.nixosModules.default
-          sops-nix.nixosModules.sops
           ./hosts/nixos-omniroute/configuration.nix
         ];
       };

@@ -1,9 +1,7 @@
 keys:
-  - &nixos-ci age1rlsrvzx0gndfdm04nev2y67lvt5v7kke80gljfl7d8lc3ul4f9us8n7k0x
-  - &nixos-omniroute age1knw4d24wuk3423dp0fwwncsjyafj98xas7p5nus7yjmpg8fg230swsuj9w
+  - &nixos-ci age1mzmmyzey6lyt83pruhepm8t9vrxezyz736nxa49sxcrtkp4shvaszwj2vs
 creation_rules:
-  - path_regex: common/[^/]+\.(yaml|json|env|ini)$
+  - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
     key_groups:
       - age:
-          - *nixos-ci 
-          - *nixos-omniroute
+        - *nixos-ci
