@@ -7,11 +7,6 @@
     ../../common
   ];
 
-  sops = {
-    defaultSopsFile = ../../common/secrets.yaml;
-    age.keyFile = "/home/.config/sops/age/key.txt";
-  };
-
   users.users.nixos-postgresql = {
     isNormalUser = true;
 
