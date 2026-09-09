@@ -96,6 +96,14 @@
           ./hosts/nixos-omniroute/configuration.nix
         ];
       };
+      nixos-postgresql = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = {inherit inputs;};
+        modules = [
+          nvf.nixosModules.default
+          ./hosts/nixos-postgresql/configuration.nix
+        ];
+      };
     };
   };
 }
