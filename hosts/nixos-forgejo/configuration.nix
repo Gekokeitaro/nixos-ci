@@ -33,6 +33,7 @@
 
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGApUnvphJshC3LJ4QxDu8fm3JqEnSWZ6ewhf6gQuF7V PopOS OCT 2024"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFeASXjLf7TjNTxO5CZ4Aa6z8hyFG0CXAe4FhcpZOEp6 NixOS-CI MAY 2026"
     ];
   };
 
@@ -85,6 +86,8 @@
   # interfaz de red virtual; sin esta regla el paquete se descartaría
   # antes de llegar al proceso Forgejo.
   networking.firewall.allowedTCPPorts = [3000];
+
+  nix.settings.trusted-users = ["nixos-forgejo"];
 
   # Habilita los comandos `nix` y `nixos-rebuild --flake` dentro del LXC,
   # necesarios para aplicar cambios de configuración desde el propio contenedor.
