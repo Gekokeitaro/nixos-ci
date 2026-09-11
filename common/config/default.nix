@@ -1,12 +1,10 @@
-{ pkgs, ... }:
-{
+{pkgs, ...}: {
   services.dbus.implementation = "dbus";
   boot.isContainer = true;
 
   # Stack gráfico base (Mesa, libdrm). Los drivers específicos (Vulkan/ROCm)
   # se añaden en cada host según el perfil.
   hardware.graphics.enable = true;
-
 
   # https://gysli.ng/posts/tech/proxmox-nixos/
   # Desactivamos unidades de systemd que no funcionan en contenedores LXC.
@@ -33,4 +31,8 @@
     automatic = true;
     options = "--delete-older-than 3d";
   };
+
+  system.activationScripts.proxmoxLxcInit = ''
+    ln -sfn /nix/var/nix/profiles/system/init /sbin/init
+  '';
 }
