@@ -6,6 +6,10 @@ keys:
   - &nixos-hindsight age1rmm07wrqazysgggp6ydxfahrwr8sxa5zcvu5x94snj06lm6rfasqlarcum
   - &nixos-calibre-wa age1swu597lg7m8n2tttwjweppqs48tef0c6j5rzcxjekd2d7vx2svlqskda8y
 creation_rules:
+  - path_regex: hosts/nixos-ci/secrets.yaml$
+    key_groups:
+      - age:
+        - *nixos-ci
   - path_regex: hosts/nixos-n8n/secrets.yaml$
     key_groups:
       - age:

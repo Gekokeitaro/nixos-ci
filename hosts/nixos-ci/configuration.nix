@@ -8,8 +8,9 @@
   ];
 
   sops = {
-    defaultSopsFile = ../../common/secrets.yaml;
-    age.keyFile = "/home/nixos-ci.config/sops/age/keys.txt";
+    defaultSopsFile = ./secrets.yaml;
+    age.keyFile = "/home/nixos-ci/.config/sops/age/keys.txt";
+    secrets.forgejo-runner-token = {};
   };
 
   users.users.nixos-ci = {
@@ -29,6 +30,22 @@
       bat
       magic-wormhole
     ];
+  };
+
+  virtualisation.podman.enable = true;
+  services.forgejo-runner.instances.nixos-runner = {
+    enable = true;
+    settings.runner.labels = ["docker"];
+    settings.server.connections.nixos-forgejo = {
+      url = "http://192.168.18.31:3000/";
+      uuid = "48ffc057-ff70-4b49-a19d-2848045fa023";
+    };
+    secrets = {
+      server.connections.nixos-forgejo = {
+        token_url = config.sops.secrets.forgejo-runner-token.path;
+      };
+    };
+    runtimes.podman = true;
   };
 
   nix.settings.experimental-features = ["nix-command" "flakes"];
