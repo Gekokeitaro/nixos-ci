@@ -66,7 +66,7 @@
     extensions = posgresPackages: with posgresPackages; [pgvector];
   };
 
-  systemd.services.postgresql-set-n8n-password = {
+  systemd.services.one-shot-config = {
     description = "Fija la contraseña del rol n8n desde el secreto de sops";
     after = ["postgresql.service"];
     wants = ["postgresql.service"];
@@ -80,6 +80,7 @@
       ALTER ROLE n8n WITH PASSWORD '$PASS_N8N';
       ALTER ROLE hindsight WITH PASSWORD '$PASS_HS';
       SQL
+      ${config.services.postgresql.package}/bin/psql -d hindsight -c "CREATE EXTENSION IF NOT EXISTS vector;"
     '';
   };
   networking.firewall.allowedTCPPorts = [5432];
