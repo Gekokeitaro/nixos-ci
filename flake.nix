@@ -50,7 +50,8 @@
         specialArgs = {inherit inputs;};
         modules = [
           nvf.nixosModules.default
-          ./hosts/calibre-lxc/configuration.nix
+          sops-nix.nixosModules.sops
+          ./hosts/nixos-calibre-wa/configuration.nix
         ];
       };
       nixos-n8n = nixpkgs.lib.nixosSystem {

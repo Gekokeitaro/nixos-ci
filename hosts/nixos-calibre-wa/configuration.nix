@@ -25,16 +25,18 @@
   # secreto no versionado). Renovar: `rclone authorize "pcloud"` en máquina
   # con navegador, pegar token en `token =`.
   # hostname = eapi.pcloud.com → endpoint EU de pCloud.
-  rcloneConfig = pkgs.writeText "rclone.conf" ''
-    [pcloud]
-    type = pcloud
-    hostname = eapi.pcloud.com
-    token = 
-  '';
 in {
   imports = [
     ../../common
   ];
+
+  sops = {
+    age.keyFile = "/home/nixos-calibre-web-auto/.config/sops/age/keys.txt";
+    secrets.rclone-pcloud-conf = {
+      sopsFile = ./secrets/calibre-wa.yaml;
+      mode = "0444";
+    };
+  };
 
   # Usuario de servicio: SSH + montaje rclone (shell interactivo) + CLI
   # de mantenimiento. El servicio systemd de rclone corre como root porque
@@ -46,6 +48,7 @@ in {
     # Clave SSH para conexión remota
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGApUnvphJshC3LJ4QxDu8fm3JqEnSWZ6ewhf6gQuF7V PopOS OCT 2024"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFeASXjLf7TjNTxO5CZ4Aa6z8hyFG0CXAe4FhcpZOEp6 NixOS-CI MAY 2026"
     ];
 
     packages = with pkgs; [
@@ -59,33 +62,26 @@ in {
     ];
   };
 
-  virtualisation.podman = {
-    enable = true;
-    defaultNetwork.settings.dns_enabled = true; # DNS interno entre servicios
-  };
+  virtualisation.oci-containers.containers.calibre-web-automated = {
+    image = "docker.io/crocodilestick/calibre-web-automated:latest";
 
-  virtualisation.oci-containers.containers = {
-    calibre-web-automated = {
-      image = "crocodilestick/calibre-web-automated:latest";
-
-      environment = {
-        # PUID/PGID deben coincidir con dueño de los volúmenes en host,
-        # si no: errores de permisos.
-        PUID = "1000";
-        PGID = "1000";
-        TZ = "Europe/Madrid";
-      };
-
-      volumes = [
-        "/home/nixos-calibre-web-auto/.config/calibre-web-automated/config:/config"
-        "/home/nixos-calibre-web-auto/.config/calibre-web-automated/plugins:/config/.config/calibre/plugins"
-        "/mnt/pcloud:/calibre-library" # librería pCloud montada por rclone
-      ];
-
-      ports = [
-        "8083:8083" # UI: http://<ip-lxc>:8083
-      ];
+    environment = {
+      # PUID/PGID deben coincidir con dueño de los volúmenes en host,
+      # si no: errores de permisos.
+      PUID = "1000";
+      PGID = "1000";
+      TZ = "Europe/Madrid";
     };
+
+    volumes = [
+      "/home/nixos-calibre-web-auto/.config/calibre-web-automated/config:/config"
+      "/home/nixos-calibre-web-auto/.config/calibre-web-automated/plugins:/config/.config/calibre/plugins"
+      "/mnt/pcloud:/calibre-library" # librería pCloud montada por rclone
+    ];
+
+    ports = [
+      "8083:8083" # UI: http://<ip-lxc>:8083
+    ];
   };
 
   # Sin esta dependencia explícita, systemd podría arrancar ambos servicios
@@ -101,12 +97,8 @@ in {
 
   systemd.tmpfiles.rules = [
     "d /mnt/pcloud 0755 root root -"
-    "d /home/nixos-calibre-web-auto/.config/calibre-web-automated/config 0755 root root -"
-    "d /home/nixos-calibre-web-auto/.config/calibre-web-automated/plugins 0755 root root -"
-    "d /home/nixos-calibre-web-auto/.config/rclone 0700 nixos-calibre-web-auto users -"
-    # Symlink al rclone.conf del Nix store: config bajo control de Nix,
-    # no hay que tocar ficheros a mano.
-    "L /home/nixos-calibre-web-auto/.config/rclone/rclone.conf - nixos-calibre-web-auto users - ${rcloneConfig}"
+    "d /home/nixos-calibre-web-auto/.config/calibre-web-automated/config 0755 nixos-calibre-web-auto users -"
+    "d /home/nixos-calibre-web-auto/.config/calibre-web-automated/plugins 0755 nixos-calibre-web-auto users -"
   ];
 
   # Monta pCloud en /mnt/pcloud.
@@ -123,12 +115,21 @@ in {
 
     serviceConfig = {
       Type = "notify";
-      ExecStart = "${pkgs.rclone}/bin/rclone mount pcloud: /mnt/pcloud --config ${rcloneConfig} --vfs-cache-mode writes --allow-other";
+      ExecStart = ''
+        ${pkgs.rclone}/bin/rclone mount \
+        pcloud: \
+        /mnt/pcloud \
+        --config ${config.sops.secrets.rclone-pcloud-conf.path} \
+        --vfs-cache-mode writes \
+        --allow-other
+      '';
       ExecStop = "${pkgs.fuse3}/bin/fusermount3 -u /mnt/pcloud"; # desmonte limpio
       Restart = "on-failure"; # rclone muere (p.ej. red) → reinicia
       RestartSec = "5s";
     };
   };
+
+  nix.settings.trusted-users = ["nixos-calibre-web-auto"];
 
   nix.settings.experimental-features = ["nix-command" "flakes"]; # necesario para nixos-rebuild --flake dentro del LXC
 
