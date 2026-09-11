@@ -58,7 +58,6 @@
         specialArgs = {inherit inputs;};
         modules = [
           nvf.nixosModules.default
-          {nixpkgs.config.allowUnfree = true;}
           ./hosts/nixos-n8n/configuration.nix
         ];
       };
