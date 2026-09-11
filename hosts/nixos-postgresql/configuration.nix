@@ -7,6 +7,14 @@
     ../../common
   ];
 
+  sops = {
+    age.keyFile = "/home/nixos-postgresql/.config/sops/age/keys.txt";
+    secrets.n8n_db_password = {
+      sopsFile = ../../common/secrets/postgresql-shared.yaml;
+      mode = "0444";
+    };
+  };
+
   users.users.nixos-postgresql = {
     isNormalUser = true;
 
@@ -30,8 +38,37 @@
   services.postgresql = {
     enable = true;
     enableTCPIP = true;
+
+    ensureDatabases = ["n8n"];
+    ensureUsers = [
+      {
+        name = "n8n";
+        ensureDBOwnership = true;
+      }
+    ];
+
+    authentication = pkgs.lib.mkOverride 10 ''
+      #type database DBuser origin-address auth-method
+      local all      all    trust
+      host  n8n      n8n    192.168.18.22/24 scram-sha-256
+
+    '';
   };
 
+  systemd.services.postgresql-set-n8n-password = {
+    description = "Fija la contraseña del rol n8n desde el secreto de sops";
+    after = ["postgresql.service"];
+    wants = ["postgresql.service"];
+    wantedBy = ["multi-user.target"];
+    serviceConfig.Type = "oneshot";
+    serviceConfig.User = "postgres";
+    script = ''
+      PASS=$(cat ${config.sops.secrets.n8n_db_password.path})
+      ${config.services.postgresql.package}/bin/psql -U postgres <<SQL
+      ALTER ROLE n8n WITH PASSWORD '$PASS';
+      SQL
+    '';
+  };
   networking.firewall.allowedTCPPorts = [5432];
 
   nix.settings.trusted-users = ["nixos-postgresql"];
