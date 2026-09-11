@@ -3,6 +3,7 @@ keys:
   - &nixos-n8n age19hn3w0k807przyrqcdnskaejr3h0ng4d36weyx42wzqce5yqvytqlkp0c9
   - &nixos-postgresql age1m9afd3n7gkz40cww9v4dkadakxca5sgazwpchpd9pvvcaq4w052qvypsla
   - &nixos-n8n-runner age1x43jzqgxx5969f4z5w287qmr5ntluez7s04k4g0ghgpn3r923v9qlfpwa2
+  - &nixos-hindsight age1rmm07wrqazysgggp6ydxfahrwr8sxa5zcvu5x94snj06lm6rfasqlarcum
 creation_rules:
   - path_regex: hosts/nixos-n8n/secrets.yaml$
     key_groups:
@@ -20,3 +21,8 @@ creation_rules:
         - *nixos-ci
         - *nixos-n8n
         - *nixos-postgresql
+  - path_regex: hosts/nixos-hindsight/secrets/hindsight-env.env$
+    key_groups:
+      - age:
+        - *nixos-ci
+        - *nixos-hindsight

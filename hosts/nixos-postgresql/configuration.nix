@@ -13,6 +13,10 @@
       sopsFile = ../../common/secrets/postgresql-shared.yaml;
       mode = "0444";
     };
+    secrets.hindsight_db_password = {
+      sopsFile = ../../common/secrets/postgresql-shared.yaml;
+      mode = "0444";
+    };
   };
 
   users.users.nixos-postgresql = {
@@ -39,10 +43,14 @@
     enable = true;
     enableTCPIP = true;
 
-    ensureDatabases = ["n8n"];
+    ensureDatabases = ["n8n" "hindsight"];
     ensureUsers = [
       {
         name = "n8n";
+        ensureDBOwnership = true;
+      }
+      {
+        name = "hindsight";
         ensureDBOwnership = true;
       }
     ];
@@ -51,8 +59,11 @@
       #type database DBuser origin-address auth-method
       local all      all    trust
       host  n8n      n8n    192.168.18.22/24 scram-sha-256
+      host  hindsight hindsight 192.168.18.19/24 scram-sha-256
 
     '';
+
+    extensions = posgresPackages: with posgresPackages; [pgvector];
   };
 
   systemd.services.postgresql-set-n8n-password = {
@@ -63,9 +74,11 @@
     serviceConfig.Type = "oneshot";
     serviceConfig.User = "postgres";
     script = ''
-      PASS=$(cat ${config.sops.secrets.n8n_db_password.path})
+      PASS_N8N=$(cat ${config.sops.secrets.n8n_db_password.path})
+      PASS_HS=$(cat ${config.sops.secrets.hindsight_db_password.path})
       ${config.services.postgresql.package}/bin/psql -U postgres <<SQL
-      ALTER ROLE n8n WITH PASSWORD '$PASS';
+      ALTER ROLE n8n WITH PASSWORD '$PASS_N8N';
+      ALTER ROLE hindsight WITH PASSWORD '$PASS_HS';
       SQL
     '';
   };
