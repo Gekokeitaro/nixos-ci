@@ -1,81 +1,62 @@
 # nixos-n8n
 
-Host NixOS para n8n — plataforma de automatización de workflows tipo "no-code/low-code".
+n8n workflow automation platform as an OCI container with an external
+PostgreSQL backend and external task runners.
 
-## Qué incluye
-
-- **n8n** como servicio systemd nativo (módulo NixOS `services.n8n`)
-- **SQLite** como base de datos (por defecto, sin dependencias externas)
-- **Firewall** abierto en puerto 5678
-- **Usuario de mantenimiento** `nixos-n8n` con sudo (grupo `wheel`)
-- **Trusted user** de Nix: `nixos-n8n` puede ejecutar `nix`/`nixos-rebuild`
-- **Neovim** (nvf) y herramientas CLI: `tree`, `git`, `curl`, `wget`, `magic-wormhole`
-
-## Build de la imagen LXC
+## Build
 
 ```bash
 nixos-rebuild build-image --image-variant lxc --flake .#nixos-n8n
 ```
 
-El resultado es un symlink `result` → tarball `.tar.gz` en el Nix store.
-Importar directamente en Proxmox como plantilla LXC.
+## Exposed ports
 
-## Primer arranque
+| Service | Port |
+|---|---|
+| n8n UI & API | 5678 |
+| n8n runner broker | 5679 |
 
-1. Despliega la plantilla LXC en Proxmox (recursos sugeridos: 2 CPU, 2-4 GB RAM, 20 GB disco).
-2. Arranca el contenedor.
-3. Accede a `http://<IP-LXC>:5678` — asistente de configuración inicial de n8n.
-4. Crea usuario administrador desde la UI.
-5. (Opcional) Para cerrar registro público, edita la configuración y vuelve a aplicar:
-   ```bash
-   nixos-rebuild switch --flake .#nixos-n8n
-   ```
+Both are in `networking.firewall.allowedTCPPorts`.
 
-## Configuración de base de datos
+## Dependencies
 
-Por defecto usa **SQLite** (archivo en `/var/lib/n8n/database.sqlite`). Para producción con alta carga:
+- PostgreSQL at `192.168.18.60:5432` (`nixos-postgresql` host, DB `n8n`).
+- Task runners on `nixos-n8n-runner` connect back to the broker.
 
-```nix
-services.n8n = {
-  enable = true;
-  # ...
-  extraConfig = ''
-    DB_TYPE=postgresdb
-    DB_POSTGRESDB_HOST=...
-    DB_POSTGRESDB_PORT=5432
-    DB_POSTGRESDB_DATABASE=n8n
-    DB_POSTGRESDB_USER=n8n
-    DB_POSTGRESDB_PASSWORD=...
-  '';
-};
-```
+## Secrets
 
-## Acceso SSH
+- `n8n_db_password` — `common/secrets/postgresql-shared.yaml`
+- `n8n_runner_auth_token` — shared with `nixos-n8n-runner`
+
+sops-nix injects them into the container as `*_FILE` env vars (bind-mounted
+at `/run/secrets/…`).
+
+## First boot
+
+1. Make sure `nixos-postgresql` is up and the `n8n` database exists with
+   its password set (the `nixos-postgresql` one-shot service handles this).
+2. Import the tarball as template in Proxmox, create and start the LXC
+   (2 CPU, 2–4 GB RAM, 20 GB disk).
+3. Open `http://<IP>:5678` — initial n8n setup wizard.
+4. Create the admin user.
+5. Deploy `nixos-n8n-runner` to bring up task runners on demand.
+
+## SSH
 
 ```bash
-ssh nixos-n8n@<IP-LXC>
+ssh nixos-n8n@<IP>
 ```
 
-Clave autorizada: la misma que `nixos-ci` (PopOS OCT 2024).
+## Apply changes
 
-## Aplicar cambios de configuración
+Remote:
 
-Desde dentro del LXC (tras `nix-channel --update`):
+```bash
+nixos-rebuild switch --flake .#nixos-n8n --target-host <user>@<ip> --elevate=sudo
+```
+
+Inside the container:
 
 ```bash
 sudo nixos-rebuild switch --flake .#nixos-n8n
 ```
-
-El script de activación `updateSbinInit` (en `common/`) actualiza `/sbin/init` para que los cambios persistan tras reboot.
-
-## Firewall
-
-El puerto 5678 está abierto en el firewall interno del LXC (`networking.firewall.allowedTCPPorts`).
-En Proxmox el tráfico entre host y LXC pasa por la interfaz virtual; si hay firewall adicional en el host Proxmox, permitir el puerto 5678.
-
-## Notas
-
-- Contenedor **unprivileged** (no usar configuración que requiera privilegios).
-- `boot.isContainer = true` — sin bootloader ni configuración de hardware.
-- `nixpkgs` sigue canal `nixos-unstable`.
-- Para migración a PostgreSQL, añadir servicio `services.postgresql` y variables de entorno en `extraConfig`.

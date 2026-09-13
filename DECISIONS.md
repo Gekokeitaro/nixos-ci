@@ -23,14 +23,10 @@ Runtime drivers are only required in the container that actually executes
 
 ---
 
-## 2026-05-26 — amdvlk removed, RADV is default
+## 2026-05-26 — RADV as the only Vulkan driver
 
-**Context**: `amdvlk` was removed from nixpkgs. Build failed with
-`'amdvlk' has been removed since it was deprecated by AMD`.
-
-**Decision**: Use only `vulkan-loader` in `hardware.graphics.extraPackages` for
-the Vulkan profile. RADV (the replacement) already ships with Mesa, which is
-installed via `hardware.graphics.enable = true`.
+**Decision**: Use `vulkan-loader` (RADV) as the only Vulkan driver.
+`amdvlk` was removed from nixpkgs and must not be used.
 
 ---
 
@@ -61,7 +57,7 @@ NixOS LXC containers.
 **Context**: Custom packages (e.g., `llama-cpp`) need to be consumed by hosts.
 
 **Decision**: Packages are imported directly with
-`import ../../packages/<name> {inherit pkgs ...;}` from the host configuration.
+`import ./packages/<name> {inherit pkgs ...;}` from the host configuration.
 They are **not** exposed as flake `packages` outputs or as nixpkgs overlays.
 This keeps the flake surface minimal and the dependency chain explicit.
 
@@ -118,7 +114,7 @@ manage the directory with proper permissions.
 
 **Context**: Upgrading llama.cpp required manually finding the latest GitHub
 release version and prefetching the SHA-256 hash using external commands, then
-manually editing `packages/llama-cpp/default.nix`.
+manually editing `hosts/llamaswap-lxc/packages/llama-cpp/default.nix`.
 
 **Decision**: Implement a declarative flake application
 (`apps.x86_64-linux.update-llama-cpp`). Following the "flakes aren't real"
@@ -130,73 +126,27 @@ edits `default.nix` in place.
 
 ---
 
-## 2026-05-30 — lockup_timeout over nodes_per_submit for DeviceLost
+## 2026-05-30 — GPU stability via lockup_timeout, not code patches
 
-**Context**: Attempting to fix the `DeviceLost` error on the AMD iGPU by
-lowering `nodes_per_submit` to `1` in `llama-cpp` resulted in an unacceptable
-performance loss.
-
-**Decision**: The `nodes_per_submit` patch in the `llama-cpp` package is
-retained strictly for performance fine-tuning, as it is not a viable fix for
-stability in this case. The viable solution to prevent `DeviceLost` crashes
-remains the host-level workaround of increasing `amdgpu.lockup_timeout`.
+**Decision**: GPU stability is solved with `amdgpu.lockup_timeout` at the host
+level. The `nodes_per_submit` patch in llama-cpp is only for performance
+fine-tuning, not a stability fix.
 
 ---
 
-## 2026-07-26 — environment.systemPackages en lugar de users.users.\<name\>.packages
+## 2026-07-26 — environment.systemPackages for system packages
 
-**Context**: El host `nixos-forgejo` usaba `users.users.nixos-forgejo.packages`,
-que no está soportado en NixOS (solo existe en home-manager).
-
-**Decision**: Todos los paquetes del sistema (herramientas CLI, utilidades) se
-declaran en `environment.systemPackages`. La opción
-`users.users.<name>.packages` queda reservada exclusivamente para
-configuraciones home-manager, nunca en módulos NixOS puros.
+**Decision**: System packages are declared in `environment.systemPackages`.
+`users.users.<name>.packages` is exclusive to home-manager, not pure NixOS
+modules.
 
 ---
 
-## 2026-07-26 — Fix de /sbin/init para que nixos-rebuild switch persista entre reboots
+## 2026-07-26 — /sbin/init sync via activationScript
 
-**Context**: En imágenes LXC construidas con `nixos-rebuild build-image`,
-`/sbin/init` es un fichero estático copiado del store original (permisos
-`-r-xr-xr-x`, timestamp epoch 1970). Proxmox lo ejecuta directamente en cada
-arranque, ignorando el perfil actualizado por `nixos-rebuild switch`. Resultado:
-cualquier cambio aplicado dentro del LXC desaparecía tras un reinicio.
-
-**Decision**: Añadir `system.activationScripts.updateSbinInit` en
-`common/config/default.nix`. Este script se ejecuta en cada
-`nixos-rebuild switch` y reemplaza el fichero estático con un symlink a
-`/nix/var/nix/profiles/system/init`. Así, cada boot usa la generación correcta
-del perfil activo.
-
-**Rationale**: La alternativa (reconstruir y redesplegar la imagen completa tras
-cada cambio) es costosa y rompe el flujo de desarrollo habitual. El activation
-script es mínimo, idempotente y aplica a todos los hosts vía `common/`.
-
----
-
-## 2026-09-04 — Host nixos-omniroute con OmniRoute como OCI container
-
-**Context**: Se necesita un host que implemente OmniRoute, el AI gateway
-de Diego Souza (`diegosouzapw/OmniRoute`), en un LXC unprivilegiado.
-
-**Decision**:
-
-- Se ejecuta como contenedor OCI con Podman (`virtualisation.oci-containers`),
-  siguiendo el patrón de `hosts/calibre-lxc`.
-- Imagen: `diegosouzapw/omniroute:latest`.
-- Puerto expuesto: `20128:20128`.
-- Volumen persistente: `omniroute-data:/app/data`.
-- Variables de entorno (`OMNIROUTE_MEMORY_MB`, `OMNIROUTE_WS_BRIDGE_SECRET`,
-  `INITIAL_PASSWORD`, `TZ`) configurables en el `environment` del contenedor
-  OCI, comentadas por defecto.
-- El usuario del host es `nixos-omniroute` (sin la "r" final).
-- El antiguo enfoque de `packages/omniroute/default.nix` con `buildNpmPackage`
-  se eliminó completamente.
-
-**Rationale**: Dockerizar la aplicación simplifica el despliegue, elimina la
-necesidad de build-from-source en el host, y permite usar la imagen oficial
-con todas sus dependencias resueltas. El patrón OCI-container es consistente
-con otros hosts del repo (calibre-lxc).
+**Decision**: The `system.activationScripts.updateSbinInit` activation script in
+`common/config/default.nix` replaces the static `/sbin/init` from the store with
+a symlink to `/nix/var/nix/profiles/system/init` on every `nixos-rebuild switch`.
+Without it, changes do not persist across LXC reboots.
 
 ---

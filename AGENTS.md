@@ -13,15 +13,11 @@ All architectural and design decisions are recorded in
 3. **Keep the file under 300 lines.** If approaching the limit, consolidate
    older entries into summary bullets at the top.
 
-## Project description
+## Project overview
 
-Declarative NixOS configurations repository aimed at building **LXC images**
-ready to deploy on Proxmox. It includes:
-
-- A base host (`nixos-lxc`) as a generic template.
-- A specialized host (`llamaswap-lxc`) integrating `llama-swap` + `llama-cpp`
-  to serve LLM models via an OpenAI-compatible API.
-- Shared Neovim configuration (nvf) included in all images.
+Declarative NixOS configurations for building **LXC images** on Proxmox.
+Includes a base host template and specialized hosts (e.g., llama-swap for
+local LLM inference). All hosts share a common base with NVF (Neovim).
 
 ## Repository structure
 
@@ -35,25 +31,28 @@ ready to deploy on Proxmox. It includes:
 │   ├── default.nix            # Aggregates config/ and modules/ via imports.
 │   ├── config/
 │   │   └── default.nix        # LXC base: boot.isContainer, graphics, openssh, sudo…
-│   └── modules/
-│       ├── default.nix        # Aggregates modules (currently only nvf).
-│       └── nvf/
-│           ├── default.nix    # Full Neovim (nvf) configuration.
-│           └── keymaps.nix    # Extracted keymaps (currently not imported).
+│   ├── modules/
+│   │   ├── default.nix        # Aggregates modules: nvf + sops-nix.
+│   │   ├── nvf/
+│   │   └── sops-nix/
+│   ├── secrets/
+│   │   └── postgresql-shared.yaml  # Shared DB passwords (n8n, hindsight).
+│   └── secrets.yaml
 ├── hosts/
-│   ├── nixos-lxc/
-│   │   ├── configuration.nix  # Basic template host.
-│   │   └── README.md
-│   └── llamaswap-lxc/
-│       ├── configuration.nix  # Host with llama-swap + llama-cpp.
-│       ├── README.md
-│       └── models/            # LLM model definitions (one .nix file each).
-│           ├── qwen3-embedding-0.6B_Q8_0.nix
-│           ├── gemma-4-E4B-it-UD-Q4_K_XL.nix
-│           └── bge-reranker-v2-m3-q8_0.nix
-└── packages/
-    └── llama-cpp/
-        └── default.nix        # Parameterized llama-cpp override (Vulkan/ROCm).
+│   ├── llamaswap-lxc/         # llama-swap + llama-cpp (GPU)
+│   │   ├── packages/
+│   │   │   └── llama-cpp/
+│   │   │       └── default.nix  # Parameterized llama-cpp override (Vulkan/ROCm).
+│   ├── nixos-ci/              # Dev machine + Forgejo runner
+│   ├── nixos-forgejo/         # Self-hosted Git forge (Forgejo, SQLite)
+│   ├── nixos-calibre-wa/      # Calibre-Web-Automated + rclone pCloud
+│   ├── nixos-n8n/             # n8n workflow automation (OCI + PostgreSQL)
+│   ├── nixos-n8n-runner/      # n8n task runners (OCI)
+│   ├── nixos-omniroute/       # OmniRoute AI gateway (OCI)
+│   ├── nixos-postgresql/      # Central PostgreSQL + pgvector
+│   └── nixos-hindsight/       # Hindsight data platform (OCI + LLM)
+└── utils/
+    └── update-llama-cpp.nix   # Script to update llama-cpp version/hash.
 ```
 
 ## Nix conventions
@@ -86,21 +85,12 @@ ready to deploy on Proxmox. It includes:
 
 ### Packages (overrides)
 
-- Custom packages live in `packages/<name>/default.nix`.
-- They are consumed with `import ../../packages/<name> {inherit pkgs ...;}`
+- Host-specific packages live in `hosts/<name>/packages/<name>/default.nix`.
+- They are consumed with `import ./packages/<name> {inherit pkgs ...;}`
   from the host, **not** as an overlay or as flake `packages`.
 - For heavy overrides, use the pattern
   `(pkgs.package.override { … }).overrideAttrs (oldAttrs: { … })`.
 - Versions and hashes are defined as `let` variables at the top of the file.
-
-### LLM models (llama-swap)
-
-- Each model is defined in an independent `.nix` file inside
-  `hosts/llamaswap-lxc/models/`.
-- File signature: `{llama-server}: { "model-name" = { … }; }`.
-- They are composed with `lib.mkMerge` in the host's `configuration.nix`.
-- The path to the `llama-server` binary is interpolated with `${llama-server}`.
-- GGUF files are assumed to be mounted at `/models/`.
 
 ### "Flakes aren't real" philosophy
 
@@ -118,65 +108,12 @@ ready to deploy on Proxmox. It includes:
 4. Add the corresponding `nixosConfiguration` in `flake.nix`.
 5. Create `hosts/<name>/README.md` with build instructions.
 
-### Adding a new LLM model
-
-1. Create `hosts/llamaswap-lxc/models/<model-name>.nix` following the
-   `{llama-server}: { … }` signature.
-2. Import the file in `hosts/llamaswap-lxc/configuration.nix` inside the
-   `lib.mkMerge` of `services.llama-swap.settings.models`.
-3. Update `matrix.vars` and `matrix.evict_costs` if the model participates
-   in inference sets.
-
 ### Adding a new shared module
 
 1. Create `common/modules/<name>/default.nix`.
 2. Add `./name` to the `imports` array in `common/modules/default.nix`.
 
-### Updating llama-cpp
-
-Run the automated update command:
-```bash
-nix run .#update-llama-cpp
-```
-This script queries the GitHub API for the latest llama.cpp release, prefetches the new hash, and updates `packages/llama-cpp/default.nix` in place.
-
-#### Manual method (alternative)
-
-If you prefer to get the hash and update the file `packages/llama-cpp/default.nix` manually:
-
-```bash
-nix shell nixpkgs#nix-prefetch-github nixpkgs#jq nixpkgs#curl
-
-# Get latest release
-LATEST=$(curl -sf https://api.github.com/repos/ggml-org/llama.cpp/releases/latest | jq -r '.tag_name')
-echo "Latest: $LATEST"
-
-# Get SRI hash for fetchFromGitHub
-nix-prefetch-github ggml-org llama.cpp --rev "$LATEST"
-# → { "hash": "sha256-XXXX=", "rev": "bNNNN" }
-```
-
-
-## Build and deployment
-
-```bash
-# Build LXC image (base host)
-nixos-rebuild build-image --image-variant lxc --flake .#nixos-ci
-
-# Build LXC image (llamaswap with Vulkan)
-nixos-rebuild build-image --image-variant lxc --flake .#nixos-llamaswap-vulkan
-
-# Build LXC image (llamaswap with ROCm)
-nixos-rebuild build-image --image-variant lxc --flake .#nixos-llamaswap-rocm
-
-# Apply configuration to an existing machine
-nixos-rebuild switch --flake .#<host>
-```
-
-The result is a **symlink** (`result`) pointing to the `.tar.gz` in the Nix
-store. This tarball is imported directly into Proxmox as an LXC template.
-
-## Things to keep in mind
+## Constraints
 
 - **All LXC containers are unprivileged.** Never assume root-level access to
   host devices or privileged cgroup operations. Proxmox must explicitly grant
@@ -195,65 +132,6 @@ store. This tarball is imported directly into Proxmox as an LXC template.
 - **Configuration files do not travel to the image**: after creating the
   container, you must re-clone or recreate the configuration inside it.
   Immediately after starting the container for the first time, run `nix-channel --update`.
-- **Fixed GPU target**: the llama-cpp override targets `gfx1035` (AMD 680M).
-  Change `gpuArch` if using a different GPU.
-
-### GPU driver architecture
-
-GPU support is split into two layers:
-
-| Layer | Location | What it provides |
-|---|---|---|
-| Base graphics stack | `common/config/default.nix` | `hardware.graphics.enable = true` (Mesa, libdrm) |
-| Profile-specific runtime | `hosts/llamaswap-lxc/configuration.nix` | Vulkan: `vulkan-loader`, `AMD_VULKAN_ICD=RADV` (RADV ships with Mesa) |
-| | | ROCm: `rocmPackages.clr{,.icd}`, `HSA_OVERRIDE_GFX_VERSION=10.3.0` |
-| Build-time dependencies | `packages/llama-cpp/default.nix` | Handled automatically by `.override { vulkanSupport/rocmSupport }` |
-| Proxmox host (outside Nix) | `/etc/pve/lxc/<id>.conf` | `lxc.cgroup2.devices.allow: c 226:* rwm` + `/dev/dri` bind mount |
-
-### AMD iGPU Passthrough to Unprivileged LXC in Proxmox 9
-
-To use the AMD iGPU/GPU from an LXC in Proxmox 9 (or newer):
-
-1. **Identify the GID of the `render` group in the NixOS LXC**:
-   Start the container and obtain the group identifier (GID) for `render` and `video` (for ROCm):
-   ```bash
-   getent group render | cut -d: -f3
-   getent group video | cut -d: -f3
-   # → Ex: 303, 26
-   ```
-
-2. **Configure Passthrough in Proxmox**:
-   - Go to your LXC container -> **Resources** -> **Add** -> **Device Passthrough**.
-   - Set **Device Path**: `/dev/dri/renderD128`
-   - Set **Mode**: `0666`
-   - Check **Advanced** and set the **GID** obtained in step 1 (e.g., `108`), with **UID** `0`.
-   - Repeat for `/dev/dri/card0` and `/dev/kfd` (for ROCm) if necessary.
-   - Restart the LXC container from Proxmox.
-
-3. **Verify from the NixOS LXC**:
-   ```bash
-   ls -l /dev/dri
-   # Should show renderD128 and card0 accessible by the render group.
-   ```
-   Run the diagnostics according to the profile (Vulkan or ROCm):
-   ```bash
-   # For Vulkan profile (RADV)
-   nix shell nixpkgs#vulkan-tools -c vulkaninfo --summary
-
-   # For ROCm profile
-   nix shell nixpkgs#rocmPackages.rocminfo -c rocminfo
-   ```
-
-### GPU job timeout (Workaround)
-
-On slow integrated GPUs/APUs, the accumulated GPU work in a single submission can exceed the default timeout, causing the kernel to reset the compute ring.
-See [ggml-org/llama.cpp#21724](https://github.com/ggml-org/llama.cpp/issues/21724).
-
-As a workaround, increase the `lockup_timeout` on the **Proxmox host**:
-
-> [!NOTE]
-> 1. `echo "options amdgpu lockup_timeout=30000" > /etc/modprobe.d/amdgpu.conf`
-> 2. `update-initramfs -u -k all && reboot`
 
 ## Critical rules
 

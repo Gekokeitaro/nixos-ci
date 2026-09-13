@@ -1,81 +1,60 @@
-# nixos-n8n
+# nixos-hindsight
 
-Host NixOS para n8n — plataforma de automatización de workflows tipo "no-code/low-code".
+[Hindsight](https://github.com/vectorize-io/hindsight) — an AI-powered data
+platform with built-in vector search, using OmniRoute as its LLM backend and
+PostgreSQL (`nixos-postgresql`) as its database.
 
-## Qué incluye
-
-- **n8n** como servicio systemd nativo (módulo NixOS `services.n8n`)
-- **SQLite** como base de datos (por defecto, sin dependencias externas)
-- **Firewall** abierto en puerto 5678
-- **Usuario de mantenimiento** `nixos-n8n` con sudo (grupo `wheel`)
-- **Trusted user** de Nix: `nixos-n8n` puede ejecutar `nix`/`nixos-rebuild`
-- **Neovim** (nvf) y herramientas CLI: `tree`, `git`, `curl`, `wget`, `magic-wormhole`
-
-## Build de la imagen LXC
+## Build
 
 ```bash
-nixos-rebuild build-image --image-variant lxc --flake .#nixos-n8n
+nixos-rebuild build-image --image-variant lxc --flake .#nixos-hindsight
 ```
 
-El resultado es un symlink `result` → tarball `.tar.gz` en el Nix store.
-Importar directamente en Proxmox como plantilla LXC.
+## Exposed ports
 
-## Primer arranque
+| Service | Port |
+|---|---|
+| Hindsight | 8888, 9999 |
 
-1. Despliega la plantilla LXC en Proxmox (recursos sugeridos: 2 CPU, 2-4 GB RAM, 20 GB disco).
-2. Arranca el contenedor.
-3. Accede a `http://<IP-LXC>:5678` — asistente de configuración inicial de n8n.
-4. Crea usuario administrador desde la UI.
-5. (Opcional) Para cerrar registro público, edita la configuración y vuelve a aplicar:
-   ```bash
-   nixos-rebuild switch --flake .#nixos-n8n
-   ```
+## Dependencies
 
-## Configuración de base de datos
+- `nixos-omniroute` at `http://192.168.18.32:20128/v1` — LLM provider
+  (OpenAI-compatible, model `static-best-free`).
+- `nixos-postgresql` at `192.168.18.60:5432` — DB `hindsight` with pgvector.
 
-Por defecto usa **SQLite** (archivo en `/var/lib/n8n/database.sqlite`). Para producción con alta carga:
+## Secrets
 
-```nix
-services.n8n = {
-  enable = true;
-  # ...
-  extraConfig = ''
-    DB_TYPE=postgresdb
-    DB_POSTGRESDB_HOST=...
-    DB_POSTGRESDB_PORT=5432
-    DB_POSTGRESDB_DATABASE=n8n
-    DB_POSTGRESDB_USER=n8n
-    DB_POSTGRESDB_PASSWORD=...
-  '';
-};
-```
+`sops-nix` manages `hindsight-env`:
+- `sopsFile = ./secrets/hindsight-env.env` (dotenv format), mode `0444`.
+- Injected via `environmentFiles`; contains additional runtime secrets
+  (API keys, etc.) not in `configuration.nix`.
 
-## Acceso SSH
+The database password lives in `common/secrets/postgresql-shared.yaml`
+(shared with `nixos-postgresql`).
+
+## First boot
+
+1. Ensure `nixos-postgresql` is up with the `hindsight` DB and pgvector.
+2. Ensure `nixos-omniroute` is up and serving models.
+3. Import the tarball, create and start the LXC.
+4. Open `http://<IP>:8888` in a browser.
+
+## SSH
 
 ```bash
-ssh nixos-n8n@<IP-LXC>
+ssh nixos-hindsight@<IP>
 ```
 
-Clave autorizada: la misma que `nixos-ci` (PopOS OCT 2024).
+## Apply changes
 
-## Aplicar cambios de configuración
-
-Desde dentro del LXC (tras `nix-channel --update`):
+Remote:
 
 ```bash
-sudo nixos-rebuild switch --flake .#nixos-n8n
+nixos-rebuild switch --flake .#nixos-hindsight --target-host <user>@<ip> --elevate=sudo
 ```
 
-El script de activación `updateSbinInit` (en `common/`) actualiza `/sbin/init` para que los cambios persistan tras reboot.
+Inside the container:
 
-## Firewall
-
-El puerto 5678 está abierto en el firewall interno del LXC (`networking.firewall.allowedTCPPorts`).
-En Proxmox el tráfico entre host y LXC pasa por la interfaz virtual; si hay firewall adicional en el host Proxmox, permitir el puerto 5678.
-
-## Notas
-
-- Contenedor **unprivileged** (no usar configuración que requiera privilegios).
-- `boot.isContainer = true` — sin bootloader ni configuración de hardware.
-- `nixpkgs` sigue canal `nixos-unstable`.
-- Para migración a PostgreSQL, añadir servicio `services.postgresql` y variables de entorno en `extraConfig`.
+```bash
+sudo nixos-rebuild switch --flake .#nixos-hindsight
+```
