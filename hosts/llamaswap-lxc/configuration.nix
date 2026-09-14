@@ -6,12 +6,11 @@
 }: let
   lib = pkgs.lib;
 
-  llamaCpp = import ../../packages/llama-cpp {inherit pkgs isLlamacppRocm;};
+  llamaCpp = import ./packages/llama-cpp {inherit pkgs isLlamacppRocm;};
   llama-server = "${llamaCpp}/bin/llama-server";
 
   # 1-June-26. FIX: Parece que DeviceLost ocurre porque entre llamadas a intercambios de modelos no hay tiempo
   # suficiente para que se limpie el estado de la gpu. El wrapper añade 2s. que está testeado y funciona.
-  llama-server-delay = 2;
   llama-server-delayed = pkgs.writeShellScript "llama-server-delayed" ''
     sleep 2
     exec ${llama-server} "$@"
@@ -64,24 +63,6 @@ in {
     };
     serviceConfig = {
       CacheDirectory = "llama-swap";
-    };
-  };
-
-  virtualisation.oci-containers.containers = {
-    omniroute = {
-      image = "diegosouzapw/omniroute:latest";
-
-      environment = {
-        # PUID/PGID deben coincidir con dueño de los volúmenes en host,
-        # si no: errores de permisos.
-        PUID = "1000";
-        PGID = "1000";
-        TZ = "Europe/Madrid";
-      };
-
-      ports = [
-        "20128:20128"
-      ];
     };
   };
 

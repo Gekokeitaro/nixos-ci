@@ -4,10 +4,10 @@ pkgs.writeShellApplication {
   runtimeInputs = with pkgs; [curl jq nix-prefetch-github gnused git];
   text = ''
     REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
-    TARGET_FILE="$REPO_ROOT/packages/llama-cpp/default.nix"
+    TARGET_FILE="$REPO_ROOT/hosts/llamaswap-lxc/packages/llama-cpp/default.nix"
 
     if [ ! -f "$TARGET_FILE" ]; then
-      echo "Error: Could not find packages/llama-cpp/default.nix at $TARGET_FILE" >&2
+      echo "Error: Could not find hosts/llamaswap-lxc/packages/llama-cpp/default.nix at $TARGET_FILE" >&2
       exit 1
     fi
 
