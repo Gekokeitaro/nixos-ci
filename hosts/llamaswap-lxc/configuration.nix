@@ -6,12 +6,11 @@
 }: let
   lib = pkgs.lib;
 
-  llamaCpp = import ../../packages/llama-cpp {inherit pkgs isLlamacppRocm;};
+  llamaCpp = import ./packages/llama-cpp {inherit pkgs isLlamacppRocm;};
   llama-server = "${llamaCpp}/bin/llama-server";
 
   # 1-June-26. FIX: Parece que DeviceLost ocurre porque entre llamadas a intercambios de modelos no hay tiempo
   # suficiente para que se limpie el estado de la gpu. El wrapper añade 2s. que está testeado y funciona.
-  llama-server-delay = 2;
   llama-server-delayed = pkgs.writeShellScript "llama-server-delayed" ''
     sleep 2
     exec ${llama-server} "$@"
@@ -53,6 +52,10 @@ in {
         (import ./models/Unsloth-gpt-oss-20b-Q4_K_M.nix {llama-server = llama-server-delayed;})
         (import ./models/Yuxinlu1-mellum2-claude-Q4_K_M.nix {llama-server = llama-server-delayed;})
         (import ./models/Qwen3.8-27B-Ridge-3.7bpw.nix {llama-server = llama-server-delayed;})
+        (import ./models/gemma-4-12b-it-UD-Q4_K_X.nix {llama-server = llama-server-delayed;})
+        (import ./models/Qwen3.5-9B-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
+        (import ./models/omnicoder-9b-q5_k_m.nix {llama-server = llama-server-delayed;})
+        (import ./models/omnicoder-9b-q5_k_m-dflash.nix {llama-server = llama-server-delayed;})
       ];
     };
   };
@@ -64,24 +67,6 @@ in {
     };
     serviceConfig = {
       CacheDirectory = "llama-swap";
-    };
-  };
-
-  virtualisation.oci-containers.containers = {
-    omniroute = {
-      image = "diegosouzapw/omniroute:latest";
-
-      environment = {
-        # PUID/PGID deben coincidir con dueño de los volúmenes en host,
-        # si no: errores de permisos.
-        PUID = "1000";
-        PGID = "1000";
-        TZ = "Europe/Madrid";
-      };
-
-      ports = [
-        "20128:20128"
-      ];
     };
   };
 
