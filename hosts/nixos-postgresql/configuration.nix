@@ -63,7 +63,7 @@
 
     '';
 
-    extensions = posgresPackages: with posgresPackages; [pgvector];
+    extensions = postgresPackages: with postgresPackages; [pgvector];
   };
 
   systemd.services.one-shot-config = {
