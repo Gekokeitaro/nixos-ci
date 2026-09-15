@@ -1,20 +1,21 @@
 # NixOS LXC
 
-> Repository for building, deploying, and updating NixOS LXC images for my homelab on Proxmox.
+> Repository for building, deploying, and updating NixOS LXC images for my
+> homelab on Proxmox.
 
 ## Hosts
 
-| Host | Description |
-| --- | --- |
-| [nixos-ci](hosts/nixos-ci/) | Dev machine + Forgejo CI/CD runner |
-| [nixos-forgejo](hosts/nixos-forgejo/) | Self-hosted Git forge (Forgejo) |
-| [llamaswap-lxc](hosts/llamaswap-lxc/) | Local LLM inference via llama-swap + llama-cpp (Vulkan/ROCm) |
-| [nixos-calibre-wa](hosts/nixos-calibre-wa/) | Calibre-Web-Automated + pCloud library |
-| [nixos-n8n](hosts/nixos-n8n/) | n8n workflow automation (OCI + PostgreSQL) |
-| [nixos-n8n-runner](hosts/nixos-n8n-runner/) | n8n external task runners (OCI) |
-| [nixos-omniroute](hosts/nixos-omniroute/) | OmniRoute AI gateway (OCI) |
-| [nixos-postgresql](hosts/nixos-postgresql/) | Central PostgreSQL + pgvector |
-| [nixos-hindsight](hosts/nixos-hindsight/) | Hindsight data platform (OCI + LLM) |
+| Host                                                  | Description                                                  |
+| ----------------------------------------------------- | ------------------------------------------------------------ |
+| [nixos-ci](hosts/nixos-ci/)                           | Dev machine + Forgejo CI/CD runner                           |
+| [nixos-forgejo](hosts/nixos-forgejo/)                 | Self-hosted Git forge (Forgejo)                              |
+| [nixos-llamaswap-<vulkan/ROCm>](hosts/llamaswap-lxc/) | Local LLM inference via llama-swap + llama-cpp (Vulkan/ROCm) |
+| [nixos-calibre-web-auto](hosts/nixos-calibre-wa/)     | Calibre-Web-Automated + pCloud library                       |
+| [nixos-n8n](hosts/nixos-n8n/)                         | n8n workflow automation (OCI + PostgreSQL)                   |
+| [nixos-n8n-runner](hosts/nixos-n8n-runner/)           | n8n external task runners (OCI)                              |
+| [nixos-omniroute](hosts/nixos-omniroute/)             | OmniRoute AI gateway (OCI)                                   |
+| [nixos-postgresql](hosts/nixos-postgresql/)           | Central PostgreSQL + pgvector                                |
+| [nixos-hindsight](hosts/nixos-hindsight/)             | Hindsight data platform (OCI + LLM)                          |
 
 > [!NOTE]
 > All LXC images include NVF (Neovim) as the text editor.
@@ -32,9 +33,9 @@ generating the image. Without them, remote deployment will fail.
 nixos-rebuild build-image --image-variant lxc --flake .#<host>
 ```
 
-This creates a `result` symlink pointing to a `.tar.gz` in the Nix store.
-Import that tarball into Proxmox as an LXC template, then create and start
-the container.
+This creates a `result` symlink pointing to a `.tar.gz` in the Nix store. Import
+that tarball into Proxmox as an LXC template, then create and start the
+container.
 
 ### 3. Apply configuration remotely
 
@@ -52,9 +53,9 @@ nixos-rebuild switch --flake .#<host> --target-host <user>@<ip> --elevate=sudo
 
 ### Other commands
 
-| Command | Description |
-| --- | --- |
-| `nix flake show .` | List all available flake outputs |
+| Command                                 | Description                       |
+| --------------------------------------- | --------------------------------- |
+| `nix flake show .`                      | List all available flake outputs  |
 | `nixos-rebuild switch --flake .#<host>` | Apply config to the local machine |
 
 > [!NOTE]
