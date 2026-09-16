@@ -50,6 +50,7 @@ in {
       models = lib.mkMerge [
         (import ./models/Unsloth-gpt-oss-20b-Q4_K_M.nix {llama-server = llama-server-delayed;})
         (import ./models/gemma-4-12b-it-qat-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
+        (import ./models/Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.nix {llama-server = llama-server-delayed;})
         (import ./models/Qwen3.5-9B-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
         (import ./models/omnicoder-9b-q5_k_m-w-dflash.nix {llama-server = llama-server-delayed;})
       ];
