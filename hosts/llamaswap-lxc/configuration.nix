@@ -48,14 +48,10 @@ in {
     openFirewall = true; # Añade port a allowedTCPPorts. Necesario con Proxmox?
     settings = {
       models = lib.mkMerge [
-        (import ./models/JetBrains-Mellum2-12B-A2.5B-Instruct-MXFPA4_MOE.nix {llama-server = llama-server-delayed;})
         (import ./models/Unsloth-gpt-oss-20b-Q4_K_M.nix {llama-server = llama-server-delayed;})
-        (import ./models/Yuxinlu1-mellum2-claude-Q4_K_M.nix {llama-server = llama-server-delayed;})
-        (import ./models/Qwen3.8-27B-Ridge-3.7bpw.nix {llama-server = llama-server-delayed;})
-        (import ./models/gemma-4-12b-it-UD-Q4_K_X.nix {llama-server = llama-server-delayed;})
+        (import ./models/gemma-4-12b-it-qat-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
         (import ./models/Qwen3.5-9B-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
-        (import ./models/omnicoder-9b-q5_k_m.nix {llama-server = llama-server-delayed;})
-        (import ./models/omnicoder-9b-q5_k_m-dflash.nix {llama-server = llama-server-delayed;})
+        (import ./models/omnicoder-9b-q5_k_m-w-dflash.nix {llama-server = llama-server-delayed;})
       ];
     };
   };
