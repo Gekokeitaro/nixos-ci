@@ -7,11 +7,11 @@
     cmd = ''
       ${llama-server} --port ''${PORT}
       --model /models/Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.gguf
-      --spec-type draft-mtp
+      --spec-type ngram-mod,draft-mtp
       --spec-draft-n-max 2
       --reasoning-effort medium
       -ngl 99
-      -ctk q4_0 -ctv q4_0 -fa 1
+      -ctk q8_0 -ctv q4_0 -fa 1
       --ctx-size 131072
       --parallel 1
       --jinja
@@ -25,19 +25,6 @@
       --presence-penalty 0.0
       -b 256 -ub 256
     '';
-    filters = {
-      setParamsByID = {
-        "${MODEL_ID}" = {
-          chat_template_kwargs.reasoning_effort = "medium";
-        };
-        "${MODEL_ID}:high" = {
-          chat_template_kwargs.reasoning_effort = "xhigh";
-        };
-        "${MODEL_ID}:low" = {
-          chat_template_kwargs.reasoning_effort = "low";
-        };
-      };
-    };
     ttl = 600;
   };
 }
