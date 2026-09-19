@@ -26,12 +26,10 @@ hosts/nixos-pi-agent/
 2. **`configuration.nix`** imports `../../common` and `./modules/pi-coding-agent/default.nix`
 3. **`modules/pi-coding-agent/default.nix`** provides:
    - `pi-coding-agent` wrapped with `makeWrapper` (adds `nodejs`, `ripgrep`, `fd` to PATH; sets `NPM_CONFIG_PREFIX`)
-   - `systemd.tmpfiles.rules` for `~/.pi/agent/npm` and `~/.pi/agent/extensions`
-   - Symlinks from `extensions/` to `~/.pi/agent/extensions/`
+   - All `systemd.tmpfiles.rules` (directories, config file symlinks, extension symlinks)
 4. **`configuration.nix`** provides:
    - User `nixos-pi-agent` definition
-   - `systemd.tmpfiles.rules` for `models.json` (read-only symlink) and `settings.json` (copy-if-not-exists)
-   - `piCodingAgent.enable = true` and `piCodingAgent.extensions` list
+   - `piCodingAgent.enable = true`, `modelsPath`, `settingsPath`, `extensions` list
 
 ### Extension types
 

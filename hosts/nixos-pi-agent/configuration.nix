@@ -1,12 +1,4 @@
-{
-  pkgs,
-  config,
-  ...
-}: let
-  user = "nixos-pi-agent";
-  home = config.users.user.${user}.home;
-  agentDir = "${home}/.pi/agent";
-in {
+{ pkgs, config, ... }: {
   imports = [
     ../../common
     ./modules/pi-coding-agent/default.nix
@@ -14,7 +6,8 @@ in {
 
   piCodingAgent = {
     enable = true;
-
+    modelsPath = ./config/models.json;
+    settingsPath = ./config/settings.json;
     extensions = with pkgs; [ ];
   };
 
@@ -37,14 +30,6 @@ in {
       magic-wormhole
     ];
   };
-
-  systemd.tmpfiles.rules = [
-    "d ${home}/.pi 0755 ${user} users -"
-    "d ${agentDir} 0755 ${user} users -"
-
-    "L+ ${agentDir}/models.json - - - - ${./config/models.json}"
-    "C ${agentDir}/settings.json 0644 ${user} users - ${./config/settings.json}"
-  ];
 
   nix.settings.experimental-features = ["nix-command" "flakes"];
 

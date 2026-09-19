@@ -1,11 +1,23 @@
 { config, lib, pkgs, ... }: let
   user = "nixos-pi-agent";
-  home = config.users.user.${user}.home;
+  home = config.users.users.${user}.home;
   agentDir = "${home}/.pi/agent";
   cfg = config.piCodingAgent;
 in {
   options.piCodingAgent = {
     enable = lib.mkEnableOption "pi-coding-agent";
+
+    modelsPath = lib.mkOption {
+      type = lib.types.path;
+      default = ./config/models.json;
+      description = "Path to models.json copied to ~/.pi/agent/models.json";
+    };
+
+    settingsPath = lib.mkOption {
+      type = lib.types.path;
+      default = ./config/settings.json;
+      description = "Path to settings.json copied to ~/.pi/agent/settings.json";
+    };
 
     extensions = lib.mkOption {
       type = lib.types.listOf lib.types.path;
@@ -31,8 +43,13 @@ in {
     ];
 
     systemd.tmpfiles.rules = [
+      "d ${home}/.pi 0755 ${user} users -"
+      "d ${agentDir} 0755 ${user} users -"
       "d ${agentDir}/npm 0755 ${user} users -"
       "d ${agentDir}/extensions 0755 ${user} users -"
+
+      "L+ ${agentDir}/models.json - - - - ${cfg.modelsPath}"
+      "C ${agentDir}/settings.json 0644 ${user} users - ${cfg.settingsPath}"
     ] ++ lib.map (ext: "L+ ${agentDir}/extensions/${lib.baseNameOf ext} - - - ${ext}") cfg.extensions;
   };
 }
