@@ -50,7 +50,7 @@
       N8N_SECURE_COOKIE = "false";
 
       DB_TYPE = "postgresdb";
-      DB_POSTGRESDB_HOST = "192.168.18.60";
+      DB_POSTGRESDB_HOST = "192.168.18.91";
       DB_POSTGRESDB_PORT = "5432";
       DB_POSTGRESDB_USER = "n8n";
       DB_POSTGRESDB_PASSWORD_FILE = config.sops.secrets.n8n_db_password.path;
