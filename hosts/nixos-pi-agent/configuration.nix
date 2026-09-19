@@ -9,13 +9,14 @@
 in {
   imports = [
     ../../common
+    ./modules/pi-coding-agent/default.nix
   ];
 
-  #sops = {
-  #  defaultSopsFile = ./secrets.yaml;
-  #  age.keyFile = "/home/nixos-ci/.config/sops/age/keys.txt";
-  #  secrets.forgejo-runner-token = {};
-  #};
+  piCodingAgent = {
+    enable = true;
+
+    extensions = with pkgs; [ ];
+  };
 
   users.users.nixos-pi-agent = {
     isNormalUser = true;
@@ -34,23 +35,15 @@ in {
       wget
       bat
       magic-wormhole
-      pi-coding-agent
     ];
   };
 
   systemd.tmpfiles.rules = [
     "d ${home}/.pi 0755 ${user} users -"
     "d ${agentDir} 0755 ${user} users -"
-    "d ${agentDir}/extensions 0755 ${user} users -"
 
-    # Solo lectura (declarativo)
     "L+ ${agentDir}/models.json - - - - ${./config/models.json}"
-
-    # Mutable: se copia solo si no existe
     "C ${agentDir}/settings.json 0644 ${user} users - ${./config/settings.json}"
-
-    # Extensión propia, cargada por autodescubrimiento
-    "L+ ${agentDir}/extensions/mi-ext.ts - - - - ${./pi/mi-ext.ts}"
   ];
 
   nix.settings.experimental-features = ["nix-command" "flakes"];

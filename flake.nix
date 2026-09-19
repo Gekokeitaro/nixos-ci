@@ -124,6 +124,14 @@
           ./hosts/nixos-hindsight/configuration.nix
         ];
       };
+      nixos-pi-agent = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = {inherit inputs;};
+        modules = [
+          nvf.nixosModules.default
+          ./hosts/nixos-pi-agent/configuration.nix
+        ];
+      };
     };
   };
 }

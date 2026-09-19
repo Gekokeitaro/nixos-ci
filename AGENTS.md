@@ -43,6 +43,7 @@ local LLM inference). All hosts share a common base with NVF (Neovim).
 │   │   ├── packages/
 │   │   │   └── llama-cpp/
 │   │   │       └── default.nix  # Parameterized llama-cpp override (Vulkan/ROCm).
+│   ├── nixos-pi-agent/      # pi-coding-agent sessions with n8n integration
 │   ├── nixos-ci/              # Dev machine + Forgejo runner
 │   ├── nixos-forgejo/         # Self-hosted Git forge (Forgejo, SQLite)
 │   ├── nixos-calibre-wa/      # Calibre-Web-Automated + rclone pCloud
@@ -107,6 +108,9 @@ local LLM inference). All hosts share a common base with NVF (Neovim).
 3. Define user, SSH keys, packages, and `system.stateVersion`.
 4. Add the corresponding `nixosConfiguration` in `flake.nix`.
 5. Create `hosts/<name>/README.md` with build instructions.
+6. For host-specific modules, create `hosts/<name>/modules/<name>/default.nix` and import it from `configuration.nix`.
+
+### Adding a new shared module
 
 ### Adding a new shared module
 
