@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }: let
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   user = "nixos-pi-agent";
   home = config.users.users.${user}.home;
   agentDir = "${home}/.pi/agent";
@@ -21,7 +26,7 @@ in {
 
     extensions = lib.mkOption {
       type = lib.types.listOf lib.types.path;
-      default = [ ];
+      default = [];
       description = "Extension files symlinked to ~/.pi/agent/extensions/";
     };
   };
@@ -30,11 +35,11 @@ in {
     environment.systemPackages = [
       (pkgs.symlinkJoin {
         name = "pi-coding-agent";
-        paths = [ pkgs.pi-coding-agent ];
-        nativeBuildInputs = [ pkgs.makeWrapper ];
+        paths = [pkgs.pi-coding-agent];
+        nativeBuildInputs = [pkgs.makeWrapper];
         postBuild = ''
           wrapProgram $out/bin/pi \
-            --prefix PATH : ${lib.makeBinPath [ pkgs.nodejs pkgs.ripgrep pkgs.fd ]} \
+            --prefix PATH : ${lib.makeBinPath [pkgs.nodejs pkgs.ripgrep pkgs.fd]} \
             --set NPM_CONFIG_PREFIX ${agentDir}/npm/ \
             --set-default PI_SKIP_VERSION_CHECK 1 \
             --set-default PI_TELEMETRY 0
@@ -42,14 +47,16 @@ in {
       })
     ];
 
-    systemd.tmpfiles.rules = [
-      "d ${home}/.pi 0755 ${user} users -"
-      "d ${agentDir} 0755 ${user} users -"
-      "d ${agentDir}/npm 0755 ${user} users -"
-      "d ${agentDir}/extensions 0755 ${user} users -"
+    systemd.tmpfiles.rules =
+      [
+        "d ${home}/.pi 0755 ${user} users -"
+        "d ${agentDir} 0755 ${user} users -"
+        "d ${agentDir}/npm 0755 ${user} users -"
+        "d ${agentDir}/extensions 0755 ${user} users -"
 
-      "L+ ${agentDir}/models.json - - - - ${cfg.modelsPath}"
-      "C ${agentDir}/settings.json 0644 ${user} users - ${cfg.settingsPath}"
-    ] ++ lib.map (ext: "L+ ${agentDir}/extensions/${lib.baseNameOf ext} - - - ${ext}") cfg.extensions;
+        "L+ ${agentDir}/models.json - - - - ${cfg.modelsPath}"
+        "C ${agentDir}/settings.json 0644 ${user} users - ${cfg.settingsPath}"
+      ]
+      ++ lib.map (ext: "L+ ${agentDir}/extensions/${lib.baseNameOf ext} - - - ${ext}") cfg.extensions;
   };
 }

@@ -1,4 +1,8 @@
-{ pkgs, config, ... }: {
+{
+  pkgs,
+  config,
+  ...
+}: {
   imports = [
     ../../common
     ./modules/pi-coding-agent/default.nix
@@ -8,7 +12,7 @@
     enable = true;
     modelsPath = ./config/models.json;
     settingsPath = ./config/settings.json;
-    extensions = with pkgs; [ ];
+    extensions = with pkgs; [];
   };
 
   users.users.nixos-pi-agent = {
@@ -30,6 +34,8 @@
       magic-wormhole
     ];
   };
+
+  nix.settings.trusted-users = ["nixos-pi-agent"];
 
   nix.settings.experimental-features = ["nix-command" "flakes"];
 
