@@ -1,1 +1,31 @@
-{"providers": {"ollama": {"baseUrl": "http://localhost:11434/v1", "api": "openai-completions", "apiKey": "ollama", "models": [{"id": "llama3.1:8b"}, {"id": "qwen2.5-coder:7b"}]}}}
+{
+  "providers": {
+    "llama-swap": {
+      "baseUrl": "http://192.168.18.12:8080/v1", 
+      "api": "openai-completions", 
+      "apiKey": "dummy-key", 
+      "models": [
+        {
+          "id": "Gemma 4 12B QAT UD Q4_K_XL",
+          "reasoning": true,
+          "contextWindow": 262144
+        }, 
+        {
+          "id": "Qwen3.5 9B UD Q4_K_XL",
+          "reasoning": true,
+          "contextWindow": 262144
+        },
+        {
+          "id": "OmniCoder-9B Q5_K_M DFlash",
+          "reasoning": true,
+          "contextWindow": 262144
+        },
+        {
+          "id": "Qwen3.8 27B GSQ-RCO IQ3_XXS MTP",
+          "reasoning": true,
+          "contextWindow": 131072
+        }
+      ]
+    }
+  }
+}
