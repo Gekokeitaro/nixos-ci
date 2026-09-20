@@ -1,27 +1,27 @@
 {
   "providers": {
     "llama-swap": {
-      "baseUrl": "http://192.168.18.12:8080/v1", 
+      "baseUrl": "http://192.168.18.32:20128//v1", 
       "api": "openai-completions", 
-      "apiKey": "dummy-key", 
+      "apiKey": "sk-65de9bfe77f89019-4c9a25-9fef0dba", 
       "models": [
         {
-          "id": "Gemma 4 12B QAT UD Q4_K_XL",
+          "id": "llamacpp/Gemma 4 12B QAT UD Q4_K_XL",
           "reasoning": true,
           "contextWindow": 262144
         }, 
         {
-          "id": "Qwen3.5 9B UD Q4_K_XL",
+          "id": "llamacpp/OmniCoder-9B Q5_K_M DFlash",
           "reasoning": true,
           "contextWindow": 262144
         },
         {
-          "id": "OmniCoder-9B Q5_K_M DFlash",
+          "id": "llamacpp/Qwen3.5 9B UD Q4_K_XL",
           "reasoning": true,
           "contextWindow": 262144
         },
         {
-          "id": "Qwen3.8 27B GSQ-RCO IQ3_XXS MTP",
+          "id": "llamacpp/Qwen3.8 27B GSQ-RCO IQ3_XXS MTP",
           "reasoning": true,
           "contextWindow": 131072
         }

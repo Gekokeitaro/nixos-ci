@@ -55,8 +55,22 @@ in {
         "d ${agentDir}/extensions 0755 ${user} users -"
 
         "L+ ${agentDir}/models.json - - - - ${cfg.modelsPath}"
-        "C ${agentDir}/settings.json 0644 ${user} users - ${cfg.settingsPath}"
+        "C+ ${agentDir}/settings.json 0644 ${user} users - ${cfg.settingsPath}"
       ]
-      ++ lib.map (ext: "L+ ${agentDir}/extensions/${lib.baseNameOf ext} - - - ${ext}") cfg.extensions;
+      ++ lib.map (ext: "L+ ${agentDir}/extensions/${lib.baseNameOf ext} - - - - ${ext}") cfg.extensions;
+
+    systemd.services.pi-agent-sync = {
+      wantedBy = ["multi-user.target"];
+      after = ["systemd-tmpfiles-setup.service" "systemd-tmpfiles-resetup.service"];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        User = user;
+        Group = "users";
+      };
+      script = ''
+        cp -f --no-preserve=mode,ownership ${cfg.settingsPath} ${agentDir}/settings.json
+      '';
+    };
   };
 }

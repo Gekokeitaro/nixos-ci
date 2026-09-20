@@ -1,9 +1,7 @@
 {
+  "theme": "dark",
   "defaultProvider": "llama-swap",
   "defaultModel": "gpt-oss-20b-NEO-IQ4_NL",
   "defaultThinkingLevel": "medium",
-  "retry": {
-    "enabled": true, 
-    "maxRetries": 3
-  } 
+  "packages": ["pi-skills", "npm:pi-powerline-footer", "npm:@luxusai/pi-hindsight", "npm:pi-web-access"]
 }
