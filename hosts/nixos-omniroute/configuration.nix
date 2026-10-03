@@ -35,6 +35,9 @@
         PGID = "1000";
         TZ = "Europe/Madrid";
         OMNIROUTE_BOOTSTRAPPED = "true";
+        STREAM_READINESS_TIMEOUT_MS = "300000";
+        STREAM_READINESS_MAX_TIMEOUT_MS = "600000";
+        STREAM_IDLE_TIMEOUT_MS = "600000";
       };
 
       volumes = ["/var/lib/omniroute:/app/data"];

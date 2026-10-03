@@ -9,11 +9,9 @@
       --spec-type ngram-mod
       --ctx-size 32768
       -ngl 99 -t 4
-      -b 512 -ub 512
-      -ctk q8_0 -ctv q4_0 -fa 1
-      -ot ".ffn_(up|down)_exps.=CPU"
+      -fa 1
+      -b 1024 -ub 1024
       --parallel 1
-      --no-mmap
     '';
     filters = {
       setParamsByID = {

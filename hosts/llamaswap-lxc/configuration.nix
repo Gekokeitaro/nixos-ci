@@ -48,12 +48,20 @@ in {
     openFirewall = true; # Añade port a allowedTCPPorts. Necesario con Proxmox?
     settings = {
       models = lib.mkMerge [
+        (import ./models/Bartowski-Ling-3.0-tiny-Q8_0.nix {llama-server = llama-server-delayed;})
+        (import ./models/ISTA-DASlab-Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.nix {llama-server = llama-server-delayed;})
+        (import ./models/InternScience-Agents-A1-4B-Q8_0.nix {llama-server = llama-server-delayed;})
+        (import ./models/InternScience-Agents-A1-4B-Q4_K_M.nix {llama-server = llama-server-delayed;})
+        (import ./models/Tesslate-omnicoder-9b-q4_k_m-w-dflash.nix {llama-server = llama-server-delayed;})
+        (import ./models/Unsloth-DeepSeek-R1-Distill-Qwen-14B-Q4_K_M.nix {llama-server = llama-server-delayed;})
+        (import ./models/Unsloth-Devstral-Small-2-24B-Instruct-2512-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
+        (import ./models/Unsloth-GLM-4.7-Flash-REAP-23B-A3B-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
+        (import ./models/Unsloth-Qwen3.5-9B-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
+        (import ./models/Unsloth-Qwen3.6-35B-A3B-UD-IQ3_XXS.nix {llama-server = llama-server-delayed;})
+        (import ./models/Unsloth-gemma-4-E4B-it-qat-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
+        (import ./models/Unsloth-gemma-4-12B-it-qat-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
         (import ./models/Unsloth-gpt-oss-20b-Q4_K_M.nix {llama-server = llama-server-delayed;})
-        (import ./models/gemma-4-12b-it-qat-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
-        (import ./models/Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.nix {llama-server = llama-server-delayed;})
-        (import ./models/Qwen3.5-9B-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
-        (import ./models/Qwen3.6-35B-A3B-UD-IQ3_XXS.nix {llama-server = llama-server-delayed;})
-        (import ./models/omnicoder-9b-q5_k_m-w-dflash.nix {llama-server = llama-server-delayed;})
+        (import ./models/XHToken-Spark-X2.5-4B-Q8_0.nix {llama-server = llama-server-delayed;})
       ];
     };
   };
