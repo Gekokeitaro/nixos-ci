@@ -49,6 +49,7 @@ in
         ++ [
           "-DCMAKE_BUILD_TYPE=Release"
           "-DGGML_NATIVE=ON"
+          "-DGGML_CUDA_FA_ALL_QUANTS=ON"
         ]
         ++ lib.optionals isLlamacppRocm [
           "-DCMAKE_HIP_ARCHITECTURES=${targetGPU}"

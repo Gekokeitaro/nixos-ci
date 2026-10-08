@@ -6,8 +6,9 @@
       ${llama-server} --port ''${PORT}
       --model /models/Qwen3.6-35B-A3B-UD-IQ3_XXS.gguf
       --spec-type ngram-mod,draft-mtp
-      -ngl 99 -t 4 -fa 1
-      --ctx-size 32768
+      -ngl 99 -fa 1
+      --ctx-size 131072
+      -ctk q8_0 -ctv q4_0
       --parallel 1
       --jinja
     '';

@@ -6,6 +6,23 @@
 }: let
   lib = pkgs.lib;
 
+  gpuEnv =
+    {
+      # Común: usa memoria principal en vez de fallar si se agota la VRAM.
+      GGML_CUDA_ENABLE_UNIFIED_MEMORY = "1";
+      # Común: limita el tamaño de las submissions Vulkan/ROCm.
+      GGML_VK_MAX_NODES_PER_SUBMIT = "1";
+    }
+    // lib.optionalAttrs isLlamacppRocm {
+      # gfx1035 no está en la lista oficial de ROCm; forzamos compatibilidad.
+      # Quitar si pasas a los binarios de TheRock gfx103X-all.
+      HSA_OVERRIDE_GFX_VERSION = "10.3.0";
+    }
+    // lib.optionalAttrs (!isLlamacppRocm) {
+      # RADV tiene mejor soporte RDNA2 que amdvlk.
+      AMD_VULKAN_ICD = "RADV";
+    };
+
   llamaCpp = import ./packages/llama-cpp {inherit pkgs isLlamacppRocm;};
   llama-server = "${llamaCpp}/bin/llama-server";
 
@@ -49,9 +66,13 @@ in {
     settings = {
       models = lib.mkMerge [
         (import ./models/Bartowski-Ling-3.0-tiny-Q8_0.nix {llama-server = llama-server-delayed;})
+        (import ./models/DavidAU-LFM2.5-8B-A1B-Q3.8-TBrilliance-NEO-MAX-IQ4_XS.nix {llama-server = llama-server-delayed;})
+        (import ./models/DavidAU-Qwen3.5-9B-The-Defiant-Fable-Uncnr-Heretic-NEO-MAX-MTP-Q4_K_M.nix {llama-server = llama-server-delayed;})
         (import ./models/ISTA-DASlab-Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.nix {llama-server = llama-server-delayed;})
         (import ./models/InternScience-Agents-A1-4B-Q8_0.nix {llama-server = llama-server-delayed;})
         (import ./models/InternScience-Agents-A1-4B-Q4_K_M.nix {llama-server = llama-server-delayed;})
+        (import ./models/Peculiar-Ragdoll-Sharp-MiniCPM5-2B-Q8_K_M.nix {llama-server = llama-server-delayed;})
+        (import ./models/Prism-ML-Ternary-Bonsai-2-27B-PQ2_0.nix {llama-server = llama-server-delayed;})
         (import ./models/Tesslate-omnicoder-9b-q4_k_m-w-dflash.nix {llama-server = llama-server-delayed;})
         (import ./models/Unsloth-DeepSeek-R1-Distill-Qwen-14B-Q4_K_M.nix {llama-server = llama-server-delayed;})
         (import ./models/Unsloth-Devstral-Small-2-24B-Instruct-2512-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
@@ -67,10 +88,12 @@ in {
   };
 
   systemd.services.llama-swap = {
-    environment = {
-      MESA_SHADER_CACHE_DIR = "/var/cache/llama-swap";
-      XDG_CACHE_HOME = "/var/cache/llama-swap";
-    };
+    environment =
+      {
+        MESA_SHADER_CACHE_DIR = "/var/cache/llama-swap";
+        XDG_CACHE_HOME = "/var/cache/llama-swap";
+      }
+      // gpuEnv;
     serviceConfig = {
       CacheDirectory = "llama-swap";
     };
@@ -88,23 +111,22 @@ in {
       vulkan-loader
     ];
 
-  environment.variables = lib.mkMerge [
-    # Común a ambos perfiles: limita el tamaño de las submissions Vulkan/ROCm.
-    {
-      GGML_VK_MAX_NODES_PER_SUBMIT = 1;
-      GGML_CUDA_ENABLE_UNIFIED_MEMORY = 1;
-    }
-    (lib.optionalAttrs isLlamacppRocm {
-      # gfx1035 no está en la lista oficial de ROCm; forzamos compatibilidad.
-      HSA_OVERRIDE_GFX_VERSION = "10.3.0";
-    })
-    (lib.optionalAttrs (!isLlamacppRocm) {
-      # RADV tiene mejor soporte RDNA2 que amdvlk.
-      AMD_VULKAN_ICD = "RADV";
-    })
-  ];
+  #environment.variables = lib.mkMerge [
+  # Común a ambos perfiles: limita el tamaño de las submissions Vulkan/ROCm.
+  #{
+  #  GGML_VK_MAX_NODES_PER_SUBMIT = 1;
+  #}
+  #(lib.optionalAttrs isLlamacppRocm {
+  #  # gfx1035 no está en la lista oficial de ROCm; forzamos compatibilidad.
+  #  HSA_OVERRIDE_GFX_VERSION = "10.3.0";
+  #})
+  #(lib.optionalAttrs (!isLlamacppRocm) {
+  #  # RADV tiene mejor soporte RDNA2 que amdvlk.
+  #  AMD_VULKAN_ICD = "RADV";
+  #})
+  #];
 
-  nix.settings.trusted-users = ["nixos-llamaswap-vulkan"];
+  nix.settings.trusted-users = ["nixos-llamaswap-rocm" "nixos-llamaswap-vulkan"];
 
   nix.settings.experimental-features = ["nix-command" "flakes"];
 

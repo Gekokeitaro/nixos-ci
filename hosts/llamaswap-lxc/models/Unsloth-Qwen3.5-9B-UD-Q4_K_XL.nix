@@ -5,9 +5,9 @@
       ${llama-server} --port ''${PORT}
       --model /models/Qwen3.5-9B-UD-Q4_K_XL.gguf
       --spec-type ngram-mod,draft-mtp
-      -ngl 99 -t 4 -fa 1
-      --ctx-size 32768
-      --cache-ram 0
+      -ngl 99 -fa 1
+      --ctx-size 65536
+      -ctk q8_0 -ctv q4_0
       --parallel 1
       --jinja
     '';

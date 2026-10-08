@@ -8,9 +8,9 @@
       --model /models/gpt-oss-20b-Q4_K_M.gguf
       --spec-type ngram-mod
       --ctx-size 32768
-      -ngl 99 -t 4
-      -fa 1
-      -b 1024 -ub 1024
+      -ngl 99 -fa 1
+      --ctx-size 131072
+      -ctk q8_0 -ctv q4_0
       --parallel 1
     '';
     filters = {
