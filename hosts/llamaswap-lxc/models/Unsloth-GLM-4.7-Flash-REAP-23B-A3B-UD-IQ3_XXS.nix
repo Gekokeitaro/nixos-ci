@@ -10,7 +10,7 @@
       -ctk q8_0 -ctv q8_0
       --parallel 1
       --jinja
-      --temperature 0.7 --top-p 1 --repetition-penalty 1.05
+      --temperature 0.7 --top-p 1 --repeat-penalty 1.05
     '';
     ttl = 600;
   };
