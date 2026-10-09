@@ -7,11 +7,12 @@
     cmd = ''
       ${llama-server} --port ''${PORT}
       --model /models/Qwen3.8-27B-GSQ-RCO-IQ2_XS-mtp.gguf
-      --spec-type draft-mtp
-      --reasoning-effort medium
+      --spec-type draft-mtp,ngram-mod
+      --spec-draft-n-max 2 --spec-draft-p-min 0.6
+      --reasoning-effort low
       -ngl 99 -fa 1
-      -ctk q8_0 -ctv q4_0
-      --ctx-size 65536
+      -ctk q4_0 -ctv q8_0
+      --ctx-size 49152
       --parallel 1
       --jinja
       --reasoning-preserve

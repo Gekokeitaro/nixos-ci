@@ -28,7 +28,7 @@ in
 
       # Disable Nix's march=native stripping
       preConfigure = ''
-        prependToVar cmakeFlags "-DLLAMA_BUILD_COMMIT:STRING=b${llamacppVersion}"
+        prependToVar cmakeFlags "-DLLAMA_BUILD_COMMIT:STRING=${llamacppVersion}"
       '';
 
       # https://github.com/ggml-org/llama.cpp/issues/21724
