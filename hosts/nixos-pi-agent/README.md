@@ -1,50 +1,59 @@
 # nixos-pi-agent
 
-LXC container running pi-coding-agents sessions with n8n workflow integration.
+Coding agent session host with n8n integration. Serves as a
+pi-coding-agent container that connects to llama-swap for AI inference.
 
-## Architecture
+## Module options
 
-### Structure
+The `piCodingAgent` module (`modules/pi-coding-agent/default.nix`) provides
+the following options:
 
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `piCodingAgent.enable` | boolean | `false` | Enables the pi-coding-agent service |
+| `piCodingAgent.modelsPath` | `path` | `./config/models.json` | Path to `models.json` copied to `~/.pi/agent/models.json` |
+| `piCodingAgent.settingsPath` | `path` | `./config/settings.json` | Path to `settings.json` copied to `~/.pi/agent/settings.json` |
+| `piCodingAgent.extensions` | `list of path` | `[]` | Extension files symlinked to `~/.pi/agent/extensions/` |
+
+Extensions can also be installed via npm. The module configures
+`NPM_CONFIG_PREFIX` to `~/.pi/agent/npm/`, so extensions are
+installed with:
+
+```bash
+pi extensions install <package-name>
 ```
-hosts/nixos-pi-agent/
-├── configuration.nix          # NixOS host config; imports common + pi-coding-agent module
-├── default.nix                # Entry point (if needed)
-├── modules/pi-coding-agent/default.nix  # NixOS module: wrap, extensions, tmpfiles
-├── config/
-│   ├── models.json            # Custom LLM providers (read-only via tmpfiles L+)
-│   └── settings.json          # Pi global settings (copied on first boot via tmpfiles C)
-├── extensions/                # Local .ts extensions auto-discovered by pi
-├── pi/                        # Legacy scripts
-├── AGENTS.md
-└── README.md
-```
 
-### Configuration flow
+> **Known issue:** `pi extensions install` may fail with
+> `EACCES: permission denied` inside the LXC container due to
+> npm permissions on the `~/.pi/agent/npm/` directory. A workaround
+> is to pre-install extensions on the host and copy them into
+> `extensions/` as files symlinked via `piCodingAgent.extensions`,
+> or to fix directory ownership before running the install. Track
+> the related issue for a permanent fix.
 
-1. **`flake.nix`** → `./hosts/nixos-pi-agent/configuration.nix`
-2. **`configuration.nix`** imports `../../common` and `./modules/pi-coding-agent/default.nix`
-3. **`modules/pi-coding-agent/default.nix`** provides:
-   - `pi-coding-agent` wrapped with `makeWrapper` (adds `nodejs`, `ripgrep`, `fd` to PATH; sets `NPM_CONFIG_PREFIX`)
-   - All `systemd.tmpfiles.rules` (directories, config file symlinks, extension symlinks)
-4. **`configuration.nix`** provides:
-   - User `nixos-pi-agent` definition
-   - `piCodingAgent.enable = true`, `modelsPath`, `settingsPath`, `extensions` list
+When `enable = true`, the module:
 
-### Extension types
+1. Installs `pi-coding-agent` via `environment.systemPackages`, wrapping the
+   `pi` binary with `PATH` including `nodejs`, `ripgrep`, and `fd`, and setting
+   `NPM_CONFIG_PREFIX` and telemetry flags.
+2. Creates directories under `~/.pi/agent/` via `systemd.tmpfiles.rules`.
+3. Symlinks `modelsPath` → `~/.pi/agent/models.json` and `settingsPath` →
+   `~/.pi/agent/settings.json` using tmpfiles `L+` and `C` rules.
+4. Symlinks each extension path to `~/.pi/agent/extensions/<name>` for every
+   entry in `extensions`.
 
-| Type | Location | How pi loads |
-|------|----------|-------------|
-| **Local** | `extensions/*.ts` | Auto-discovered via symlink to `~/.pi/agent/extensions/` |
-| **npm** | `settings.json` `packages` | Installed by `pi` via npm (requires `nodejs` wrapper) |
+### Configuration files
 
-### npm support
+**`config/models.json`** — Defines the AI providers and available models.
+Currently configured with a single `llama-swap` provider at
+`http://192.168.18.12:8080/v1` offering four models:
+Gemma 4 12B, Qwen3.5 9B, OmniCoder-9B, and Qwen3.8 27B.
 
-The `pi-coding-agent` binary is wrapped with `makeWrapper` to include:
-- `nodejs` in PATH (required for npm-based extensions)
-- `NPM_CONFIG_PREFIX` pointing to `~/.pi/agent/npm/` (avoids writing to the Nix store)
-
-This resolves the NixOS `npm ENOENT` issue where `pi install npm:...` fails because npm tries to write to the immutable Nix store.
+**`config/settings.json`** — Sets runtime defaults:
+- `defaultProvider`: `llama-swap`
+- `defaultModel`: `gpt-oss-20b-NEO-IQ4_NL`
+- `defaultThinkingLevel`: `medium`
+- `retry`: enabled with 3 max retries
 
 ## Build
 
@@ -54,45 +63,16 @@ nixos-rebuild build-image --image-variant lxc --flake .#nixos-pi-agent
 
 ## Exposed ports
 
-| Service | Port |
-|---------|------|
-| pi-coding-agents API | TBD |
-| Agent WebSocket | TBD |
-
-Ports are controlled by `networking.firewall.allowedTCPPorts` in the host configuration.
-
-## Dependencies
-
-- **nixos-n8n** at `192.168.18.61:5678` for workflow orchestration
-- PostgreSQL for session state management (may use shared `nixos-postgresql`)
-
-## Secrets
-
-- `agent_api_token` — sops-managed secret for authentication
-- `n8n_auth_token` — shared auth token for n8n integration
-
-Both secrets are injected into the pi-coding-agents container at first boot.
+No TCP ports opened by default. The pi-coding-agent connects outbound to
+llama-swap at `http://192.168.18.12:8080/v1`.
 
 ## First boot
 
-1. Ensure all dependencies are operational:
-   - `nixos-n8n` is up and running
-   - PostgreSQL database for sessions exists (if used)
-
-2. Import the tarball as template in Proxmox, create and start the LXC:
-   ```
-   System resources: 1–2 CPU, 2–4 GB RAM, 10–20 GB disk
-   ```
-
-3. Verify the pi-coding-agents service is running:
-   ```bash
-   systemctl status pi-coding-agents.service
-   ```
-
-4. Check logs if needed:
-   ```bash
-   journalctl -u pi-coding-agents.service
-   ```
+1. Import the tarball as LXC template in Proxmox and create the container.
+2. Ensure the host can reach `192.168.18.12:8080` (llama-swap endpoint).
+3. Start the container.
+4. Confirm the `pi` binary is available: `pi --version`.
+5. Verify the agent directories are created: `ls ~/.pi/agent/`.
 
 ## SSH
 
@@ -102,29 +82,14 @@ ssh nixos-pi-agent@<IP>
 
 ## Apply changes
 
-### Remote (on the host)
+Remote:
 
 ```bash
-nixos-rebuild switch --flake .#nixos-pi-agent --target-host <user>@<IP> --elevate=sudo
+nixos-rebuild switch --flake .#nixos-pi-agent --target-host <user>@<ip> --elevate=sudo
 ```
 
-### Inside the container
+Inside the container:
 
 ```bash
 sudo nixos-rebuild switch --flake .#nixos-pi-agent
 ```
-
-## Adding extensions
-
-### Local extensions
-
-Place `.ts` files in `extensions/`. They will be symlinked to `~/.pi/agent/extensions/` on boot via `systemd.tmpfiles`. Pi auto-discovers them.
-
-### npm extensions
-
-Add to `settings.json` under `packages`. Requires `nodejs` to be available (already handled by the wrapper). Note: auto-install on startup is not guaranteed (see [pi Issue #5421](https://github.com/earendil-works/pi/issues/5421)).
-
-## Notes
-
-- This host follows the same conventions as all other LXC containers in the repository: unprivileged execution, sops-nix for secrets, OCI or native NixOS services.
-- pi-coding-agent packages are managed by the `modules/pi-coding-agent/default.nix` module, not by `environment.systemPackages`.

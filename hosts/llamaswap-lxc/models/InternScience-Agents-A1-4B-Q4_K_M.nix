@@ -7,7 +7,7 @@
       -ngl 99 -fa 1
       --ctx-size 65536
       --parallel 1
-      --temp 0.85 --top-p 0.95 --top-k 20
+      --temp 0.85 --top-p 0.95 --top-k 20 --min-p 0
       --presence-penalty 1.1 --repeat-penalty 1.0
       --jinja
     '';

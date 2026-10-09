@@ -44,6 +44,13 @@ local LLM inference). All hosts share a common base with NVF (Neovim).
 │   │   │   └── llama-cpp/
 │   │   │       └── default.nix  # Parameterized llama-cpp override (Vulkan/ROCm).
 │   ├── nixos-pi-agent/      # pi-coding-agent sessions with n8n integration
+│   │   ├── config/           # models.json, settings.json
+│   │   ├── extensions/       # Pi-coding-agent extensions
+│   │   ├── modules/
+│   │   │   └── pi-coding-agent/
+│   │   │       └── default.nix  # piCodingAgent module
+│   │   ├── AGENTS.md
+│   │   └── README.md
 │   ├── nixos-ci/              # Dev machine + Forgejo runner
 │   ├── nixos-forgejo/         # Self-hosted Git forge (Forgejo, SQLite)
 │   ├── nixos-calibre-wa/      # Calibre-Web-Automated + rclone pCloud

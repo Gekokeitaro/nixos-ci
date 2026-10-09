@@ -1,4 +1,3 @@
-# Mucho más pesado que qwen3.5 9b normal, con ngram el consumo se dispara. El modelo original da buenos resultados por a coste bajo.
 {llama-server}: {
   "David AU Qwen3.5 9B The Defiant Fable Uncnr Heretic NEO MAX MTP Q4_K_M" = {
     name = "David AU Qwen3.5 9B The Defiant Fable Uncnr Heretic NEO MAX MTP Q4_K_M";
@@ -11,12 +10,8 @@
       -ctk q8_0 -ctv q4_0
       --parallel 1
       --jinja
-      --temp 1.0
-      --top-p 0.95
-      --top-k 20
-      --min-p 0.0
-      --presence-penalty 0.0
-      --repeat_penalty 1.0;
+      --temp 1.0 --top-p 0.95 --top-k 20 --min-p 0.0
+      --presence-penalty 0.0 --repeat_penalty 1.0;
     '';
     ttl = 600;
   };

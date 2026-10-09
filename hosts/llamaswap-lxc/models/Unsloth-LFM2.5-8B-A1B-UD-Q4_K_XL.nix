@@ -5,15 +5,11 @@
       ${llama-server} --port ''${PORT}
       --model /models/LFM2.5-8B-A1B-UD-Q4_K_XL.gguf
       --spec-type ngram-mod
-      --n-gpu-layers 99
-      --ctx-size 32768
-      --threads 8
+      --ngl 99 -fa 1
+      --ctx-size 65536
       --parallel 1
-      --flash-attn on
       --jinja
-      --fit off
-      --no-mmap
-      --no-warmup
+      --temperature 0.2 --top-k 80 --repetition-penalty 1.05
     '';
     ttl = 600;
   };

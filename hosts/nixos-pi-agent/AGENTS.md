@@ -1,60 +1,96 @@
 # AGENTS.md — nixos-pi-agent
 
-Context guide for LLM agents working on the `nixos-pi-agent` host. See the
-[repository guide](../AGENTS.md) for shared NixOS conventions.
+Context guide for LLM agents working on the `nixos-pi-agent` host.
 
 ## Purpose
 
-LXC container running pi-coding-agents sessions with n8n workflow integration.
-The container provides interactive coding-agent environments that n8n workflows
-can spawn, control, and monitor.
+Coding agent session host with n8n integration. Runs the
+`pi-coding-agent` tool which connects to a remote llama-swap
+instance for AI inference.
 
-## Architecture
+## Services & ports
 
-```text
-nixos-n8n (workflow orchestration)
-    ↕ API / broker
-nixos-pi-agent (coding-agent sessions)
-```
+No TCP services are opened. The agent connects outbound to
+llama-swap at `http://192.168.18.12:8080/v1`.
 
-The host is built declaratively using a modular architecture:
-- `configuration.nix` — host definition, user, SSH keys, tmpfiles for config files
-- `modules/pi-coding-agent/default.nix` — NixOS module: wraps `pi-coding-agent` with `makeWrapper` (nodejs, ripgrep, fd, NPM_CONFIG_PREFIX), manages extension symlinks and tmpfiles
-- `config/` — `models.json` (providers) and `settings.json` (global settings)
-- `extensions/` — local `.ts` extensions auto-discovered by pi
+## Dependencies
 
-## Goals
+- `pi-coding-agent` Nix package — installed and wrapped via
+  `environment.systemPackages`.
+- Remote `llama-swap` at `http://192.168.18.12:8080` — provides
+  the AI inference backend.
+- `nodejs`, `ripgrep`, `fd` — runtime dependencies for the wrapped
+  `pi` binary.
+- `config/models.json` and `config/settings.json` — copied into
+  the agent directory on boot.
 
-- Run pi-coding-agents sessions as isolated environments
-- Expose an API for n8n workflows to create, inspect, and terminate sessions
-- Preserve interactive coding-agent communication through a WebSocket endpoint
-- Store session metadata and state without requiring privileged container access
+## Secrets
+
+No sops-nix configuration. The llama-swap API key in `models.json`
+is a `dummy-key` placeholder; real credentials should be managed
+outside this configuration.
+
+## Special config
+
+- `piCodingAgent.enable = true` in `configuration.nix`.
+- `modelsPath = ./config/models.json` — providers and models
+  definition (currently one provider: `llama-swap` at `192.168.18.12:8080`).
+- `settingsPath = ./config/settings.json` — default provider,
+  model (`gpt-oss-20b-NEO-IQ4_NL`), thinking level (`medium`),
+  and retry settings (3 max retries).
+- `extensions = []` — list of extension files symlinked to
+  `~/.pi/agent/extensions/`. The `extensions/` directory exists
+  but is currently empty.
+- `NPM_CONFIG_PREFIX` set to `~/.pi/agent/npm/` for npm-based
+  extension installation.
+- User `nixos-pi-agent` with `extraGroups = ["wheel"]`, SSH keys
+  (PopOS OCT 2024, NixOS-CI MAY 2026).
+- `nix.settings.trusted-users = ["nixos-pi-agent"]` + experimental
+  features (`nix-command`, `flakes`).
+- Module creates `systemd.tmpfiles.rules` for `~/.pi/agent/`
+  directories and symlinks config files.
 
 ## Constraints
 
-- Follow the shared [repository guide](../AGENTS.md)
-- Keep the host unprivileged and compatible with Proxmox LXC
-- Do not assume access to host devices or privileged cgroup operations
-- Keep `flake.nix` thin; implement host logic in `configuration.nix`
-- Use sops-nix for credentials and never commit secrets
-- Prefer OCI or native NixOS services over custom shell scripts
+- Unprivileged LXC (no privileged features).
+- SSH keys must be present in `configuration.nix` before building
+  the image or remote deployment will fail.
+- The agent depends on an external `llama-swap` instance at
+  `192.168.18.12:8080`; if the endpoint changes, update
+  `config/models.json`.
+- Configuration files do not travel to the image — after creating
+  the container, run `nix-channel --update` and re-clone the
+  configuration inside it.
 
-## Extension management
+## Modification guide
 
-- **Local extensions**: Place `.ts` files in `extensions/`. They are symlinked
-  to `~/.pi/agent/extensions/` via `systemd.tmpfiles.rules` and auto-discovered by pi.
-- **npm extensions**: Listed in `settings.json` under `packages`. Requires `nodejs`
-  (handled by the wrapper). Auto-install on startup is not guaranteed
-  (see [pi Issue #5421](https://github.com/earendil-works/pi/issues/5421)).
+### Adding an extension (via files)
 
-## Configuration files
+1. Place the extension file in `extensions/`.
+2. Add its path to `piCodingAgent.extensions` in
+   `configuration.nix`.
+3. Re-apply the configuration.
 
-- `config/models.json` — Custom LLM providers (read-only symlink to `~/.pi/agent/models.json`)
-- `config/settings.json` — Pi global settings (copied on first boot to `~/.pi/agent/settings.json`)
-- `~/.pi/agent/npm/` — npm packages installed by pi (writable via NPM_CONFIG_PREFIX)
+### Adding an extension (via npm)
 
-## Unknowns to resolve before implementation
+```bash
+pi extensions install <package-name>
+```
 
-- n8n API or broker protocol
-- Ports, session persistence, and resource limits
-- Authentication and authorization boundaries between n8n and the agent host
+> **Known issue:** `pi extensions install` may fail with
+> `EACCES: permission denied` inside the LXC container due to
+> npm permissions on `~/.pi/agent/npm/`. Workaround: pre-install
+> extensions on the host and copy into `extensions/`, or fix
+> directory ownership before running the install. See related
+> issue for a permanent fix.
+
+### Changing the llama-swap endpoint or models
+
+1. Edit `config/models.json` with the new provider URL and
+   model list.
+2. Re-apply: `nixos-rebuild switch --flake .#nixos-pi-agent`.
+
+### Updating default settings
+
+Edit `config/settings.json` for changes to `defaultModel`,
+`defaultThinkingLevel`, or `retry` configuration.
