@@ -8,10 +8,10 @@
       ${llama-server} --port ''${PORT}
       --model /models/Qwen3.8-27B-TurboFCFusion-735-882-Here-Uncen-NEO-CODER-MAX-MTP-IQ2_M.gguf
       --spec-type draft-mtp
-      --reasoning-effort medium
+      --reasoning-effort low
       -ngl 99 -fa 1
-      -ctk q8_0 -ctv q4_0
-      --ctx-size 65536
+      -ctk q8_0 -ctv q8_0
+      --ctx-size 49152
       --parallel 1
       --jinja
       --reasoning-preserve

@@ -30,7 +30,7 @@
   # suficiente para que se limpie el estado de la gpu. El wrapper añade 2s. que está testeado y funciona.
   llama-server-delayed = pkgs.writeShellScript "llama-server-delayed" ''
     sleep 2
-    exec ${llama-server} "$@"
+    exec ${llama-server} -lv 4 "$@"
   '';
 in {
   imports = [
