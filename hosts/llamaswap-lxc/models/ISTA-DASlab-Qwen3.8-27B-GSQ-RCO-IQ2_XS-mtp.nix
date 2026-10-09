@@ -11,12 +11,13 @@
       --spec-draft-n-max 2 --spec-draft-p-min 0.6
       --reasoning-effort low
       -ngl 99 -fa 1
-      -ctk q4_0 -ctv q8_0
+      -ctk q4_0 -ctv q4_0
       --ctx-size 49152
       --parallel 1
       --jinja
       --reasoning-preserve
       --reasoning-format deepseek
+      --cache-ram 2048 --ctx-checkpoints 8
     '';
 
     filters = {
