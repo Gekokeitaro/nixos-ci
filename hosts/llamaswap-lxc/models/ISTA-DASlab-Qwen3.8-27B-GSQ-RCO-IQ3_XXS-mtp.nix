@@ -7,7 +7,7 @@
     cmd = ''
       ${llama-server} --port ''${PORT}
       --model /models/Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.gguf
-      --spec-type ngram-mod,draft-mtp
+      --spec-type draft-mtp
       --reasoning-effort medium
       -ngl 99 -fa 1
       -ctk q8_0 -ctv q4_0

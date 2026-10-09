@@ -7,7 +7,7 @@
       --spec-type ngram-mod,draft-simple
       -md /models/DeepSeek-R1-Distill-Qwen-1.5B-UD-Q4_K_XL.gguf
       -ngl 99 -fa 1
-      --ctx-size 262144
+      --ctx-size 65536
       -ctk q8_0 -ctv q4_0
       --parallel 1
       --jinja
