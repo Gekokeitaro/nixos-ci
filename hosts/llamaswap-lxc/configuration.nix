@@ -65,22 +65,15 @@ in {
     openFirewall = true; # Añade port a allowedTCPPorts. Necesario con Proxmox?
     settings = {
       models = lib.mkMerge [
-        (import ./models/David-AU-LFM2.5-8B-A1B-Q3.8-TBrilliance-NEO-MAX-IQ4_XS.nix {llama-server = llama-server-delayed;})
-        (import ./models/David-AU-Qwen3.8-27B-TTURBO-Fable-C-Fusion-709-L-Uncen-NM-DAU-NEO-MAX-MTP-IQ2_M.nix {llama-server = llama-server-delayed;})
-        (import ./models/David-AU-Qwen3.8-27B-TurboFCFusion-735-882-Here-Uncen-NEO-CODER-MAX-MTP-IQ2_M.nix {llama-server = llama-server-delayed;})
-        (import ./models/InternScience-Agents-A1-4B-Q4_K_M.nix {llama-server = llama-server-delayed;})
-        (import ./models/ISTA-DASlab-Qwen3.8-27B-GSQ-RCO-IQ2_XS-mtp.nix {llama-server = llama-server-delayed;})
-        (import ./models/ISTA-DASlab-Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.nix {llama-server = llama-server-delayed;})
         (import ./models/JetBrains-Mellum2.1-12B-A2.5B-Thinking-Q4_K_M.nix {llama-server = llama-server-delayed;})
         (import ./models/JetBrains-Mellum2-12B-A2.5B-Thinking-Q4_K_M.nix {llama-server = llama-server-delayed;})
         (import ./models/Prism-ML-Ternary-Bonsai-2-27B-PQ2_0.nix {llama-server = llama-server-delayed;})
         (import ./models/Prism-ML-Ternary-Bonsai-2-27B-PTQ1_0.nix {llama-server = llama-server-delayed;})
-        (import ./models/Tesslate-omnicoder-9b-q4_k_m-w-dflash.nix {llama-server = llama-server-delayed;})
         (import ./models/Unsloth-gemma-4-12B-it-qat-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
         (import ./models/Unsloth-gemma-4-E4B-it-qat-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
-        (import ./models/Unsloth-GLM-4.7-Flash-REAP-23B-A3B-UD-IQ3_XXS.nix {llama-server = llama-server-delayed;})
-        (import ./models/Unsloth-LFM2.5-8B-A1B-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
-        (import ./models/Unsloth-Qwen3.5-9B-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})      ];
+        (import ./models/Unsloth-Qwen3.5-9B-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
+        (import ./models/Unsloth-Qwen3.5-9B-UD-Q4_K_XL-w-dflash.nix {llama-server = llama-server-delayed;})      
+      ];
     };
   };
 

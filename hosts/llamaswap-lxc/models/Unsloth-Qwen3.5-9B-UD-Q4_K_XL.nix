@@ -7,7 +7,7 @@
       --spec-type ngram-mod,draft-mtp
       -ngl 99 -fa 1
       --ctx-size 65536
-      -ctk q8_0 -ctv q4_0
+      -ctk q8_0 -ctv q8_0
       --parallel 1
       --jinja
     '';
