@@ -72,7 +72,6 @@ in {
         (import ./models/Unsloth-gemma-4-12B-it-qat-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
         (import ./models/Unsloth-gemma-4-E4B-it-qat-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
         (import ./models/Unsloth-Qwen3.5-9B-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
-        (import ./models/Unsloth-Qwen3.5-9B-UD-Q4_K_XL-w-dflash.nix {llama-server = llama-server-delayed;})      
       ];
     };
   };
