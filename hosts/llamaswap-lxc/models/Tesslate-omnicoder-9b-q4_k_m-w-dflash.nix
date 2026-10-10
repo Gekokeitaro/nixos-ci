@@ -12,6 +12,7 @@
       --temp 0.6 --top-p 0.95 --top-k 20
       --parallel 1
       --jinja
+      --chat-template-kwargs '{"enable_thinking": false}'
     '';
     ttl = 600;
   };
