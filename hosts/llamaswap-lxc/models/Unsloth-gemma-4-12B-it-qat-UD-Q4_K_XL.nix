@@ -12,6 +12,7 @@
       --temp 1 --top-p 0.95 --top-k 64
       --parallel 1
       --jinja
+      --chat-template /models/custom_pub_chat_template_gemma4.jinja
     '';
     ttl = 600;
   };
