@@ -7,12 +7,12 @@
     cmd = ''
       ${llama-server} --port ''${PORT}
       --model /models/Qwen3.8-27B-TurboFCFusion-735-882-Here-Uncen-NEO-CODER-MAX-MTP-IQ2_M.gguf
-      --spec-type draft-mtp,ngram-mod
+      --spec-type draft-mtp
       --spec-draft-n-max 2 --spec-draft-p-min 0.6
       --reasoning-effort low
       -ngl 99 -fa 1
       -ctk q4_0 -ctv q4_0
-      --ctx-size 49152      
+      --ctx-size 32768      
       --parallel 1
       --jinja
       --reasoning-preserve
