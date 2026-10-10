@@ -2,11 +2,11 @@
 # 18GB VRAM: -ctk q4_0 -ctv q4_0 permite ~131K ctx
 # --reasoning-effort medium: 91 think tokens vs 106 xhigh, ~+8% throughput
 {llama-server}: {
-  "David AU Qwen3.8 27B TTURBO Fable C Fusion 709 L Uncen NM DAU NEO MTP IQ2_M" = {
-    name = "David AU Qwen3.8 27B TTURBO Fable C Fusion 709 L Uncen NM DAU NEO MTP IQ2_M";
+  "ISTA-DASlab Qwen3.8 27B GSQ-RCO IQ3_XXS MTP" = {
+    name = "ISTA-DASlab Qwen3.8 27B GSQ-RCO IQ3_XXS MTP";
     cmd = ''
       ${llama-server} --port ''${PORT}
-      --model /models/Qwen3.8-27B-TTURBO-Fable-C-Fusion-709-L-Uncen-NM-DAU-NEO-MTP-IQ2_M.gguf
+      --model /models/Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.gguf
       --spec-type draft-mtp,ngram-mod
       --spec-draft-n-max 2 --spec-draft-p-min 0.6
       --reasoning-effort low
