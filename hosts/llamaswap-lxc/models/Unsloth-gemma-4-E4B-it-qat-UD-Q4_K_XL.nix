@@ -7,6 +7,7 @@
       --spec-type ngram-mod,draft-mtp
       -md /models/mtp-gemma-4-E4B-it-Q8_0.gguf
       -ngl 99 -fa 1
+      -b 256 -ub 128 -ctk f16 -ctv f16
       --ctx-size 65536
       --temp 1 --top-p 0.95 --top-k 64
       --parallel 1

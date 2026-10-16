@@ -67,8 +67,7 @@ in {
       models = lib.mkMerge [
         (import ./models/JetBrains-Mellum2.1-12B-A2.5B-Thinking-Q4_K_M.nix {llama-server = llama-server-delayed;})
         (import ./models/JetBrains-Mellum2-12B-A2.5B-Thinking-Q4_K_M.nix {llama-server = llama-server-delayed;})
-        (import ./models/Prism-ML-Ternary-Bonsai-2-27B-PQ2_0.nix {llama-server = llama-server-delayed;})
-        (import ./models/Prism-ML-Ternary-Bonsai-2-27B-PTQ1_0.nix {llama-server = llama-server-delayed;})
+        (import ./models/Ternary-Bonsai-2-27B-Q2_0-prism-fork-required.nix {llama-server = llama-server-delayed;})
         (import ./models/Unsloth-gemma-4-12B-it-qat-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
         (import ./models/Unsloth-gemma-4-E4B-it-qat-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
         (import ./models/Unsloth-Qwen3.5-9B-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})

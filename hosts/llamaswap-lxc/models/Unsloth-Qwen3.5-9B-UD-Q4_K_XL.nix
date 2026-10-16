@@ -6,8 +6,8 @@
       --model /models/Qwen3.5-9B-UD-Q4_K_XL.gguf
       --spec-type ngram-mod,draft-mtp
       -ngl 99 -fa 1
+      -b 256 -ub 128 -ctk f16 -ctv f16
       --ctx-size 65536
-      -ctk q8_0 -ctv q8_0
       --parallel 1
       --jinja
     '';

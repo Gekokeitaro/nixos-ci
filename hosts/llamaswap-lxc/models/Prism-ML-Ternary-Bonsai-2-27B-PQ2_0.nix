@@ -2,16 +2,16 @@
 # 18GB VRAM: -ctk q4_0 -ctv q4_0 permite ~131K ctx
 # --reasoning-effort medium: 91 think tokens vs 106 xhigh, ~+8% throughput
 {llama-server}: {
-  "Prism ML Ternary Bonsai 2 27B PQ2_0" = {
-    name = "Prism ML Ternary Bonsai 2 27B PQ2_0";
+  "Prism ML Ternary Bonsai 2 27B Q2_0" = {
+    name = "Prism ML Ternary Bonsai 2 27B Q2_0";
     cmd = ''
       ${llama-server} --port ''${PORT}
-      --model /models/Ternary-Bonsai-2-27B-PQ2_0.gguf
+      --model /models/Ternary-Bonsai-2-27B-Q2_0-prism-fork-required.gguf
       --spec-type ngram-mod,draft-mtp
-      --reasoning-effort medium
       -ngl 99 -fa 1
+      -b 256 -ub 128 -ctk f16 -ctv f16
       --ctx-size 65536
-      -ctk q8_0 -ctv q4_0
+      --reasoning-effort medium
       --parallel 1
       --jinja
       --reasoning-preserve
