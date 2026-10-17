@@ -8,7 +8,7 @@
       -md /models/mtp-gemma-4-12B-it-Q8_0.gguf
       -ngl 99 -fa 1
       -b 256 -ub 128 -ctk f16 -ctv q4_0
-      --ctx-size 65536
+      --ctx-size 32768
       --temp 1 --top-p 0.95 --top-k 64
       --parallel 1
       --jinja

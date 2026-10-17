@@ -10,7 +10,7 @@
       --spec-type ngram-mod,draft-mtp
       -ngl 99 -fa 1
       -b 256 -ub 128 -ctk f16 -ctv f16
-      --ctx-size 65536
+      --ctx-size 32768
       --reasoning-effort medium
       --parallel 1
       --jinja
