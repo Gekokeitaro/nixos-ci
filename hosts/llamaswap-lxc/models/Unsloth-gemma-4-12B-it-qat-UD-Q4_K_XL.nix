@@ -10,6 +10,8 @@
       -b 256 -ub 128 -ctk f16 -ctv q4_0 -ctkd q8_0 -ctkv q8_0
       --ctx-size 32768
       --temp 1 --top-p 0.95 --top-k 64
+      --reasoning-budget 2048
+--reasoning-budget-message "\n\nConsidering the limited time by the user, I have to give the solution based on the thinking directly now."
       --cache-ram 1024 --ctx-checkpoints 8
       --parallel 1
       --jinja
