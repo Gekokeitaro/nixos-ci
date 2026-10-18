@@ -7,11 +7,10 @@
     cmd = ''
       ${llama-server} --port ''${PORT}
       --model /models/Ternary-Bonsai-2-27B-Q2_0-prism-fork-required.gguf
-      --spec-type draft-mtp
       -ngl 99 -fa 1
       -b 256 -ub 128 -ctk f16 -ctv f16
       --ctx-size 32768
-      --cache-ram 1024 --ctx-checkpoints 8
+      --cache-ram 0 --ctx-checkpoints 4
       --reasoning-effort medium
       --parallel 1
       --jinja
