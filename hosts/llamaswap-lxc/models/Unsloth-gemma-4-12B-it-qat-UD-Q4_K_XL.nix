@@ -12,7 +12,7 @@
       --temp 1 --top-p 0.95 --top-k 64
       --reasoning-budget 2048
 --reasoning-budget-message "\n\nConsidering the limited time by the user, I have to give the solution based on the thinking directly now."
-      --cache-ram 1024 --ctx-checkpoints 8
+      --cache-ram 0 --ctx-checkpoints 4
       --parallel 1
       --jinja
     '';
