@@ -5,9 +5,9 @@
       ${llama-server} --port ''${PORT}
       --model /models/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf
       --spec-type draft-mtp
-      -md /models/mtp-gemma-4-12B-it-Q8_0.gguf
+      -md /models/mtp-gemma-4-12B-it-Q4_0.gguf
       -ngl 99 -fa 1
-      -b 256 -ub 128 -ctk f16 -ctv q4_0 -ctkd q8_0 -ctkv q8_0
+      -b 256 -ub 128 -ctk f16 -ctv q4_0 -ctkd q8_0 -ctvd q8_0
       --ctx-size 32768
       --temp 1 --top-p 0.95 --top-k 64
       --reasoning-budget 2048
