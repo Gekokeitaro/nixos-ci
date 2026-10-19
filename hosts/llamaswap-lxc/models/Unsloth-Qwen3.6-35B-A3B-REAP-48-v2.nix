@@ -27,7 +27,7 @@
           top_k = 20;
           min_p = 0.0;
           presence_penalty = 1.5;
-          repeat_penalty = 1.0;
+          repeat_penalty = 1.2;
         };
 
         # Thinking
@@ -37,7 +37,7 @@
           top_k = 20;
           min_p = 0.0;
           presence_penalty = 1.5;
-          repeat_penalty = 1.0;
+          repeat_penalty = 1.2;
         };
         
         # Coding
