@@ -2,8 +2,8 @@
 # 18GB VRAM: -ctk q4_0 -ctv q4_0 permite ~131K ctx
 # --reasoning-effort medium: 91 think tokens vs 106 xhigh, ~+8% throughput
 {llama-server}: {
-  "Qwen3.6 35B A3B REAP 48 v2" = {
-    name = "Qwen3.6 35B A3B REAP 48 v2";
+  "Unsloth Qwen3.6 35B A3B REAP 48 v2" = {
+    name = "Unsloth Qwen3.6 35B A3B REAP 48 v2";
     cmd = ''
       ${llama-server} --port ''${PORT}
       --model /models/Qwen3.6-35B-A3B-REAP-48-v2.gguf
