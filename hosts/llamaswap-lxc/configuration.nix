@@ -46,6 +46,7 @@ in {
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGApUnvphJshC3LJ4QxDu8fm3JqEnSWZ6ewhf6gQuF7V PopOS OCT 2024"
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFeASXjLf7TjNTxO5CZ4Aa6z8hyFG0CXAe4FhcpZOEp6 NixOS-CI MAY 2026"
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDlKHmpR2Qi9jTM1xUWvtYT2uKpwl7d063DyowiZ4hBU ibuki"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOItHReLpLr0DZHohVHBdqu7CePpsuQ3ANa0UsUX0xj+ pablo.bugarin.camara@gmail.com"
     ];
 
     packages = with pkgs; [
