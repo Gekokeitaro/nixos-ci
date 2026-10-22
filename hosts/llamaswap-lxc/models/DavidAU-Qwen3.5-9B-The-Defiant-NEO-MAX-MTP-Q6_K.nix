@@ -6,6 +6,7 @@
     cmd = ''
       ${llama-server} --port ''${PORT}
       --model /models/Qwen3.5-9B-The-Defiant-Fable-Uncnr-Heretic-plusIQ-TOOLS-NEO-MAX-MTP-Q6_K.gguf
+      --spec-type draft-mtp
       -ngl 99 -fa 1
       -b 256 -ub 128 -ctk f16 -ctv f16
       --ctx-size 32768
