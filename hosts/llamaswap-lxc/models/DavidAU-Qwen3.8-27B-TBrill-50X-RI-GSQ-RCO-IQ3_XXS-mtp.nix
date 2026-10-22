@@ -7,6 +7,7 @@
       ${llama-server} --port ''${PORT}
       --model /models/Qwen3.8-27B-Turbo-Brilliance-50X-RI-GSQ-RCO-IQ3_XXS-mtp.gguf
       -ngl 99 -fa 1
+      -b 256 -ub 128 -ctk f16 -ctv Q4_0
       --ctx-size 32768
       --temp 0.7 --top-k 64 --min-p 0.05 --top-p 0.95 --repeat-penalty 1.05
       --parallel 1
