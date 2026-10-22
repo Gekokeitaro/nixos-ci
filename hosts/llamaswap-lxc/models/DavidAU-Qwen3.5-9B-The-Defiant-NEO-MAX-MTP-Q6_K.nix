@@ -1,8 +1,8 @@
 # 300626
 # ./llama-bench --delay 2 --progress -m /models/Mellum2-12B-A2.5B-Instruct-MXFP4_MOE.gguf -ngl 99 -t 2 -b 512 -ub 256 -ctk q8_0 -ctv q4_0 -fa 1 -ncmoe 16
 {llama-server}: {
-  "David AU Qwen3.5 9B The Defiant Fable Uncnr Heretic plusIQ TOOLS NEO MAX MTP Q6_K" = {
-    name = "David AU Qwen3.5 9B The Defiant Fable Uncnr Heretic plusIQ TOOLS NEO MAX MTP Q6_K";
+  "David AU Qwen3.5 9B The Defiant NEO MAX MTP Q6_K" = {
+    name = "David AU Qwen3.5 9B The Defiant NEO MAX MTP Q6_K";
     cmd = ''
       ${llama-server} --port ''${PORT}
       --model /models/Qwen3.5-9B-The-Defiant-Fable-Uncnr-Heretic-plusIQ-TOOLS-NEO-MAX-MTP-Q6_K.gguf
