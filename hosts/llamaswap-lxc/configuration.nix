@@ -67,6 +67,7 @@ in {
     openFirewall = true; # Añade port a allowedTCPPorts. Necesario con Proxmox?
     settings = {
       models = lib.mkMerge [
+        (import ./models/Bartowski-Spark-X2.6-4B-Q6_K_L.nix {llama-server = llama-server-delayed;})
         (import ./models/DavidAU-LFM2.5-8B-A1B-Q3.8-TBrill-NEO-MAX-Q8_0.nix {llama-server = llama-server-delayed;})
         (import ./models/DavidAU-LFM2.5-24B-A2B-TBrill-NEO-IQ3_M.nix {llama-server = llama-server-delayed;})
         (import ./models/DavidAU-Llama3.2-24B-A3B-II-Dark-Champion.nix {llama-server = llama-server-delayed;})
@@ -74,7 +75,8 @@ in {
         (import ./models/DavidAU-Qwen3.8-27B-TBrill-50X-RI-GSQ-RCO-IQ3_XXS-mtp.nix {llama-server = llama-server-delayed;})
         (import ./models/JetBrains-Mellum2.1-12B-A2.5B-Thinking-Q4_K_M.nix {llama-server = llama-server-delayed;})
         (import ./models/JetBrains-Mellum2-12B-A2.5B-Thinking-Q4_K_M.nix {llama-server = llama-server-delayed;})
-        (import ./models/Ternary-Bonsai-2-27B-Q2_0-prism-fork-required.nix {llama-server = llama-server-delayed;})
+        (import ./models/Prism-ML-Ternary-Bonsai-2-9B-Q2_0.nix {llama-server = llama-server-delayed;})
+        (import ./models/Prism-ML-Ternary-Bonsai-2-27B-Q2_0-prism-fork-required.nix {llama-server = llama-server-delayed;})
         (import ./models/Ukisai-Swift-1.5-Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.nix {llama-server = llama-server-delayed;})
         (import ./models/Unsloth-gemma-4-12B-it-qat-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
         (import ./models/Unsloth-gemma-4-E4B-it-qat-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
