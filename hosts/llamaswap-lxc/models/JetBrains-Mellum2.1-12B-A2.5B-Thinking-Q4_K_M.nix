@@ -6,7 +6,6 @@
     cmd = ''
       ${llama-server} --port ''${PORT}
       --model /models/Mellum2.1-12B-A2.5B-Thinking-Q4_K_M.gguf
-      --spec-type ngram-mod
       -ngl 99 -fa 1
       --ctx-size 65536
       --temp 0.6 --top-p 0.95 --top-k 20

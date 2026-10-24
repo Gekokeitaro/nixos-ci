@@ -7,9 +7,10 @@
     cmd = ''
       ${llama-server} --port ''${PORT}
       --model /models/Ternary-Bonsai-2-9B-Q2_0.gguf
+      --spec-type ngram-mod
       -ngl 99 -fa 1
       -b 256 -ub 128 -ctk f16 -ctv f16
-      --ctx-size 32768
+      --ctx-size 65536
       --parallel 1
       --jinja
     '';
