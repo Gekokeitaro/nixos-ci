@@ -11,7 +11,7 @@
       -b 2048 -ub 512 -ctk f16 -ctv f16 -fa 1 
       --ctx-size 32768
       --cache-ram 0 --ctx-checkpoints 4
-      --dry-multiplier 0.8 --dry-base 1.75 --dry-allowed-length 2 --dry-penalty-last-n 2048
+      --dry-multiplier 0.4 --dry-base 1.75 --dry-allowed-length 2 --dry-penalty-last-n 2048
       --parallel 1
       --jinja
       --reasoning-preserve

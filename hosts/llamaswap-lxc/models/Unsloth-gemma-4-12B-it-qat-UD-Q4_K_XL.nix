@@ -10,7 +10,7 @@
       -b 256 -ub 128 -ctk f16 -ctv q4_0
       --ctx-size 32768
       --temp 1 --top-p 0.95 --top-k 64
-      --dry-multiplier 0.8 --dry-base 1.75 --dry-allowed-length 2 --dry-penalty-last-n 2048
+      --dry-multiplier 0.4 --dry-base 1.75 --dry-allowed-length 2 --dry-penalty-last-n 2048
       --cache-ram 0 --ctx-checkpoints 4
       --parallel 1
       --jinja
