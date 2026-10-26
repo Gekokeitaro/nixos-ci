@@ -10,6 +10,7 @@
       -b 256 -ub 128 -ctk f16 -ctv Q4_0
       --ctx-size 32768
       --temp 0.7 --top-k 64 --min-p 0.05 --top-p 0.95 --repeat-penalty 1.05
+      --dry-multiplier 0.8 --dry-base 1.75 --dry-allowed-length 2 --dry-penalty-last-n 2048
       --parallel 1
       --jinja
     '';

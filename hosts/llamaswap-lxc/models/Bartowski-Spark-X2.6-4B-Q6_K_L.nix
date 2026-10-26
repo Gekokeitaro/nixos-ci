@@ -10,7 +10,7 @@
       -b 256 -ub 128 -ctk f16 -ctv f16
       --ctx-size 65536
       --temp 1 --top-p 0.95 --top-k 0
-      --dry-multiplier 0.8 --dry-base 1.75 --dry-allowed-length 2 --dry-penalty-last-n -1
+      --dry-multiplier 0.8 --dry-base 1.75 --dry-allowed-length 2 --dry-penalty-last-n 2048
       --parallel 1
       --jinja
     '';
