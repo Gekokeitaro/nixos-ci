@@ -10,6 +10,7 @@
       -ngl 99 -fa 1
       -b 256 -ub 128 -ctk f16 -ctv f16
       --ctx-size 32768
+      --dry-multiplier 0.8 --dry-base 1.75 --dry-allowed-length 2 --dry-penalty-last-n -1
       --parallel 1
       --jinja
     '';
@@ -23,17 +24,7 @@
           top_k = 20;
           min_p = 0.0;
           presence_penalty = 1.5;
-          repeat_penalty = 1.0;
-        };
-
-        # Thinking — coding
-        "\${MODEL_ID}:coding" = {
-          temperature = 0.6;
-          top_p = 0.95;
-          top_k = 20;
-          min_p = 0.0;
-          presence_penalty = 0.0;
-          repeat_penalty = 1.0;
+          repeat_penalty = 1.1;
         };
 
         # Instruct — general
@@ -43,6 +34,16 @@
           top_k = 20;
           min_p = 0.0;
           presence_penalty = 1.5;
+          repeat_penalty = 1.1;
+        };
+
+        # Thinking — coding
+        "\${MODEL_ID}:coding" = {
+          temperature = 0.6;
+          top_p = 0.95;
+          top_k = 20;
+          min_p = 0.0;
+          presence_penalty = 0.0;
           repeat_penalty = 1.0;
         };
       };
