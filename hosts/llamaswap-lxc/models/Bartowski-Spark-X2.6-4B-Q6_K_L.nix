@@ -1,4 +1,5 @@
 # https://llama-dry-docs.site/view/docs
+      # --dry-multiplier 0.4 --dry-base 1.75 --dry-allowed-length 2 --dry-penalty-last-n 2048
 {llama-server}: {
   "Bartowski Spark X2.6 4B Q6_K_L" = {
     name = "Bartowski Spark X2.6 4B Q6_K_L";
@@ -10,7 +11,7 @@
       -b 256 -ub 128 -ctk f16 -ctv f16
       --ctx-size 65536
       --temp 1 --top-p 0.95 --top-k 0
-      --dry-multiplier 0.4 --dry-base 1.75 --dry-allowed-length 2 --dry-penalty-last-n 2048
+      --reasoning-budget 4096 --reasoning-budget-message "I have thought enough. Stop reasoning now and write the final answer using what I know."
       --parallel 1
       --jinja
     '';
