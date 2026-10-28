@@ -5,7 +5,7 @@
   lib = pkgs.lib;
   llamacppVersion = "v0.7.0";
   llamacppHash = "sha256-pEDYgI3AMTU+cekvRX7NNt5wddznydQSNuerswvEpsA=";
-  llamacppNpmHash = "sha256-hqYzdp1FwPhYkBP278fQXgY9NCKB6Q3P6Gko7BfP0m0=";
+  llamacppNpmHash = "sha256-sha256-XLtEZsSFdk+2SyfXzBp8HQ2e27PQPpDCn1YjePU1/9w=";
   targetGPU = "gfx1035";
 in
   (
