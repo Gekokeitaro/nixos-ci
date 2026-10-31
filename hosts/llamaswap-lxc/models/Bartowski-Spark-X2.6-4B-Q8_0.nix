@@ -10,7 +10,7 @@
       --ctx-size 65536
       --temp .6 --top-p 0.95 --top-k 20 --repeat-penalty 1.1
       --dry-multiplier 0.4 --dry-base 1.75 --dry-allowed-length 3 --dry-penalty-last-n 2048
-      --reasoning-budget 6000 --reasoning-budget-message "..."
+      --reasoning-budget 6144
       --samplers "top_k;top_p;min_p;temperature;dry;typ_p;xtc"
       --parallel 1
       --jinja
