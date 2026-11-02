@@ -10,7 +10,8 @@
       --ctx-size 65536
       --temp .6 --top-p 0.95 --top-k 20 --repeat-penalty 1.1
       --dry-multiplier 0.4 --dry-base 1.75 --dry-allowed-length 3 --dry-penalty-last-n 2048
-      --reasoning-budget 6144
+      --reasoning-budget 4096
+      --reasoning-budget-message "Suficiente razonamiento. Voy realizar la tarea con las herramientas disponibles y necesarias y responder tal y como se me pide"
       --samplers "top_k;top_p;min_p;temperature;dry;typ_p;xtc"
       --parallel 1
       --jinja
