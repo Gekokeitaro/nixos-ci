@@ -79,8 +79,6 @@ in {
         (import ./models/Prism-ML-Ternary-Bonsai-2-27B-Q2_0-prism-fork-required.nix {llama-server = llama-server-delayed;})
         (import ./models/Ukisai-Swift-1.5-Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.nix {llama-server = llama-server-delayed;})
         (import ./models/Unsloth-gemma-4-12B-it-qat-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
-        (import ./models/Unsloth-gemma-4-12B-it-qat-UD-Q4_K_XL-instruct.nix {llama-server = llama-server-delayed;})
-        (import ./models/Unsloth-gemma-4-12B-it-qat-UD-Q4_K_XL-4000.nix {llama-server = llama-server-delayed;})
         (import ./models/Unsloth-gemma-4-E4B-it-qat-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
         (import ./models/Unsloth-Qwen3.5-9B-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
         (import ./models/Unsloth-Qwen3.6-35B-A3B-REAP-48-v2.nix {llama-server = llama-server-delayed;})

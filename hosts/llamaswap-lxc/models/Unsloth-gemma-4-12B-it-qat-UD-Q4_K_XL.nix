@@ -1,3 +1,7 @@
+      #--dry-multiplier 0.4 --dry-base 1.75 --dry-allowed-length 3 --dry-penalty-last-n 2048
+      #--reasoning-budget 6114
+      #--reasoning-budget-message "Suficiente razonamiento. Voy realizar la tarea con las herramientas disponibles y necesarias y responder tal y como se me pide"
+      #--samplers "top_k;top_p;min_p;temperature;dry;typ_p;xtc"
 {llama-server}: {
   "Unsloth Gemma 4 12B QAT UD Q4_K_XL" = {
     name = "Unsloth Gemma 4 12B QAT UD Q4_K_XL";
@@ -10,10 +14,7 @@
       -b 256 -ub 128 -ctk f16 -ctv f16
       --ctx-size 32768
       --temp .6 --top-p 0.95 --top-k 20 --repeat-penalty 1.1
-      --dry-multiplier 0.4 --dry-base 1.75 --dry-allowed-length 3 --dry-penalty-last-n 2048
-      --reasoning-budget 6114
-      --reasoning-budget-message "Suficiente razonamiento. Voy realizar la tarea con las herramientas disponibles y necesarias y responder tal y como se me pide"
-      --samplers "top_k;top_p;min_p;temperature;dry;typ_p;xtc"
+      --chat-template-kwargs '{"enable_thinking":true}'
       --cache-ram 0 --ctx-checkpoints 4
       --parallel 1
       --jinja
