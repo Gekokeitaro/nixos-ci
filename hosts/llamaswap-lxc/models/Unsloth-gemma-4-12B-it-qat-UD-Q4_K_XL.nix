@@ -59,7 +59,7 @@
         reasoning_budget = 6144;
       };
     };
-  }
+  };
 
   commonArgs = ''
     -ngl 99 -fa 1
