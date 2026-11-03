@@ -58,7 +58,7 @@
         dry_penalty_last_n = 2048;
         reasoning_budget = 6144;
       };
-    }
+    };
   }
 
   commonArgs = ''
