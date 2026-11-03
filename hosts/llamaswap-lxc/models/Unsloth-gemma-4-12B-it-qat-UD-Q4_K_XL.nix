@@ -4,7 +4,7 @@
       "\${MODEL_ID}:instruct" = {
         chat_template_kwargs = {
           enable_thinking = false;
-        }
+        };
       };
       "\${MODEL_ID}:dry" = {
         dry_multiplier = 0.4;
