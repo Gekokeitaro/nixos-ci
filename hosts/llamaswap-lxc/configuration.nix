@@ -66,6 +66,7 @@ in {
     port = 8080;
     openFirewall = true; # Añade port a allowedTCPPorts. Necesario con Proxmox?
     settings = {
+      includeAliasesInList = false;
       models = lib.mkMerge [
         (import ./models/Bartowski-Spark-X2.6-4B-Q8_0.nix {llama-server = llama-server-delayed;})
         (import ./models/DavidAU-LFM2.5-8B-A1B-Q3.8-TBrill-NEO-MAX-Q8_0.nix {llama-server = llama-server-delayed;})
