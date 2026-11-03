@@ -1,5 +1,5 @@
 {llama-server}: let
-  commonfilters = {
+  commonFilters = {
     setParamsByID = {
       "\${MODEL_ID}:instruct" = {
         chat_template_kwargs = {
