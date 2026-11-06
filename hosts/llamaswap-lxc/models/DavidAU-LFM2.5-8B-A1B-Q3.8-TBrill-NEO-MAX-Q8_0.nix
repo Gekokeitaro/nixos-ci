@@ -10,7 +10,6 @@
       --ctx-size 32768
       --temp 0.2 --top-k 80 --repeat-penalty 1.05
       --parallel 1
-      --jinja
     '';
     ttl = 600;
   };
