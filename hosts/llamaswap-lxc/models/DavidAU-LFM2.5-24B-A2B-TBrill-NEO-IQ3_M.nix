@@ -11,7 +11,6 @@
       --ctx-size 32768
       --temp 0.7 --top-p 0.95 --min-p 0.05 --top-k 64 --repeat-penalty 1.05
       --cache-ram 512 --ctx-checkpoints 4
-      --load-mode mmap
       --parallel 1
       --jinja
     '';
