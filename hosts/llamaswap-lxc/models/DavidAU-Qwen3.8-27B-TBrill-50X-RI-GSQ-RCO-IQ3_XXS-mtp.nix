@@ -6,6 +6,7 @@
     cmd = ''
       ${llama-server} --port ''${PORT}
       --model /models/Qwen3.8-27B-Turbo-Brilliance-50X-RI-GSQ-RCO-IQ3_XXS-mtp.gguf
+      --spec-type draft-mtp
       -ngl 99 -fa 1
       -b 256 -ub 128 -ctk f16 -ctv q4_0
       --ctx-size 32768
