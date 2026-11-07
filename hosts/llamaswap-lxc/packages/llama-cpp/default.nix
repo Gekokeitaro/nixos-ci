@@ -26,6 +26,10 @@ in
 
       npmDepsHash = llamacppNpmHash;
 
+      nativeCheckInputs =
+        [(pkgs.python3.withPackages (ps: [ps.numpy ps.torch ps.safetensors ps.transformers]))]
+        ++ (oldAttrs.nativeCheckInputs or []);
+
       # Disable Nix's march=native stripping
       preConfigure = ''
         prependToVar cmakeFlags "-DLLAMA_BUILD_COMMIT:STRING=${llamacppVersion}"
