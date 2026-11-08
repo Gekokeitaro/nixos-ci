@@ -7,8 +7,8 @@
       ${llama-server} --port ''${PORT}
       --model /models/Qwen3.8-27B-Turbo-Brilliance-50X-RI-GSQ-RCO-IQ3_XXS-mtp.gguf
       --spec-type draft-mtp
-      --spec-draft-n-min 1
-      --spec-draft-n-max 2
+      --spec-draft-n-min 2
+      --spec-draft-n-max 4
       --spec-draft-p-min 0.75
       -ngl 99 -fa 1
       -b 256 -ub 128 -ctk f16 -ctv q4_0
