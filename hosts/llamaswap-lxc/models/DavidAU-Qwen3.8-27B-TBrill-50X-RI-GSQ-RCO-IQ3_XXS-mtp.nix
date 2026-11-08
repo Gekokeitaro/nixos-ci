@@ -9,7 +9,7 @@
       --spec-type draft-mtp
       --spec-draft-n-min 1
       --spec-draft-n-max 2
-      --spec-draft-p-min 0.0
+      --spec-draft-p-min 0.75
       -ngl 99 -fa 1
       -b 256 -ub 128 -ctk f16 -ctv q4_0
       --ctx-size 32768
