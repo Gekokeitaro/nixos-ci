@@ -48,7 +48,7 @@ No sops-nix configuration. GPU/cache paths are not secret.
 
 - Unprivileged LXC: GPU access requires Proxmox passthrough
   (`lxc.cgroup2.devices.allow: c 226:* rwm` + `/dev/dri` bind mount).
-- Fixed GPU target: `gfx1035` (AMD 680M). Change `gpuArch` in
+- Fixed GPU target: `gfx1035` (AMD 680M). Change `targetGPU` in
   `packages/llama-cpp/default.nix` for a different GPU.
 - On slow iGPUs, `lockup_timeout` may need raising on the Proxmox host
   (see README). Outside Nix scope.
@@ -63,8 +63,7 @@ No sops-nix configuration. GPU/cache paths are not secret.
 2. Import it in `configuration.nix` inside the `lib.mkMerge` of
    `services.llama-swap.settings.models`, passing
    `{llama-server = llama-server-delayed;}`.
-3. Update `matrix.vars` and `matrix.evict_costs` if the model participates
-   in inference sets.
+3. Ensure the GGUF exists under `/models/` (external Proxmox bind mount).
 
 ### Updating llama-cpp
 
@@ -73,6 +72,6 @@ nix run .#update-llama-cpp
 ```
 
 This script queries the GitHub API for the latest llama.cpp release, prefetches
-the new hash, and updates `packages/llama-cpp/default.nix` in place. Manual
-alternative: `nix-prefetch-github ggml-org llama.cpp --rev "$LATEST"` and edit
-the `llamacppVersion` / `llamacppHash` `let` variables.
+the source hash, forces the npm-deps hash mismatch to discover the new value,
+and updates `llamacppVersion`, `llamacppHash` and `llamacppNpmHash` in place.
+It requires a Nix host because it evaluates `pkg.npmDeps`.

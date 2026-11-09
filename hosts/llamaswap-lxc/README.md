@@ -80,8 +80,8 @@ in `configuration.nix`. The binary path is interpolated as `${llama-server}`
 (aliased to a delayed wrapper with `sleep 2` to avoid DeviceLost on swap).
 
 To add a model: create `models/<name>.nix`, import it in the `lib.mkMerge`
-of `services.llama-swap.settings.models`, update `matrix.vars` and
-`matrix.evict_costs` if it participates in inference sets.
+of `services.llama-swap.settings.models` and ensure the GGUF exists under
+`/models/` (external Proxmox bind mount).
 
 ## First boot
 
