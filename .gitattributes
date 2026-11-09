@@ -1,0 +1,6 @@
+# Normalize line endings to LF for all source files.
+# Prevents CRLF↔LF churn when editing on Windows.
+*.nix text eol=lf
+*.md  text eol=lf
+*.sh  text eol=lf
+*.txt text eol=lf
