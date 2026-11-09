@@ -7,10 +7,12 @@
       ${llama-server} --port ''${PORT}
       --model /models/Qwen3.5-9B-The-Defiant-Fable-Uncnr-Heretic-plusIQ-TOOLS-NEO-MAX-MTP-Q8_0.gguf
       --spec-type draft-mtp
+      --spec-draft-n-min 2
+      --spec-draft-n-max 4
+      --spec-draft-p-min 0.6
       -ngl 99 -fa 1
       -b 256 -ub 128 -ctk f16 -ctv f16
       --ctx-size 32768
-      --dry-multiplier 0.4 --dry-base 1.75 --dry-allowed-length 2 --dry-penalty-last-n 2048
       --parallel 1
       --jinja
     '';
@@ -38,7 +40,7 @@
         };
 
         # Thinking — coding
-        "\${MODEL_ID}:coding" = {
+        "\${MODEL_ID}" = {
           temperature = 0.6;
           top_p = 0.95;
           top_k = 20;
