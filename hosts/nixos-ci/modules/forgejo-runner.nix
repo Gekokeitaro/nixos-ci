@@ -4,7 +4,7 @@
     settings = {
       server.connections.forgejo = {
         url = "http://192.168.18.31:3000";
-        uuid = "48ffc057-ff70-4b49-a19d-2848045fa023"; # no es secreto, va en claro
+        uuid = "15ab8222-2f49-49a6-8969-828b64614dc3"; # no es secreto, va en claro
       };
       runner.labels = ["host:host"]; # ejecuta directo en el LXC
     };
