@@ -1,0 +1,44 @@
+
+name: deploy-llamaswap
+
+on:
+  push:
+    branches:
+      - main
+      - llamaswap-rocm
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-llamaswap
+  cancel-in-progress: false
+
+env:
+  HOST: nixos-llamaswap-rocm
+  DEPLOY_KEY: /run/credentials/forgejo-runner-ci.service/deploykey
+
+jobs:
+  deploy:
+    runs-on: host
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Desplegar
+        run: |
+          export HOME="$PWD/.ci-home"
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+
+          export NIX_SSHOPTS="-i $DEPLOY_KEY \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=accept-new \
+            -o UserKnownHostsFile=$HOME/.ssh/known_hosts"
+
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            action=switch
+          else
+            action=test
+          fi
+
+          nixos-rebuild "$action" --flake ".#$HOST" \
+            --target-host "$HOST@$HOST" --elevate=sudo
