@@ -49,6 +49,7 @@ in {
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFeASXjLf7TjNTxO5CZ4Aa6z8hyFG0CXAe4FhcpZOEp6 NixOS-CI MAY 2026"
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDlKHmpR2Qi9jTM1xUWvtYT2uKpwl7d063DyowiZ4hBU ibuki"
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOItHReLpLr0DZHohVHBdqu7CePpsuQ3ANa0UsUX0xj+ pablo.bugarin.camara@gmail.com"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG1kMUYO4VHcsypjXFxKcmdzki6/L0dcIW2BW2eopotS deploy-runner"
     ];
 
     packages = with pkgs; [
@@ -69,24 +70,11 @@ in {
     openFirewall = true; # Añade port a allowedTCPPorts. Necesario con Proxmox?
     settings = {
       includeAliasesInList = true;
-      models = lib.mkMerge [
-        (import ./models/Bartowski-Spark-X2.6-4B-Q8_0.nix {llama-server = llama-server-delayed;})
-        (import ./models/DavidAU-LFM2.5-8B-A1B-Q3.8-TBrill-NEO-MAX-Q8_0.nix {llama-server = llama-server-delayed;})
-        (import ./models/DavidAU-LFM2.5-24B-A2B-TBrill-NEO-IQ3_M.nix {llama-server = llama-server-delayed;})
-        (import ./models/DavidAU-Llama3.2-24B-A3B-II-Dark-Champion.nix {llama-server = llama-server-delayed;})
-        (import ./models/DavidAU-Qwen3.5-9B-The-Defiant-NEO-MAX-MTP-Q8_0.nix {llama-server = llama-server-delayed;})
-        (import ./models/DavidAU-Qwen3.8-27B-TBrill-50X-RI-GSQ-RCO-IQ3_XXS-mtp.nix {llama-server = llama-server-delayed;})
-        (import ./models/JetBrains-Mellum2.1-12B-A2.5B-Thinking-Q4_K_M.nix {llama-server = llama-server-delayed;})
-        (import ./models/JetBrains-Mellum2-12B-A2.5B-Thinking-Q4_K_M.nix {llama-server = llama-server-delayed;})
-        (import ./models/Prism-ML-Ternary-Bonsai-2-9B-Q2_0.nix {llama-server = llama-server-delayed;})
-        (import ./models/Prism-ML-Ternary-Bonsai-2-27B-Q2_0-prism-fork-required.nix {llama-server = llama-server-delayed;})
-        (import ./models/Ukisai-Swift-1.5-Qwen3.8-27B-GSQ-RCO-IQ3_XXS-mtp.nix {llama-server = llama-server-delayed;})
-        (import ./models/Unsloth-gemma-4-12B-it-qat-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
-        (import ./models/Unsloth-gemma-4-12B-it-qat-UD-Q4_K_XL-instruct.nix {llama-server = llama-server-delayed;})
-        (import ./models/Unsloth-gemma-4-E4B-it-qat-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
-        (import ./models/Unsloth-Qwen3.5-9B-UD-Q4_K_XL.nix {llama-server = llama-server-delayed;})
-        (import ./models/Unsloth-Qwen3.6-35B-A3B-REAP-48-v2.nix {llama-server = llama-server-delayed;})
-      ];
+      # Descubre todos los modelos de ./models; archived/ queda fuera.
+      models = import ./models {
+        inherit pkgs;
+        llama-server = llama-server-delayed;
+      };
     };
   };
 
