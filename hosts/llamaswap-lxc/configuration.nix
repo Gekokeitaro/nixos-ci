@@ -126,7 +126,7 @@ in {
   
 
   environment.systemPackages = [llamaBenchRunner];
-  environment.path = [ llamaBenchRunner ];
+  environment.path = [ "${llamaBenchRunner}/scripts" ];
 
   nix.settings.trusted-users = ["nixos-llamaswap-rocm" "nixos-llamaswap-vulkan"];
 
