@@ -32,7 +32,7 @@
     sleep 2
     exec ${llama-server} -lv 4 "$@"
   '';
-  
+
   llamaBenchRunner = pkgs.fetchgit {
     url = "https://gitlab.com/Gekokeitaro/llama-bench-runner.git";
     rev = "4590a5f924b386630e3aa656c218bfcfe357195b";
@@ -40,11 +40,12 @@
     hash = "sha256-m0LS1GFtk2sweNItVTin3t4kz/QJTbi2+PIKmv6HfhI=";
   };
 
-  # Wrapper: los scripts del repo se copian al profile del sistema.
-  llamaBenchRunnerScripts = pkgs.writeShellScriptBin "llama-bench-runner-scripts" ''
+  # Los scripts del repo, empaquetados en bin/ (store de solo lectura).
+  llamaBenchRunnerScripts = pkgs.runCommand "llama-bench-runner-scripts" {} ''
     mkdir -p $out/bin
     cp ${llamaBenchRunner}/scripts/* $out/bin/
     chmod +x $out/bin/*
+    patchShebangs $out/bin
   '';
 in {
   imports = [
@@ -74,6 +75,7 @@ in {
       magic-wormhole
       vulkan-tools
       radeontop
+      llamaBenchRunnerScripts
     ];
   };
 
@@ -115,25 +117,6 @@ in {
     else [
       vulkan-loader
     ];
-
-  #environment.variables = lib.mkMerge [
-  # Común a ambos perfiles: limita el tamaño de las submissions Vulkan/ROCm.
-  #{
-  #  GGML_VK_MAX_NODES_PER_SUBMIT = 1;
-  #}
-  #(lib.optionalAttrs isLlamacppRocm {
-  #  # gfx1035 no está en la lista oficial de ROCm; forzamos compatibilidad.
-  #  HSA_OVERRIDE_GFX_VERSION = "10.3.0";
-  #})
-  #(lib.optionalAttrs (!isLlamacppRocm) {
-  #  # RADV tiene mejor soporte RDNA2 que amdvlk.
-  #  AMD_VULKAN_ICD = "RADV";
-  #})
-  #];
-  
-
-  environment.systemPackages = [ llamaBenchRunnerScripts ];
-  environment.path = [ "${llamaBenchRunner}/scripts" ];
 
   nix.settings.trusted-users = ["nixos-llamaswap-rocm" "nixos-llamaswap-vulkan"];
 
