@@ -32,6 +32,12 @@
     sleep 2
     exec ${llama-server} -lv 4 "$@"
   '';
+  
+  llamaBenchRunner = pkgs.fetchgit {
+      url = "https://gitlab.com/Gekokeitaro/llama-bench-runner.git";
+      ref = "refs/heads/main";
+      hash = "sha256-AAAAAAAAAAAAAAAAAAAA";
+  };
 in {
   imports = [
     ../../common
@@ -116,11 +122,7 @@ in {
   #  AMD_VULKAN_ICD = "RADV";
   #})
   #];
-  llamaBenchRunner = pkgs.fetchgit {
-      url = "https://gitlab.com/Gekokeitaro/llama-bench-runner.git";
-      ref = "refs/heads/main";
-      hash = "sha256-AAAAAAAAAAAAAAAAAAAA";
-  };
+  
 
   enviroment.systemPackages = [llamaBenchRunner];
 
