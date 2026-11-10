@@ -12,13 +12,16 @@
 
 | Host | Servicio | Desplegado | Estado |
 |---|---|---|---|
-| `nixos-ci` | compila imágenes LXC y corre el runner de Forgejo | configuración del repo | sin incidencias conocidas |
+| `nixos-ci` | compila imágenes LXC y corre los runners de Forgejo | configuración del repo | despliegue automático de `nixos-llamaswap-rocm` activo desde `main` |
 | `llamaswap-lxc` | llama-swap + llama.cpp (ROCm) | llama.cpp `v0.9.0` (build 8642541) | sirviendo GGUF |
-| `nixos-pi-agent` | sesiones de `pi` con integración n8n | configuración del repo | sin incidencias conocidas |
+| `nixos-pi-agent` | sesiones de `pi` contra OmniRoute | cambios en `FEATURE_pi-lxc` | pendiente de merge a `main` |
 
-El resto de hosts (`nixos-forgejo`, `nixos-n8n`, `nixos-omniroute`, …) no tiene
-estado propio que anotar aquí: o corre la configuración del repo, o depende de
-decisiones que están en `DECISIONS.md`.
+`nixos-forgejo` aloja Forgejo con Actions activas y registro cerrado.
+`nixos-ci` corre dos runners: `ci` (`host:host`, despliegue) y
+`nixos-runner` (`docker`, trabajos en contenedor). El resto de hosts
+(`nixos-n8n`, `nixos-n8n-runner`, `nixos-omniroute`, `nixos-postgresql`,
+`nixos-hindsight`, `nixos-calibre-wa`) ejecuta la configuración del repo sin
+estado propio que anotar aquí.
 
 ## llama.cpp
 
@@ -35,16 +38,31 @@ restantes de la batería (procedimiento en el `AGENTS.md` de la raíz).
 
 ## Despliegue
 
-- La compilación **no** la lanzo yo: la activa el usuario con el proyecto
-  **nixos-forgejo** mientras ese flujo no esté automatizado.
+- El workflow `.forgejo/workflows/deploy-llamaswap-rocm.yml` corre en el runner
+  `ci` (`runs-on: host`) y despliega `nixos-llamaswap-rocm`:
+  - push a `main` → `nixos-rebuild switch` contra el host;
+  - push a `llamaswap-rocm` → `nixos-rebuild test` (compila sin activar).
+- La clave de despliegue es el secreto sops `deploy-key` de `hosts/nixos-ci`;
+  systemd la expone como credencial al servicio `forgejo-runner-ci`.
 - `nixos-ci` no puede hacer `git pull` de GitHub (su clave no está autorizada):
-  los pulls se hacen desde el host de desarrollo o los hace el usuario.
-- Los cambios llegan al host por pull manual; no hay despliegue automático.
+  los pulls manuales se hacen desde el host de desarrollo o los hace el usuario.
+  El runner de Forgejo hace su propio checkout, así que el despliegue no depende
+  de ese pull.
+- El resto de hosts se aplica a mano. `FEATURE_pi-lxc` no lo despliega el
+  workflow: solo se dispara desde `main` y `llamaswap-rocm`.
 
 ## Pendiente
 
-1. Revisar `AGENTS.md` y `DECISIONS.md` para que no dupliquen lo que ya dicen el
-   `AGENTS.md` de la raíz y este fichero.
-2. Valorar documentación propia para `hosts/llamaswap-lxc/` (hoy solo `README.md`).
-3. Modularizar las convenciones de los ficheros de modelos de
+1. Mergear `FEATURE_pi-lxc` a `main`: incluye el cambio de `pi` a OmniRoute, la
+   lista de modelos y los `packages` de `settings.json`.
+2. Normalizar `hosts/nixos-pi-agent/config/models.json`: `baseUrl` tiene doble
+   barra (`...:20128//v1`), la API key está en claro y `defaultModel` no aparece
+   en la lista de modelos.
+3. Contrastar el broker de n8n: el runner apunta al puerto `5678`, pero también
+   se publica el `5679`.
+4. Decidir qué hacer con `hosts/pihole-lxc/`: existe pero no tiene salida en
+   `flake.nix` ni documentación propia.
+5. Decidir si `.agents/` y `skills-lock.json` (sin seguimiento en este repo)
+   pertenecen aquí o son una copia del workspace.
+6. Modularizar las convenciones de los ficheros de modelos de
    `hosts/llamaswap-lxc/models/`; falta acordar la forma más simple.

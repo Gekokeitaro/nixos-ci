@@ -17,10 +17,11 @@ as its backend database.
 
 ## Dependencies
 
-- `nixos-omniroute` at `http://192.168.18.32:20128/v1` — LLM provider
-  (OpenAI-compatible endpoint).
-- `nixos-postgresql` at `192.168.18.60:5432` — DB `hindsight`, user `hindsight`.
-- OmniRoute model: `static-best-free` (set in OCI env).
+- `nixos-omniroute` at the endpoint listed in [INFRA.md](../../INFRA.md) -
+  LLM provider (OpenAI-compatible endpoint).
+- `nixos-postgresql` at the address/port listed in [INFRA.md](../../INFRA.md)
+  - DB `hindsight`, user `hindsight`.
+- OmniRoute model: `free-models` (set in OCI env).
 
 ## Secrets
 
@@ -33,7 +34,7 @@ sops-nix with `age.keyFile = "/home/nixos-hindsight/.config/sops/age/keys.txt"`:
 - OCI env (non-secret):
   - `HINDSIGHT_API_LLM_PROVIDER = "openai"`
   - `HINDSIGHT_API_LLM_BASE_URL = "http://192.168.18.32:20128/v1"`
-  - `HINDSIGHT_API_LLM_MODEL = "static-best-free"`
+  - `HINDSIGHT_API_LLM_MODEL = "free-models"`
 - Additional secrets (API keys, etc.) come from the `.env` file via sops.
 - `networking.hostName = "nixos-hindsight"`.
 - `networking.firewall.allowedTCPPorts = [8888 9999]`.
@@ -44,8 +45,10 @@ sops-nix with `age.keyFile = "/home/nixos-hindsight/.config/sops/age/keys.txt"`:
 - Unprivileged LXC.
 - The DB password is shared with `nixos-postgresql` in
   `common/secrets/postgresql-shared.yaml`; rotate both together.
-- WARNING: earlier documentation was a verbatim copy of `nixos-n8n` README
-  (wrong). This host runs Hindsight, not n8n.
+- Database connection details are supplied through the sops `hindsight-env`
+  file; the values in `configuration.nix` cover only the LLM provider.
+- The OmniRoute model id can change when the gateway is reconfigured; keep
+  `HINDSIGHT_API_LLM_MODEL` aligned with a model actually served there.
 
 ## Modification guide
 

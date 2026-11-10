@@ -12,7 +12,14 @@ flake outputs: `nixos-llamaswap-vulkan` and `nixos-llamaswap-rocm`.
 
 | Service | Port | Notes |
 |---|---|---|
-| llama-swap | 8080 | OpenAI-compatible API, `listenAddress = 0.0.0.0` |
+| llama-swap | 8080 | OpenAI-compatible API, `listenAddress = 0.0.0.0`; ROCm host address in [INFRA.md](../../INFRA.md) |
+
+## Deployment
+
+- `nixos-llamaswap-rocm` is deployed automatically from `main` by the Forgejo
+  workflow on `nixos-ci`. Pushing to `main` runs `nixos-rebuild switch`.
+- The `llamaswap-rocm` branch only runs `nixos-rebuild test` (build, no switch).
+- `nixos-llamaswap-vulkan` is applied manually.
 
 ## Dependencies
 
@@ -35,7 +42,10 @@ No sops-nix configuration. GPU/cache paths are not secret.
 - `llamaCpp = import ./packages/llama-cpp {inherit pkgs isLlamacppRocm;}`.
 - `llama-server-delayed`: wrapper script adds `sleep 2` before exec to avoid
   DeviceLost errors on model swap (GPU needs time to clear state).
-- `lib.mkMerge` composes model definitions from `./models/` (one file per model).
+- `models/default.nix` discovers every model file in `./models/` (one file per
+  model); `archived/` is a directory and is ignored.
+- Duplicate model ids make evaluation fail (`lib.unionOfDisjoint`), so two files
+  cannot silently define the same model.
 - Vulkan profile: `AMD_VULKAN_ICD=RADV`, `vulkan-loader`, `hardware.graphics.extraPackages`.
 - ROCm profile: `rocmPackages.clr{,.icd}`, `HSA_OVERRIDE_GFX_VERSION=10.3.0`.
 - Both: `GGML_VK_MAX_NODES_PER_SUBMIT=1`, `GGML_CUDA_ENABLE_UNIFIED_MEMORY=1`.
@@ -60,10 +70,17 @@ No sops-nix configuration. GPU/cache paths are not secret.
 
 1. Create `hosts/llamaswap-lxc/models/<model-name>.nix` with signature
    `{llama-server}: { "model-name" = { … }; }`.
-2. Import it in `configuration.nix` inside the `lib.mkMerge` of
-   `services.llama-swap.settings.models`, passing
-   `{llama-server = llama-server-delayed;}`.
+2. `git add` the file: flakes only see files tracked by Git.
 3. Ensure the GGUF exists under `/models/` (external Proxmox bind mount).
+
+No list in `configuration.nix` needs editing: `models/default.nix` picks the
+file up automatically. Do not reuse a model id — two files defining the same id
+abort evaluation.
+
+### Archiving a model
+
+Move the file to `models/archived/`. It stays in the repository for reference
+and is no longer served; no configuration edit is needed.
 
 ### Updating llama-cpp
 

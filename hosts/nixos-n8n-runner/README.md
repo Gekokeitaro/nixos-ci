@@ -17,13 +17,14 @@ nixos-rebuild build-image --image-variant lxc --flake .#nixos-n8n-runner
 
 ## Dependencies
 
-- `nixos-n8n` broker at `http://192.168.18.22:5678`.
+- `nixos-n8n` broker at the URI listed in [INFRA.md](../../INFRA.md).
 - Auth token shared with `nixos-n8n` (sops-managed).
 
 ## Secrets
 
-- `n8n_runner_auth_token` — `./secrets/auth-env.yaml` (sops, dotenv format).
-  Injected via `environmentFiles`; the env var name is `N8N_RUNNERS_AUTH_TOKEN`.
+- `n8n_runner_auth_token` — `./secrets/auth-env.yaml` (sops YAML, mode `0444`).
+  Injected into the container via `environmentFiles`; n8n expects the
+  `N8N_RUNNERS_AUTH_TOKEN` environment variable.
 
 ## First boot
 

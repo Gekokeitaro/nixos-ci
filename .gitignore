@@ -1,2 +1,7 @@
+# Build artifacts (nixos-rebuild symlinks).
 result
 output
+
+# Local agent skills installation; not part of this repository.
+.agents/
+skills-lock.json

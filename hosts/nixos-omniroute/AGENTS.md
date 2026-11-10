@@ -11,11 +11,13 @@ unified LLM routing layer by other services (e.g., `nixos-hindsight`).
 
 | Service | Port | Notes |
 |---|---|---|
-| OmniRoute (OCI) | 20128 | `docker.io/diegosouzapw/omniroute:latest` |
+| OmniRoute (OCI) | 20128 | `docker.io/diegosouzapw/omniroute:latest`; listen address and port are in [INFRA.md](../../INFRA.md) |
 
 ## Dependencies
 
 - Persistent data on host: `/var/lib/omniroute:/app/data` (bind mount).
+- Clients: `nixos-hindsight` and `nixos-pi-agent` use the OpenAI-compatible
+  endpoint listed in [INFRA.md](../../INFRA.md).
 
 ## Secrets
 
@@ -28,6 +30,9 @@ Nix after first boot if needed.
 
 - `PUID=1000`, `PGID=1000`, `TZ=Europe/Madrid`.
 - `OMNIROUTE_BOOTSTRAPPED = "true"` — skips first-run wizard.
+- Stream timeouts raised for slow local models:
+  `STREAM_READINESS_TIMEOUT_MS=300000`,
+  `STREAM_READINESS_MAX_TIMEOUT_MS=600000`, `STREAM_IDLE_TIMEOUT_MS=600000`.
 - `systemd.tmpfiles.rules` creates `/var/lib/omniroute` with `0750 1000 1000`.
 - User `nixos-omniroute` with `extraGroups = ["wheel"]`.
 

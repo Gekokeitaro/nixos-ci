@@ -1,8 +1,8 @@
 # nixos-forgejo
 
-Self-hosted Git forge (Forgejo, a Gitea fork) with SQLite backend. Designed
-for personal use; can host CI/CD via runners (`nixos-ci`) when actions are
-enabled.
+Self-hosted Git forge (Forgejo, a Gitea fork) with SQLite backend and Actions
+enabled. Designed for personal use; it coordinates the runners hosted on
+`nixos-ci`.
 
 ## Build
 
@@ -19,16 +19,22 @@ nixos-rebuild build-image --image-variant lxc --flake .#nixos-forgejo
 ## First boot
 
 1. Import the tarball as template in Proxmox, create and start the LXC.
-2. Open `http://<IP>:3000` in a browser — the Forgejo setup wizard appears.
-3. Create the administrator user via the UI.
-4. Once the admin account exists, close public registration:
+2. Open `http://<IP>:3000` in a browser - the Forgejo setup wizard appears.
+   The port is listed in [INFRA.md](../../INFRA.md).
+3. Create the administrator user via the UI. Public registration is already
+   disabled in the configuration; use the wizard or `forgejo-admin` for
+   additional users.
+4. Register the runners from `nixos-ci` (see that host's README).
 
-   ```nix
-   # in configuration.nix
-   services.forgejo.settings.service.DISABLE_REGISTRATION = true;
-   ```
+## CI/CD
 
-   Then re-apply (see "Apply changes" below).
+Actions are enabled globally. The deployment workflow currently lives in
+`nixos-ci/.forgejo/workflows/deploy-llamaswap-rocm.yml` and uses two runners:
+
+| Runner | Label | Purpose |
+|---|---|---|
+| `ci` | `host:host` | `nixos-rebuild` + SSH deployment |
+| `nixos-runner` | `docker` | Containerized jobs |
 
 ## SSH
 
@@ -54,7 +60,7 @@ sudo nixos-rebuild switch --flake .#nixos-forgejo
 
 - **Database**: SQLite (`services.forgejo.database.type = "sqlite3"`). No extra
   server process. For high-load production, migrate to PostgreSQL.
-- **Enabling CI/CD actions**: add `services.forgejo.settings.actions.ENABLED = true`
-  (requires a registered runner; see `hosts/nixos-ci`).
-- **Domain / proxy**: `DOMAIN` and `ROOT_URL` currently use `0.0.0.0`. Change
-  them to the real FQDN/IP when a domain or HTTPS reverse proxy is added.
+- **Registration**: closed (`DISABLE_REGISTRATION = true`).
+- **Domain / proxy**: `DOMAIN` and `ROOT_URL` use the Forgejo address listed in
+  [INFRA.md](../../INFRA.md); change them together with the runner URLs on
+  `nixos-ci` if a domain or HTTPS reverse proxy is added.

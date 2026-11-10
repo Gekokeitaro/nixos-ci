@@ -1,13 +1,14 @@
 # NixOS LXC
 
 > Repository for building, deploying, and updating NixOS LXC images for my
-> homelab on Proxmox.
+> homelab on Proxmox. Host addresses, ports, and dependencies live in
+> [INFRA.md](INFRA.md).
 
 ## Hosts
 
 | Host                                                  | Description                                                  |
 | ----------------------------------------------------- | ------------------------------------------------------------ |
-| [nixos-ci](hosts/nixos-ci/)                           | Dev machine + Forgejo CI/CD runner                           |
+| [nixos-ci](hosts/nixos-ci/)                           | Dev machine + Forgejo runners and automatic ROCm deploy      |
 | [nixos-forgejo](hosts/nixos-forgejo/)                 | Self-hosted Git forge (Forgejo)                              |
 | [nixos-llamaswap-<vulkan/ROCm>](hosts/llamaswap-lxc/) | Local LLM inference via llama-swap + llama-cpp (Vulkan/ROCm) |
 | [nixos-calibre-web-auto](hosts/nixos-calibre-wa/)     | Calibre-Web-Automated + pCloud library                       |
@@ -16,11 +17,25 @@
 | [nixos-omniroute](hosts/nixos-omniroute/)             | OmniRoute AI gateway (OCI)                                   |
 | [nixos-postgresql](hosts/nixos-postgresql/)           | Central PostgreSQL + pgvector                                |
 | [nixos-hindsight](hosts/nixos-hindsight/)             | Hindsight data platform (OCI + LLM)                          |
+| [nixos-pi-agent](hosts/nixos-pi-agent/)               | `pi` coding-agent sessions backed by OmniRoute               |
 
 > [!NOTE]
 > All LXC images include NVF (Neovim) as the text editor.
 
-## Deployment workflow
+## CI/CD
+
+`.forgejo/workflows/deploy-llamaswap-rocm.yml` runs on the `ci` runner on
+`nixos-ci`:
+
+- push to `main` → `nixos-rebuild switch` against `nixos-llamaswap-rocm`;
+- push to `llamaswap-rocm` → `nixos-rebuild test` (build only).
+
+The deployment key is the sops secret `deploy-key`. A push to `main` is a
+production action.
+
+The rest of the hosts use the manual workflow below.
+
+## Manual deployment workflow
 
 ### 1. SSH keys (mandatory)
 

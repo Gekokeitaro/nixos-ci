@@ -18,9 +18,10 @@ nixos-rebuild build-image --image-variant lxc --flake .#nixos-hindsight
 
 ## Dependencies
 
-- `nixos-omniroute` at `http://192.168.18.32:20128/v1` — LLM provider
-  (OpenAI-compatible, model `static-best-free`).
-- `nixos-postgresql` at `192.168.18.60:5432` — DB `hindsight` with pgvector.
+- `nixos-omniroute` at the endpoint listed in [INFRA.md](../../INFRA.md) —
+  LLM provider (OpenAI-compatible, model `free-models`).
+- `nixos-postgresql` at the address/port listed in [INFRA.md](../../INFRA.md) —
+  DB `hindsight` with pgvector.
 
 ## Secrets
 
@@ -30,7 +31,8 @@ nixos-rebuild build-image --image-variant lxc --flake .#nixos-hindsight
   (API keys, etc.) not in `configuration.nix`.
 
 The database password lives in `common/secrets/postgresql-shared.yaml`
-(shared with `nixos-postgresql`).
+(shared with `nixos-postgresql`). The full connection string and other runtime
+settings live in `hindsight-env`; do not duplicate them in this README.
 
 ## First boot
 

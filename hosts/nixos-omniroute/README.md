@@ -2,7 +2,7 @@
 
 LXC running [OmniRoute](https://github.com/diegosouzapw/omniroute) — an AI
 gateway providing a unified OpenAI-compatible endpoint across multiple LLM
-providers. Used by `nixos-hindsight` as its LLM backend.
+providers. Used by `nixos-hindsight` and `nixos-pi-agent` as their LLM backend.
 
 ## Build
 
@@ -12,9 +12,9 @@ nixos-rebuild build-image --image-variant lxc --flake .#nixos-omniroute
 
 ## Exposed ports
 
-| Service | Port |
-|---|---|
-| OmniRoute (AI gateway) | 20128 |
+| Service | Address | Port |
+|---|---|---|
+| OmniRoute (AI gateway) | address in [INFRA.md](../../INFRA.md) | 20128 |
 
 ## First boot
 

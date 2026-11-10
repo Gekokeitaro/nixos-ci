@@ -20,8 +20,10 @@ Both are in `networking.firewall.allowedTCPPorts`.
 
 ## Dependencies
 
-- PostgreSQL at `192.168.18.60:5432` (`nixos-postgresql` host, DB `n8n`).
-- Task runners on `nixos-n8n-runner` connect back to the broker.
+- PostgreSQL at the address/port listed in [INFRA.md](../../INFRA.md)
+  (`nixos-postgresql` host, DB `n8n`).
+- Task runners on `nixos-n8n-runner` connect back to the broker at the URI
+  listed in [INFRA.md](../../INFRA.md).
 
 ## Secrets
 
@@ -60,3 +62,10 @@ Inside the container:
 ```bash
 sudo nixos-rebuild switch --flake .#nixos-n8n
 ```
+
+## Notes
+
+- The external runner URI is the broker URI listed in
+  [INFRA.md](../../INFRA.md). Port `5679` is also published; verify the broker
+  port if runners cannot connect.
+- The database credentials live in sops and are mounted at `/run/secrets/…`.

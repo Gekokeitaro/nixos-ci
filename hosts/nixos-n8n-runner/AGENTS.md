@@ -16,7 +16,8 @@ an inactivity timeout (15s by default).
 
 ## Dependencies
 
-- `nixos-n8n` broker at `http://192.168.18.22:5678` (runner connects here).
+- `nixos-n8n` broker at the URI listed in [INFRA.md](../../INFRA.md)
+  (runner connects here).
 - Auth token shared with `nixos-n8n` (see Secrets).
 
 ## Secrets

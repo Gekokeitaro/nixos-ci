@@ -11,9 +11,9 @@ nixos-rebuild build-image --image-variant lxc --flake .#nixos-postgresql
 
 ## Exposed ports
 
-| Service | Port |
-|---|---|
-| PostgreSQL | 5432 |
+| Service | Address | Port |
+|---|---|---|
+| PostgreSQL | address in [INFRA.md](../../INFRA.md) | 5432 |
 
 Allowed in `networking.firewall.allowedTCPPorts` and via `enableTCPIP = true`.
 

@@ -15,8 +15,9 @@ external PostgreSQL, with external task runners (`nixos-n8n-runner`).
 
 ## Dependencies
 
-- `nixos-postgresql` at `192.168.18.60:5432` (DB `n8n`, user `n8n`).
-- `nixos-n8n-runner` connects to the broker at `0.0.0.0:5678`.
+- `nixos-postgresql` at the address/port listed in [INFRA.md](../../INFRA.md)
+  (DB `n8n`, user `n8n`).
+- `nixos-n8n-runner` connects to the broker URI listed in [INFRA.md](../../INFRA.md).
 - Named volume `n8n_data:/home/node/.n8n`.
 
 ## Secrets
@@ -42,11 +43,14 @@ sops-nix with `defaultSopsFile = ./secrets.yaml`:
 - Unprivileged LXC.
 - The DB password is also stored in `common/secrets/postgresql-shared.yaml`
   (shared with `nixos-postgresql`); rotate it in both places.
-- WARNING: this README previously described native `services.n8n` + SQLite —
-  stale. Current setup is OCI container + external PostgreSQL.
+- The runner URI currently points to port `5678`, while `5679` is also
+  published. If runners fail to connect, verify which port the task broker is
+  actually using on this n8n version.
 
 ## Modification guide
 
 - To change DB: update `DB_POSTGRESDB_*` env vars and the secret if needed.
 - Runner auth token must match in `nixos-n8n` and `nixos-n8n-runner`.
-- The broker port (5679) must match the runner's `N8N_RUNNERS_TASK_BROKER_URI`.
+- The broker port in `N8N_RUNNERS_TASK_BROKER_URI` on the runner must match the
+  port n8n exposes for the broker (`5678` in the current config; `5679` is also
+  published).

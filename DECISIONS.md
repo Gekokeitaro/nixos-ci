@@ -176,3 +176,26 @@ be audited. Splitting by owner means each file answers one question and can be
 rewritten without touching the others.
 
 ---
+
+## 2026-11-10 — Automatic deployment of llamaswap-rocm via Forgejo Actions
+
+**Context**: Deploying the ROCm host required a manual `nixos-rebuild` after
+every change. The Forgejo instance already had a runner on `nixos-ci`, but it
+only exposed the `docker` label and was not wired to a deployment workflow.
+
+**Decision**: Add a second runner instance, `ci`, with the label `host:host`,
+and a Forgejo workflow at `.forgejo/workflows/deploy-llamaswap-rocm.yml`:
+
+- pushes to `main` run `nixos-rebuild switch --flake .#nixos-llamaswap-rocm`;
+- pushes to `llamaswap-rocm` run `nixos-rebuild test` (build without switching);
+- the deploy key is the sops secret `deploy-key`, exposed to the runner service
+  as a systemd credential.
+
+Only `nixos-llamaswap-rocm` is automated. The remaining hosts stay manual.
+
+**Rationale**: The ROCm host is the one that changes most often (llama.cpp
+version, models, GPU parameters). Automating it removes a repeated manual step
+while keeping the blast radius to a single host. A separate `host:host` runner
+keeps privileged deployment jobs out of the containerized `docker` runner, and
+the sops-backed credential avoids putting a private key in the repository or
+the workflow file.

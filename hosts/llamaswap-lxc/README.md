@@ -75,13 +75,18 @@ update-initramfs -u -k all && reboot
 
 GGUFs are expected at `/models/` (mounted from the Proxmox host).
 Each model is a single Nix file in `models/` with signature
-`{llama-server}: { "model-name" = { … }; }`, composed with `lib.mkMerge`
-in `configuration.nix`. The binary path is interpolated as `${llama-server}`
+`{llama-server}: { "model-name" = { … }; }`. `models/default.nix` discovers
+every `.nix` file in that directory and merges them; subdirectories such as
+`archived/` are ignored. The binary path is interpolated as `${llama-server}`
 (aliased to a delayed wrapper with `sleep 2` to avoid DeviceLost on swap).
 
-To add a model: create `models/<name>.nix`, import it in the `lib.mkMerge`
-of `services.llama-swap.settings.models` and ensure the GGUF exists under
-`/models/` (external Proxmox bind mount).
+To add a model: create `models/<name>.nix` and `git add` it (flakes only see
+tracked files), then ensure the GGUF exists under `/models/` (external Proxmox
+bind mount). No list in `configuration.nix` is edited. Two files defining the
+same model id abort evaluation.
+
+To archive a model: move its file to `models/archived/`; it stays in the repo
+but is no longer served.
 
 ## First boot
 
@@ -98,7 +103,12 @@ ssh nixos-llamaswap-vulkan@<IP>  # or nixos-llamaswap-rocm@<IP>
 
 ## Apply changes
 
-Remote:
+`nixos-llamaswap-rocm` is deployed automatically from `main` by the Forgejo
+workflow on `nixos-ci`. Pushing to `main` runs `nixos-rebuild switch` against
+`nixos-llamaswap-rocm` (address in [INFRA.md](../../INFRA.md)); the `llamaswap-rocm` branch runs
+`nixos-rebuild test` only.
+
+`nixos-llamaswap-vulkan` is applied manually. Remote:
 
 ```bash
 nixos-rebuild switch --flake .#nixos-llamaswap-vulkan --target-host <user>@<ip> --elevate=sudo

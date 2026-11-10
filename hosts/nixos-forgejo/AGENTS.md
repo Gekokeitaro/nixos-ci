@@ -4,51 +4,71 @@ Context guide for LLM agents working on the `nixos-forgejo` host.
 
 ## Purpose
 
-Self-hosted Git forge (Forgejo) with CI/CD capability. Uses SQLite (no
-external DB server) — sufficient for personal use.
+Self-hosted Git forge (Forgejo) with Actions enabled. Uses SQLite (no external
+DB server), which is enough for personal use. Runs at the address and port
+listed in [INFRA.md](../../INFRA.md).
 
 ## Services & ports
 
 | Service | Port | Notes |
 |---|---|---|
-| Forgejo | 3000 | HTTP dashboard, `networking.firewall.allowedTCPPorts = [3000]` |
+| Forgejo | 3000 | HTTP dashboard/API; `networking.firewall.allowedTCPPorts = [3000]`; Actions enabled |
 
 ## Dependencies
 
 - SQLite database (no external service).
-- `services.forgejo` NixOS module; service runs as its own system user `forgejo`.
+- `services.forgejo` NixOS module; the service runs as its own system user
+  `forgejo`.
+- Two runners registered from `nixos-ci`: `ci` (`host:host`) and
+  `nixos-runner` (`docker`).
 
 ## Secrets
 
-No sops-nix configuration.
+No sops-nix configuration. Runner tokens and the deployment key live in
+`hosts/nixos-ci/secrets.yaml`.
 
 ## Special config
 
 - `networking.hostName = "nixos-forgejo"`.
-- `services.forgejo.settings.service.DISABLE_REGISTRATION = false` — open
-  registration. Set to `true` once the admin user is created.
-- `services.forgejo.settings.server`: `HTTP_PORT = 3000`, `DOMAIN = "0.0.0.0"`,
-  `ROOT_URL = "http://0.0.0.0:3000/"`. Change to real FQDN when a permanent
-  domain/proxy is configured.
-- User `nixos-forgejo` with `extraGroups = ["wheel"]`, SSH keys (PopOS + CI).
-- CLI tools in `environment.systemPackages` (not `users.users.<name>.packages`:
-  that module attribute only exists with home-manager).
+- `services.forgejo.settings.service.DISABLE_REGISTRATION = true` — public
+  registration is closed.
+- `services.forgejo.settings.actions.ENABLED = true` — Actions are active.
+- `services.forgejo.settings.server`: HTTP port and address are in [INFRA.md](../../INFRA.md).
+  `DOMAIN` and `ROOT_URL` must stay in sync with the actual address.
+- User `nixos-forgejo` with `extraGroups = ["wheel"]` and three SSH keys
+  (PopOS OCT 2024, NixOS-CI MAY 2026, pablo.bugarin.camara@gmail.com).
+- `forgejo-admin` wrapper in `environment.systemPackages` runs the Forgejo CLI
+  as the service user with the correct work path.
+- CLI tools are declared in `environment.systemPackages` (not
+  `users.users.<name>.packages`: that attribute only exists with home-manager).
 
 ## Constraints
 
 - Unprivileged LXC.
 - Passwordless sudo via `common` (wheel group).
-- `nix.settings.trusted-users` includes `nixos-forgejo` for
+- `nix.settings.trusted-users = ["nixos-forgejo"]` allows
   `nixos-rebuild --flake` inside the container.
+- `DOMAIN` and `ROOT_URL` must stay in sync with the actual address; runner
+  connection URLs on `nixos-ci` depend on it.
 
 ## Modification guide
 
-### Enable CI/CD actions
+### Create or manage users
 
-Add `services.forgejo.settings.actions.ENABLED = true` once a runner is
-configured (see `nixos-ci` host).
+Public registration is closed. Create users from the CLI:
 
-### Close public registration
+```bash
+forgejo-admin admin user create --username <name> --admin --email <email> --random-password
+```
 
-Set `services.forgejo.settings.service.DISABLE_REGISTRATION = true` after
-creating the admin user via the UI wizard, then re-apply.
+### Change the address or port
+
+1. Update `DOMAIN`, `ROOT_URL`, and (if needed) `HTTP_PORT` here.
+2. Update the two runner connection URLs in `hosts/nixos-ci`.
+3. Re-apply both hosts.
+
+### Add a runner
+
+Configure it on the runner host (see `hosts/nixos-ci`), then confirm it appears
+under **Actions → Runners**. Do not enable Actions per-repository manually if
+the global switch is already on.

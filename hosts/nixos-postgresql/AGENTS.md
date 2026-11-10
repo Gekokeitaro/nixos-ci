@@ -15,6 +15,7 @@ Includes pgvector extension for vector similarity search (used by Hindsight).
 
 ## Dependencies
 
+- PostgreSQL listens at the address/port listed in [INFRA.md](../../INFRA.md).
 - Client hosts connect over the LAN: `n8n` from `192.168.18.22/24`,
   `hindsight` from `192.168.18.19/24` (both `scram-sha-256` auth).
 - Databases: `n8n` (owner `n8n`), `hindsight` (owner `hindsight`).

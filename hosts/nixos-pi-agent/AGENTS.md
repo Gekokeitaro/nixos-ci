@@ -4,93 +4,90 @@ Context guide for LLM agents working on the `nixos-pi-agent` host.
 
 ## Purpose
 
-Coding agent session host with n8n integration. Runs the
-`pi-coding-agent` tool which connects to a remote llama-swap
-instance for AI inference.
+Coding-agent session host. Runs the `pi-coding-agent` tool, which sends
+inference to an OpenAI-compatible endpoint served by `nixos-omniroute`. The
+`nixos-n8n` key is authorized, so n8n can SSH in and launch sessions.
 
 ## Services & ports
 
-No TCP services are opened. The agent connects outbound to
-llama-swap at `http://192.168.18.12:8080/v1`.
+No TCP services are opened. The agent connects outbound to OmniRoute at
+the endpoint listed in [INFRA.md](../../INFRA.md) (`v1` OpenAI-compatible).
 
 ## Dependencies
 
-- `pi-coding-agent` Nix package — installed and wrapped via
-  `environment.systemPackages`.
-- Remote `llama-swap` at `http://192.168.18.12:8080` — provides
-  the AI inference backend.
-- `nodejs`, `ripgrep`, `fd` — runtime dependencies for the wrapped
-  `pi` binary.
-- `config/models.json` and `config/settings.json` — copied into
-  the agent directory on boot.
+- `pi-coding-agent` Nix package, wrapped via `environment.systemPackages`.
+- `nixos-omniroute` (`192.168.18.32:20128` in [INFRA.md](../../INFRA.md)) as the inference backend.
+- `nodejs`, `ripgrep`, and `fd` — runtime dependencies added to the wrapped
+  `pi` binary's `PATH`.
+- `config/models.json` — provider and model catalog.
+- `config/settings.json` — runtime defaults and npm packages.
 
 ## Secrets
 
-No sops-nix configuration. The llama-swap API key in `models.json`
-is a `dummy-key` placeholder; real credentials should be managed
-outside this configuration.
+No sops-nix configuration. `config/models.json` currently contains a plaintext
+API key for the OmniRoute endpoint; it is not managed by sops. Do not copy the
+key into documentation or logs.
 
 ## Special config
 
 - `piCodingAgent.enable = true` in `configuration.nix`.
-- `modelsPath = ./config/models.json` — providers and models
-  definition (currently one provider: `llama-swap` at `192.168.18.12:8080`).
-- `settingsPath = ./config/settings.json` — default provider,
-  model (`gpt-oss-20b-NEO-IQ4_NL`), thinking level (`medium`),
-  and retry settings (3 max retries).
-- `extensions = []` — list of extension files symlinked to
-  `~/.pi/agent/extensions/`. The `extensions/` directory exists
-  but is currently empty.
-- `NPM_CONFIG_PREFIX` set to `~/.pi/agent/npm/` for npm-based
-  extension installation.
-- User `nixos-pi-agent` with `extraGroups = ["wheel"]`, SSH keys
-  (PopOS OCT 2024, NixOS-CI MAY 2026).
-- `nix.settings.trusted-users = ["nixos-pi-agent"]` + experimental
-  features (`nix-command`, `flakes`).
-- Module creates `systemd.tmpfiles.rules` for `~/.pi/agent/`
-  directories and symlinks config files.
+- `modelsPath = ./config/models.json`; `settingsPath = ./config/settings.json`;
+  `extensions = []` (no extension files are symlinked).
+- `models.json`: one provider named `llama-swap` whose `baseUrl` points to
+  OmniRoute (`192.168.18.32:20128` in [INFRA.md](../../INFRA.md)) , path `//v1` in the current file), API
+  `openai-completions`. Models:
+  - `llamacpp/Gemma 4 12B QAT UD Q4_K_XL` (262144 context)
+  - `llamacpp/OmniCoder-9B Q5_K_M DFlash` (262144)
+  - `llamacpp/Qwen3.5 9B UD Q4_K_XL` (262144)
+  - `llamacpp/Qwen3.8 27B GSQ-RCO IQ3_XXS MTP` (131072)
+- `settings.json`: `theme = "dark"`, `defaultProvider = "llama-swap"`,
+  `defaultModel = "gpt-oss-20b-NEO-IQ4_NL"` (not present in `models.json`),
+  `defaultThinkingLevel = "medium"`, and npm `packages` (`pi-skills`,
+  `pi-powerline-footer`, `@luxusai/pi-hindsight`, `pi-web-access`).
+- The module wraps `pi` with `NPM_CONFIG_PREFIX=~/.pi/agent/npm/`,
+  `PI_SKIP_VERSION_CHECK=1`, and `PI_TELEMETRY=0`.
+- `systemd.tmpfiles.rules` creates `~/.pi/agent/` directories, symlinks
+  `models.json`, and copies `settings.json`; `pi-agent-sync` copies settings on
+  boot.
+- User `nixos-pi-agent` with `extraGroups = ["wheel"]` and three SSH keys
+  (PopOS OCT 2024, NixOS-CI MAY 2026, nixos-n8n SEP 2026).
+- `nix.settings.trusted-users = ["nixos-pi-agent"]` and experimental features
+  (`nix-command`, `flakes`).
 
 ## Constraints
 
 - Unprivileged LXC (no privileged features).
-- SSH keys must be present in `configuration.nix` before building
-  the image or remote deployment will fail.
-- The agent depends on an external `llama-swap` instance at
-  `192.168.18.12:8080`; if the endpoint changes, update
+- SSH keys must be present in `configuration.nix` before building the image or
+  remote deployment will fail.
+- The agent depends on OmniRoute at `192.168.18.32:20128` in [INFRA.md](../../INFRA.md); if it moves, update
   `config/models.json`.
-- Configuration files do not travel to the image — after creating
-  the container, run `nix-channel --update` and re-clone the
-  configuration inside it.
+- The `defaultModel` in `settings.json` is not in the current model catalog.
+  Verify it before relying on the default.
+- The API key is plaintext in `models.json`; moving it to sops is pending.
+- The automatic deployment workflow only covers `nixos-llamaswap-rocm`; this
+  host is applied manually.
 
 ## Modification guide
 
-### Adding an extension (via files)
+### Change the endpoint or models
 
-1. Place the extension file in `extensions/`.
-2. Add its path to `piCodingAgent.extensions` in
-   `configuration.nix`.
-3. Re-apply the configuration.
-
-### Adding an extension (via npm)
-
-```bash
-pi extensions install <package-name>
-```
-
-> **Known issue:** `pi extensions install` may fail with
-> `EACCES: permission denied` inside the LXC container due to
-> npm permissions on `~/.pi/agent/npm/`. Workaround: pre-install
-> extensions on the host and copy into `extensions/`, or fix
-> directory ownership before running the install. See related
-> issue for a permanent fix.
-
-### Changing the llama-swap endpoint or models
-
-1. Edit `config/models.json` with the new provider URL and
-   model list.
+1. Edit `config/models.json` with the new provider URL and model list.
 2. Re-apply: `nixos-rebuild switch --flake .#nixos-pi-agent`.
 
-### Updating default settings
+### Change defaults
 
-Edit `config/settings.json` for changes to `defaultModel`,
-`defaultThinkingLevel`, or `retry` configuration.
+Edit `config/settings.json` (`defaultModel`, `defaultThinkingLevel`, `theme`,
+`packages`). The module copies this file into `~/.pi/agent/settings.json` on
+boot.
+
+### Add a file-based extension
+
+1. Put the extension file under `hosts/nixos-pi-agent/` (create a directory if
+   you want to keep them together).
+2. Add its path to `piCodingAgent.extensions` in `configuration.nix`.
+3. Re-apply the configuration.
+
+### Install runtime packages
+
+Add them to the `packages` array in `config/settings.json`. The module sets
+`NPM_CONFIG_PREFIX` so `pi` installs them under `~/.pi/agent/npm/`.
