@@ -24,6 +24,6 @@ jobs:
         run: |
           export NIX_SSHOPTS="-i $DEPLOY_KEY -o StrictHostKeyChecking=accept-new"
           if [ "${{ github.ref_name }}" = "main" ]; then action=switch; else action=test; fi
-          nixos-rebuild "$action" --flake ".#$HOST" \
+          /run/current-system/sw/bin/nixos-rebuild "$action" --flake ".#$HOST" \
             --target-host "$HOST@$HOST" --elevate=sudo
 
