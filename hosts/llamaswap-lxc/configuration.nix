@@ -116,6 +116,15 @@ in {
   #  AMD_VULKAN_ICD = "RADV";
   #})
   #];
+  llamaBenchRunner = pkgs.fetchgit {
+      url = "https://gitlab.com/Gekokeitaro/llama-bench-runner.git";
+      ref = "refs/heads/main";
+      hash = "sha256-AAAAAAAAAAAAAAAAAAAA";
+  };
+
+  enviroment.systemPackages = [llamaBenchRunner];
+
+  env.PATH = [ "/nix/store/${llamaBenchRunner}/bin" "/nix/store/${llamaBenchRunner}/scripts" ] ++ env.PATH;
 
   nix.settings.trusted-users = ["nixos-llamaswap-rocm" "nixos-llamaswap-vulkan"];
 
