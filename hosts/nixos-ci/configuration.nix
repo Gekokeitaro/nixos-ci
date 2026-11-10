@@ -5,6 +5,7 @@
 }: {
   imports = [
     ../../common
+    ./modules/forgejo-runner.nix
   ];
 
   sops = {
@@ -49,6 +50,11 @@
     };
     runtimes.podman = true;
   };
+
+  programs.ssh.extraConfig = ''
+    Host nixos-llamaswap-rocm
+    HostName 192.168.18.11
+  '';
 
   nix.settings.experimental-features = ["nix-command" "flakes"];
 

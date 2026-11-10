@@ -17,7 +17,11 @@
 # Acciones (CI/CD) no activadas en esta primera versión; se pueden
 # habilitar añadiendo settings.actions.ENABLED = true cuando haya
 # un runner configurado.
-{pkgs, ...}: {
+{
+  pkgs,
+  config,
+  ...
+}: {
   imports = [
     ../../common # base LXC: openssh, sudo, gc automático, boot.isContainer…
   ];
@@ -34,6 +38,7 @@
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGApUnvphJshC3LJ4QxDu8fm3JqEnSWZ6ewhf6gQuF7V PopOS OCT 2024"
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFeASXjLf7TjNTxO5CZ4Aa6z8hyFG0CXAe4FhcpZOEp6 NixOS-CI MAY 2026"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOItHReLpLr0DZHohVHBdqu7CePpsuQ3ANa0UsUX0xj+ pablo.bugarin.camara@gmail.com"
     ];
   };
 
@@ -46,6 +51,11 @@
     curl
     wget
     magic-wormhole # transferencia rápida de ficheros entre máquinas sin servidor intermedio
+    (pkgs.writeShellScriptBin "forgejo-admin" ''
+      exec sudo -u ${config.services.forgejo.user} \
+      ${config.services.forgejo.package}/bin/forgejo \
+      --work-path ${config.services.forgejo.stateDir} "$@"
+    '')
   ];
 
   services.forgejo = {
@@ -61,7 +71,8 @@
     settings = {
       # false → el registro está abierto; cualquiera puede crear cuenta.
       # Poner a true una vez creado el admin para cerrar el registro público.
-      service.DISABLE_REGISTRATION = false;
+      service.DISABLE_REGISTRATION = true;
+      actions.ENABLED = true;
 
       server = {
         # Puerto donde escucha el servidor HTTP interno de Forgejo.
@@ -71,12 +82,12 @@
         # Dominio que Forgejo usa para construir URLs absolutas (clones, emails…).
         # Con "localhost" solo funciona desde el propio contenedor; cambiar a la
         # IP o FQDN real del LXC cuando se configure un dominio permanente.
-        DOMAIN = "0.0.0.0";
+        DOMAIN = "192.168.18.31";
 
         # URL raíz que aparece en los enlaces de la interfaz y en los hooks.
         # Debe coincidir con DOMAIN. Si se añade un proxy inverso con HTTPS,
         # cambiar a https://<dominio>/.
-        ROOT_URL = "http://0.0.0.0:3000/";
+        ROOT_URL = "http://192.168.18.31:3000/";
       };
     };
   };

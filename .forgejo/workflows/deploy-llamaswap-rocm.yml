@@ -1,0 +1,29 @@
+name: deploy-llamaswap
+on:
+  push:
+    branches:
+      - main
+      - 'llamaswap-rocm'
+  workflow_dispatch:           # lo usa el timer nocturno (paso 9) y el botón de la UI
+
+concurrency:
+  group: deploy-llamaswap
+  cancel-in-progress: false    # un push no debe matar una compilación larga en curso
+
+env:
+  HOST: nixos-llamaswap-rocm   # o nixos-llamaswap-vulkan
+  DEPLOY_KEY: /run/credentials/forgejo-runner-ci.service/deploykey   # ver nota: sustituir UNIDAD
+
+jobs:
+  deploy:
+    runs-on: host
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Desplegar
+        run: |
+          export NIX_SSHOPTS="-i $DEPLOY_KEY -o StrictHostKeyChecking=accept-new"
+          if [ "${{ github.ref_name }}" = "main" ]; then action=switch; else action=test; fi
+          nixos-rebuild "$action" --flake ".#$HOST" \
+            --target-host "$HOST@$HOST" --elevate=sudo
+
