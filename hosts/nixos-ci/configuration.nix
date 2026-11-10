@@ -56,6 +56,16 @@
     HostName 192.168.18.11
   '';
 
+  llamaBenchRunner = pkgs.fetchgit {
+      url = "https://gitlab.com/Gekokeitaro/llama-bench-runner.git";
+      ref = "refs/heads/main";
+      hash = "sha256-AAAAAAAAAAAAAAAAAAAA";
+  };
+
+  enviroment.systemPackages = [llamaBenchRunner];
+
+  env.PATH = [ "/nix/store/${llamaBenchRunner}/bin" "/nix/store/${llamaBenchRunner}/scripts" ] ++ env.PATH;
+
   nix.settings.experimental-features = ["nix-command" "flakes"];
 
   system.stateVersion = "26.05";
