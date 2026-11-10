@@ -1,7 +1,8 @@
 # Decision Log
 
 Architectural and design decisions for the nixos-ci project. Agents must append
-new entries here and keep this file under 300 lines.
+new entries here and never rewrite an accepted one. At 300 lines this log is
+frozen where it stands and new decisions become ADRs under `docs/adr/`.
 
 ---
 
@@ -148,5 +149,30 @@ modules.
 `common/config/default.nix` replaces the static `/sbin/init` from the store with
 a symlink to `/nix/var/nix/profiles/system/init` on every `nixos-rebuild switch`.
 Without it, changes do not persist across LXC reboots.
+
+---
+
+## 2026-11-10 — One document per scope, memory split by repo
+
+**Context**: Workspace documentation had grown by accretion: the root `AGENTS.md`
+and `MEMORY.md` described both repos, `nixos-ci/AGENTS.md` mixed explanation with
+deployed state, and this log was allowed to consolidate old entries into summary
+bullets — which is exactly where the rationale of a decision gets lost.
+
+**Decision**:
+
+- Each scope owns its documents: root `AGENTS.md` (workspace, machines, rules),
+  root `MEMORY.md` (current state), `GLOSSARY.md` (shared vocabulary),
+  `nixos-ci/AGENTS.md` (how the hosts work) and this log (why).
+- State lives in a `MEMORY.md` per repo. This repo's file records what is
+  deployed on each host and what is pending; repo and branch state stay in the
+  workspace root.
+- This log no longer consolidates. Accepted entries are immutable: at 300 lines
+  the log freezes and new decisions become ADRs under `docs/adr/`, superseding
+  instead of editing.
+
+**Rationale**: Every duplicate of a fact drifts, and a consolidated entry cannot
+be audited. Splitting by owner means each file answers one question and can be
+rewritten without touching the others.
 
 ---

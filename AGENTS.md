@@ -9,9 +9,14 @@ All architectural and design decisions are recorded in
 
 1. **Read** `DECISIONS.md` before making changes to understand prior context.
 2. **Append** a new entry whenever a decision is made (new pattern, dependency
-   change, architectural choice, deprecation, etc.).
-3. **Keep the file under 300 lines.** If approaching the limit, consolidate
-   older entries into summary bullets at the top.
+   change, architectural choice, deprecation, etc.): date, context, decision,
+   rationale.
+3. **Never consolidate or rewrite an accepted entry.** At 300 lines the log is
+   frozen where it stands and new decisions become ADRs under `docs/adr/`; a
+   later ADR supersedes an earlier one instead of editing it.
+
+What is deployed on each host right now lives in [MEMORY.md](./MEMORY.md), not
+here: this file explains how the repo works, that one records state.
 
 ## Project overview
 
@@ -27,6 +32,7 @@ local LLM inference). All hosts share a common base with NVF (Neovim).
 ├── flake.lock
 ├── AGENTS.md                  # This file. Agent context and best practices.
 ├── DECISIONS.md               # Decision log (see above).
+├── MEMORY.md                  # Deployed state per host (see above).
 ├── common/
 │   ├── default.nix            # Aggregates config/ and modules/ via imports.
 │   ├── config/
@@ -116,8 +122,6 @@ local LLM inference). All hosts share a common base with NVF (Neovim).
 4. Add the corresponding `nixosConfiguration` in `flake.nix`.
 5. Create `hosts/<name>/README.md` with build instructions.
 6. For host-specific modules, create `hosts/<name>/modules/<name>/default.nix` and import it from `configuration.nix`.
-
-### Adding a new shared module
 
 ### Adding a new shared module
 
