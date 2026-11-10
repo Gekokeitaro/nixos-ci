@@ -35,8 +35,8 @@
   
   llamaBenchRunner = pkgs.fetchgit {
     url = "https://gitlab.com/Gekokeitaro/llama-bench-runner.git";
-    ref = "refs/heads/main";
-    # Hash real: nix-prefetch-git https://gitlab.com/Gekokeitaro/llama-bench-runner.git refs/heads/main
+    rev = "4590a5f924b386630e3aa656c218bfcfe357195b";
+    # Hash real: nix-prefetch-git https://gitlab.com/Gekokeitaro/llama-bench-runner.git 4590a5f924b386630e3aa656c218bfcfe357195b
     hash = "sha256-m0LS1GFtk2sweNItVTin3t4kz/QJTbi2+PIKmv6HfhI=";
   };
 in {
