@@ -1,4 +1,9 @@
 {config, ...}: {
+  systemd.services.forgejo-runner-ci.path = with pkgs; [
+    nixos-rebuild
+    openssh
+  ];
+
   services.forgejo-runner.instances.ci = {
     enable = true;
     settings = {
