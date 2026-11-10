@@ -1,4 +1,8 @@
-{config, ...}: {
+{
+  pkgs,
+  config,
+  ...
+}: {
   systemd.services.forgejo-runner-ci.path = with pkgs; [
     nixos-rebuild
     openssh
