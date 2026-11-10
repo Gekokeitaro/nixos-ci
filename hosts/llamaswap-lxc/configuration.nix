@@ -35,9 +35,9 @@
 
   llamaBenchRunner = pkgs.fetchgit {
     url = "https://gitlab.com/Gekokeitaro/llama-bench-runner.git";
-    rev = "4590a5f924b386630e3aa656c218bfcfe357195b";
-    # Hash real: nix-prefetch-git https://gitlab.com/Gekokeitaro/llama-bench-runner.git 4590a5f924b386630e3aa656c218bfcfe357195b
-    hash = "sha256-m0LS1GFtk2sweNItVTin3t4kz/QJTbi2+PIKmv6HfhI=";
+    rev = "60f52ddeb5e5ca67edcfc0b7d7926a3cd5369f0a";
+    # Hash real: nix-prefetch-git https://gitlab.com/Gekokeitaro/llama-bench-runner.git 60f52ddeb5e5ca67edcfc0b7d7926a3cd5369f0a
+    hash = "sha256-wRapC5mjsPuUEC2qiaof6vpSTraNODNhh1RorQgarKQ=";
   };
 
   # Los scripts del repo, empaquetados en bin/ (store de solo lectura).
