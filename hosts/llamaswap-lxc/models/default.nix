@@ -14,4 +14,4 @@
     modelFiles;
 in
   # Poka-yoke: dos ficheros con el mismo id de modelo rompen la evaluación.
-  lib.foldl' lib.unionOfDisjoint {} modelSets
+  lib.foldl' lib.attrsets.unionOfDisjoint {} modelSets
