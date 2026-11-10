@@ -34,9 +34,10 @@
   '';
   
   llamaBenchRunner = pkgs.fetchgit {
-      url = "https://gitlab.com/Gekokeitaro/llama-bench-runner.git";
-      ref = "refs/heads/main";
-      hash = "sha256-AAAAAAAAAAAAAAAAAAAA";
+    url = "https://gitlab.com/Gekokeitaro/llama-bench-runner.git";
+    ref = "refs/heads/main";
+    # Hash real: nix-prefetch-git https://gitlab.com/Gekokeitaro/llama-bench-runner.git refs/heads/main
+    hash = "sha256-m0LS1GFtk2sweNItVTin3t4kz/QJTbi2+PIKmv6HfhI=";
   };
 in {
   imports = [
@@ -124,9 +125,8 @@ in {
   #];
   
 
-  enviroment.systemPackages = [llamaBenchRunner];
-
-  env.PATH = [ "/nix/store/${llamaBenchRunner}/bin" "/nix/store/${llamaBenchRunner}/scripts" ] ++ env.PATH;
+  environment.systemPackages = [llamaBenchRunner];
+  environment.path = [ llamaBenchRunner ];
 
   nix.settings.trusted-users = ["nixos-llamaswap-rocm" "nixos-llamaswap-vulkan"];
 
