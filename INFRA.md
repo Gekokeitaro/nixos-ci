@@ -6,7 +6,7 @@
 > pending work live in [MEMORY.md](./MEMORY.md); architecture and rules live in
 > [AGENTS.md](./AGENTS.md).
 
-Last verified: 2026-11-10.
+Last verified: 2026-11-11.
 
 ## Hosts
 
@@ -15,14 +15,14 @@ Last verified: 2026-11-10.
 | `nixos-ci` | Build host + Forgejo runners | `192.168.18.10` | none | `nixos-forgejo` (`192.168.18.31:3000`) |
 | `nixos-forgejo` | Forgejo + Actions | `192.168.18.31` | 3000 | none |
 | `nixos-llamaswap-rocm` | llama-swap + llama.cpp (ROCm) | `192.168.18.11` | 8080 | Proxmox GPU passthrough |
-| `nixos-llamaswap-vulkan` | llama-swap + llama.cpp (Vulkan) | — | 8080 | Proxmox GPU passthrough |
-| `nixos-omniroute` | OmniRoute AI gateway | `192.168.18.32` | 20128 | none |
+| `nixos-llamaswap-vulkan` | llama-swap + llama.cpp (Vulkan), inactive | `192.168.18.12` | 8080 | Proxmox GPU passthrough |
+| `nixos-omniroute` | OmniRoute AI gateway | `192.168.18.28` | 20128 | none |
 | `nixos-hindsight` | Hindsight data platform | `192.168.18.19` | 8888, 9999 | OmniRoute, PostgreSQL |
 | `nixos-n8n` | n8n automation | `192.168.18.22` | 5678, 5679 | PostgreSQL |
 | `nixos-n8n-runner` | n8n task runners | — | 20128 | `nixos-n8n` (`192.168.18.22:5678`) |
 | `nixos-postgresql` | PostgreSQL + pgvector | `192.168.18.91` | 5432 | none |
-| `nixos-pi-agent` | `pi` coding agent | — | none | OmniRoute (`192.168.18.32:20128`) |
-| `nixos-calibre-web-auto` | Calibre-Web-Automated + rclone | — | 8083 | pCloud, `/dev/fuse` |
+| `nixos-pi-agent` | `pi` coding agent | — | none | OmniRoute (`192.168.18.28:20128`) |
+| `nixos-calibre-web-auto` | Calibre-Web-Automated + rclone | `192.168.18.21` | 8083 | pCloud, `/dev/fuse` |
 | `pihole-lxc` | Pi-hole (legacy) | — | — | Not wired into `flake.nix` |
 
 `—` means the address or port is not recorded in the repository. Read it from

@@ -1,4 +1,6 @@
 # https://llama-dry-docs.site/view/docs
+# Battery: tg64 base 14.91, range 14.52-15.07 (all within 3% of base), peak VRAM 4459-7281 MiB.
+# Winner: -b 256 -ub 128 (tg64 15.02, 4651 MiB), which is what commonArgs already uses.
 {llama-server}:
 let 
   commonFilters = {
