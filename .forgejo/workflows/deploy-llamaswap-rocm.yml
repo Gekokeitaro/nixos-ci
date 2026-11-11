@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  HOST: nixos-llamaswap-rocm
+  HOST: 192.168.18.11
   DEPLOY_KEY: /run/credentials/forgejo-runner-ci.service/deploykey
 
 jobs:
@@ -25,6 +25,10 @@ jobs:
 
       - name: Comprobar conectividad SSH
         run: |
+          if ! getent hosts "$HOST" >/dev/null; then
+            echo "::error::No se resuelve el nombre $HOST (problema de DNS, no de SSH)."
+            exit 1
+          fi
           if ! timeout 5 bash -c "echo > /dev/tcp/$HOST/22"; then
             echo "::error::SSH no disponible en $HOST. Abortando despliegue."
             exit 1
@@ -47,5 +51,5 @@ jobs:
             action=test
           fi
 
-          nixos-rebuild "$action" --flake ".#$HOST" \
-            --target-host "$HOST@$HOST" --elevate=sudo
+          nixos-rebuild "$action" --flake ".#nixos-llamaswap-rocm" \
+            --target-host "$nixos-llamaswap-rocm@$HOST" --elevate=sudo
