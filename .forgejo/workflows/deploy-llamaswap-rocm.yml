@@ -48,4 +48,4 @@ jobs:
           fi
 
           nixos-rebuild "$action" --flake ".#nixos-llamaswap-rocm" \
-            --target-host "$nixos-llamaswap-rocm@$HOST" --elevate=sudo
+            --target-host "nixos-llamaswap-rocm@$HOST" --elevate=sudo
