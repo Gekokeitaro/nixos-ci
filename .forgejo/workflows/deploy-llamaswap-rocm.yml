@@ -23,6 +23,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Comprobar conectividad SSH
+        run: |
+          if ! timeout 5 bash -c "echo > /dev/tcp/$HOST/22"; then
+            echo "::error::SSH no disponible en $HOST. Abortando despliegue."
+            exit 1
+          fi
+
       - name: Desplegar
         run: |
           export HOME="$PWD/.ci-home"
