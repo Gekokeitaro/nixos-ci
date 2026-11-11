@@ -21,9 +21,31 @@ Last updated: 2026-11-11.
   `--xtc-threshold`; the server README says anything above `0.5` disables it. XTC is
   off while `--xtc-probability` stays at 0, so nothing depends on it today.
 
-Confirmed on the running server, 2026-11-11: `GET /props` of a loaded model
+**Confirmed on the running server, 2026-11-11:** `GET /props` of a loaded model
 reports the chain given by `--samplers`, not the request default that the server
 README lists for `/completion` (which omits `penalties` and `top_n_sigma`). So the
 flag in `commonArgs` is what applies.
 
 Per-model knob values are in each model's `.nix`, where they are applied.
+
+## Context
+
+- **`--ctx-size` starts at 32k** and is the most important parameter of the host:
+  the context is the product of the agentic use case, so you always start there, and
+  you can raise it only while total VRAM stays within the 16 GB ceiling (model plus
+  KV plus overhead).
+- **Samplers per family are the starting point, not a source of truth.** The values
+  for each family come from the model card on Hugging Face, and the first token of
+  the file name is the publisher's account (`DavidAU`, `Unsloth`, `JetBrains`, …),
+  which is the convention for building the `.nix`. Performance depends on the
+  hardware and the llama.cpp version, so the family values are a starting point to
+  tune, not a fixed truth.
+
+## Open: spec type
+
+- **Open: `ngram*` spec types are banned until their cost is investigated.** Two
+  model files use them: `Prism-ML-Ternary-Bonsai-2-9B` (`ngram-mod`) and
+  `Unsloth-gemma-4-E4B` (`ngram-mod,draft-mtp`). A draft n-gram nucleus adds an
+  index on top of the draft weights and VRAM, and the draft heads in use here
+  (`draft-mtp`) are cheap enough that the acceleration is not worth the cost in the
+  majority of cases.

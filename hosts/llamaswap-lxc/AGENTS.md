@@ -75,7 +75,9 @@ No sops-nix configuration. GPU/cache paths are not secret.
 
 No list in `configuration.nix` needs editing: `models/default.nix` picks the
 file up automatically. Do not reuse a model id — two files defining the same id
-abort evaluation.
+abort evaluation. The file name starts with the publisher's account
+(`DavidAU`, `Unsloth`, `JetBrains`…): that is where its model card lives, and
+the model card is where the family sampling values come from.
 
 ### Archiving a model
 
@@ -131,6 +133,13 @@ that chain does nothing (see `MEMORY.md`).
 `top_n_sigma` and `typ_p` sit in the default chain but do nothing at their
 defaults, and the two chains written here leave them out. `--temp 0` is greedy:
 deterministic and prone to loops. Otherwise `--seed` makes a run reproducible.
+
+### Where the values come from
+
+The per-family sampling values are the starting point, not a source of truth:
+they come from the model card on Hugging Face, and the first token of the file name
+is the publisher's account (`DavidAU`, `Unsloth`, `JetBrains`, …). Performance
+depends on the hardware and the llama.cpp version, so re-check before trusting.
 
 ### What each sampler does
 
@@ -204,3 +213,8 @@ best token, `probabilistic` samples the draft and has the target verify it by
 rejection sampling. Under `greedy` a proposal only survives if the target would
 have drawn that same token, so the more random the target's sampling — high
 temperature, XTC — the fewer proposals survive and the smaller the speedup.
+
+`ngram*` spec types are banned until their cost is investigated: a draft n-gram
+nucleus adds an index on top of the draft weights and VRAM, and the draft heads
+used here (`draft-mtp`) are cheap enough that the acceleration is not worth the
+cost in the majority of cases. Investigation is a pending task.
