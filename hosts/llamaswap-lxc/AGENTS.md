@@ -92,3 +92,115 @@ This script queries the GitHub API for the latest llama.cpp release, prefetches
 the source hash, forces the npm-deps hash mismatch to discover the new value,
 and updates `llamacppVersion`, `llamacppHash` and `llamacppNpmHash` in place.
 It requires a Nix host because it evaluates `pkg.npmDeps`.
+
+## Sampling and filters
+
+Sampling is set in two places, and they are not interchangeable:
+
+- **`commonArgs` in the model's `cmd`** — server flags (`--temp`, `--top-k`,
+  `--samplers`…): the default for every request that model serves.
+- **`filters.setParamsByID`** — request parameters for one variant
+  (`dry_multiplier`, `reasoning_budget`…), applied when the client id carries the
+  suffix.
+
+Nothing here can tune sampling by measuring speed: `llama-bench` has no sampler
+flags, so a battery sees t/s and VRAM only. Whether a sampling change is good is
+a question about output quality, judged outside this host.
+
+### The chain
+
+For each token the model scores its whole vocabulary, a chain of samplers
+transforms or filters those scores, and one token is drawn. The order is the
+chain, and it changes the result.
+
+`--samplers` lists the names separated by `;`; `--sampler-seq` spells the same
+list in single letters. They are two forms of one chain, not additions: the last
+one given wins.
+
+Default chain in llama.cpp 0.9.0 — `llama-server --help` is the source of truth,
+re-check it after a version bump (the server README quotes an older list for
+`/completion`; see `MEMORY.md`):
+
+    penalties;dry;top_n_sigma;top_k;typ_p;top_p;min_p;xtc;temperature
+
+Spark and Gemma 4 12B override it with
+`top_k;top_p;min_p;temperature;dry;typ_p;xtc`: no `penalties` stage, and
+temperature runs ahead of DRY. Both still pass `--repeat-penalty 1.1`, which in
+that chain does nothing (see `MEMORY.md`).
+
+`top_n_sigma` and `typ_p` sit in the default chain but do nothing at their
+defaults, and the two chains written here leave them out. `--temp 0` is greedy:
+deterministic and prone to loops. Otherwise `--seed` makes a run reproducible.
+
+### What each sampler does
+
+| Sampler | Flag | Effect | Cost |
+|---|---|---|---|
+| temperature | `--temp` | sharpens the scores below 1, flattens them above 1 | the global precision/variety knob |
+| top-k | `--top-k` | keeps the K best candidates; 0 disables | fixed, ignores how sure the model is |
+| top-p | `--top-p` | keeps the smallest set that adds up to probability p; 1.0 disables | adapts to confidence |
+| min-p | `--min-p` | drops anything below p × the best candidate; 0 disables | adapts, and holds up better than top-p at high temperature |
+| XTC | `--xtc-probability`, `--xtc-threshold` | with probability p removes the most likely candidates above the threshold (0.10 by default); off until p > 0 | creative writing |
+
+`--grammar` and `--json-schema` are not samplers: they forbid the tokens that
+would break the format. `--logit-bias` adds a fixed amount to named tokens.
+
+### Repetition
+
+The three penalties look at the last `--repeat-last-n` tokens (64 by default, 0
+disables them) and act on single tokens, never on sequences.
+
+- `--repeat-penalty` penalises the score of every token seen in the window.
+  Binary and per token: it cannot tell a harmful repeat from a legitimate one —
+  variable names, braces, quotes, JSON keys. 1.0 disables it.
+- `--presence-penalty` subtracts a fixed amount from every token that already
+  appeared, however often.
+- `--frequency-penalty` subtracts in proportion to how often it appeared.
+
+### DRY
+
+DRY penalises repeated *sequences*. If the next token would continue a sequence
+that already appeared, the penalty grows exponentially with the length of the
+repeat — each token past `--dry-allowed-length` (2 by default) multiplies it —
+and repeats shorter than that are free.
+
+- `--dry-multiplier` strength; 0 disables DRY.
+- `--dry-base` how fast the penalty grows; 1.75 by default.
+- `--dry-allowed-length` repeats up to this length are free.
+- `--dry-penalty-last-n` how far back it looks; 64 by default, 0 disables.
+
+`--dry-sequence-breaker` is a trap: passing it **replaces** the default breakers
+(newline, `:`, `"`, `*`) instead of adding to them, and `none` removes all of
+them. Those defaults are what keep dialogue formatting and JSON keys from being
+penalised.
+
+Unlike the repetition penalties, DRY lets isolated repeated tokens through — the
+ones code and JSON need — and reacts only when a stretch is being reproduced.
+
+### Reasoning budget
+
+A model that reasons writes a thinking block first. `reasoning_budget` caps it:
+−1 unrestricted (the default), 0 no reasoning, N a token limit. When it runs out
+the server forces the block closed and injects `reasoning_budget_message` before
+the end-of-thinking tag: *budget forcing* is the server acting, not the model
+deciding to stop.
+
+It is not `max_tokens`/`n_predict`: that caps the whole output, thinking included,
+and running out mid-thought truncates the answer. The budget caps only the
+thinking and leaves room to answer.
+
+`:instruct` turns reasoning off through the template (`chat_template_kwargs`),
+not through the budget.
+
+### Speculative decoding
+
+A draft model proposes the next few tokens and the target checks them, so the
+speedup depends on how many proposals survive. Here the draft is an MTP head
+(`--spec-type draft-mtp` plus `-md`), and `--spec-draft-n-max` (3 by default) is
+how many tokens it proposes per step.
+
+`--spec-draft-sampling` decides how the draft picks: `greedy` (default) takes its
+best token, `probabilistic` samples the draft and has the target verify it by
+rejection sampling. Under `greedy` a proposal only survives if the target would
+have drawn that same token, so the more random the target's sampling — high
+temperature, XTC — the fewer proposals survive and the smaller the speedup.
