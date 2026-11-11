@@ -25,10 +25,6 @@ jobs:
 
       - name: Comprobar conectividad SSH
         run: |
-          if ! getent hosts "$HOST" >/dev/null; then
-            echo "::error::No se resuelve el nombre $HOST (problema de DNS, no de SSH)."
-            exit 1
-          fi
           if ! timeout 5 bash -c "echo > /dev/tcp/$HOST/22"; then
             echo "::error::SSH no disponible en $HOST. Abortando despliegue."
             exit 1
