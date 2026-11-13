@@ -1,3 +1,9 @@
+# Battery 2026-11-12 (llama.cpp 0.9.0): tg64 base 11.10, guards 10.55-11.66, peak VRAM+GTT 5541-9809 MiB.
+# Winner: -b 256 -ub 128 -ctk f16 -ctv f16, the preset below. One run of the four
+# b/ub pairs: pp512/pp4096 169.64/164.38 at d0 and 135.01/134.04 at d16384, tg128
+# 11.56 and 10.60. -b 2048 -ub 512 loses 2.8-4.3% of pp in that same process and
+# gains nothing on tg.
+# KV quantisation costs 11-19% of tg at d16384 (q8_0/q4_0 9.49, f16/q8_0 8.58 vs f16/f16 10.60).
 {llama-server}: {
   "Unsloth Qwen3.5 9B UD Q4_K_XL" = {
     name = "Unsloth Qwen3.5 9B UD Q4_K_XL";
