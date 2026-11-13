@@ -41,11 +41,39 @@ Per-model knob values are in each model's `.nix`, where they are applied.
   hardware and the llama.cpp version, so the family values are a starting point to
   tune, not a fixed truth.
 
+## Memory budget
+
+Measured on `Unsloth-Qwen3.5-9B` at llama.cpp 0.9.0, one slot, 16k of context:
+
+| Setting | Cost |
+|---|---|
+| `--ctx-checkpoints` default 32 | ~1.4 GiB, plateauing after ~28 checkpoints |
+| `--ctx-checkpoints 4` | ~70 MiB |
+| `--ctx-checkpoints 0` | nothing |
+| `--cache-ram 0` vs default | ~100 MiB less at the same depth |
+
+A checkpoint costs about half a MiB per 1k of context, so a longer `--ctx-size`
+makes each one bigger and fills the same ~1.4 GiB ceiling sooner: at 16k the
+climb is ~51 MiB per request and plateaus at turn 28, at 32k it is ~103 MiB and
+plateaus at turn 14. The retained budget does not grow with the context; the
+number of checkpoints kept shrinks.
+
+Context checkpoints are the largest pure overhead found: they only save
+re-processing when the prompt cache misses, and the default keeps 32 per slot.
+The convention already in the model files, `--cache-ram 512 --ctx-checkpoints 4`,
+is the right base. `Unsloth-Qwen3.5-9B` is missing it and runs at the default;
+that is the one file to fix first.
+
+`--ctx-size` is not the knob to cut: it is what the agentic use case needs. Bound
+everything else first, then experiment upward while the process stays under the
+16 GiB soft limit (20 GiB of RAM is the hard wall and OOMs the container).
+
 ## Open: spec type
 
-- **Open: `ngram*` spec types are banned until their cost is investigated.** Two
-  model files use them: `Prism-ML-Ternary-Bonsai-2-9B` (`ngram-mod`) and
-  `Unsloth-gemma-4-E4B` (`ngram-mod,draft-mtp`). A draft n-gram nucleus adds an
-  index on top of the draft weights and VRAM, and the draft heads in use here
-  (`draft-mtp`) are cheap enough that the acceleration is not worth the cost in the
-  majority of cases.
+- `ngram-mod` costs +59 MiB loaded and +123 MiB generating, constant to 49k of
+  context: not a memory problem. The ban is lifted (see `AGENTS.md`); what is
+  still unmeasured is its speedup in an agentic session, which belongs to a
+  speculative-decoding benchmark.
+- Two model files use it: `Prism-ML-Ternary-Bonsai-2-9B` (`ngram-mod`) and
+  `Unsloth-gemma-4-E4B` (`ngram-mod,draft-mtp`). The combo pays the MTP stack
+  (~608 MiB) and is correct: on novel text ngram has no match and MTP drafts.

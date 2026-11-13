@@ -214,7 +214,15 @@ rejection sampling. Under `greedy` a proposal only survives if the target would
 have drawn that same token, so the more random the target's sampling — high
 temperature, XTC — the fewer proposals survive and the smaller the speedup.
 
-`ngram*` spec types are banned until their cost is investigated: a draft n-gram
-nucleus adds an index on top of the draft weights and VRAM, and the draft heads
-used here (`draft-mtp`) are cheap enough that the acceleration is not worth the
-cost in the majority of cases. Investigation is a pending task.
+`ngram*` spec types were banned until their cost was investigated. Measured on
+Qwen3.5-9B at llama.cpp 0.9.0: `ngram-mod` costs +59 MiB loaded and +123 MiB once
+it generates, constant from 4k to 49k of context, and scales at ~0.93 MiB per
+draft token of `--spec-ngram-mod-n-max`. That is not a memory problem, so the ban
+is lifted; acceptance and speed are a separate question for a spec-decoding
+benchmark.
+
+`ngram-mod` and `draft-mtp` are not alternatives. ngram only drafts where the
+context repeats something already seen, so on novel text it has nothing to offer
+and MTP drafts instead: an agentic session uses both, and a combo pays both
+stacks. A single prompt full of repeated code shows only ngram drafting, which is
+why the combo looks redundant there and is not.
