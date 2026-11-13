@@ -52,7 +52,7 @@ Measured on `Unsloth-Qwen3.5-9B` at llama.cpp 0.9.0, one slot, 16k of context:
 | `--ctx-checkpoints 0` | nothing |
 | `--cache-ram 0` vs default | ~100 MiB less at the same depth |
 
-A checkpoint costs about half a MiB per 1k of context, so a longer `--ctx-size`
+A checkpoint costs about 3 MiB per 1k of context, so a longer `--ctx-size`
 makes each one bigger and fills the same ~1.4 GiB ceiling sooner: at 16k the
 climb is ~51 MiB per request and plateaus at turn 28, at 32k it is ~103 MiB and
 plateaus at turn 14. The retained budget does not grow with the context; the
