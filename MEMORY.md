@@ -78,3 +78,7 @@ push con esta automatización, el pin sigue en `60f52dd`.
    pertenecen aquí o son una copia del workspace.
 5. Modularizar las convenciones de los ficheros de modelos de
    `hosts/llamaswap-lxc/models/`; falta acordar la forma más simple.
+6. Aplicar `nixos-ci` a mano: el servicio `forgejo-runner-ci` gana `nix` en su
+   `path` para que los pasos del workflow puedan usar `nix run`. El workflow ya
+   se apaña anteponiendo `/run/current-system/sw/bin`, pero eso es un parche
+   hasta el `nixos-rebuild switch` de este host.
