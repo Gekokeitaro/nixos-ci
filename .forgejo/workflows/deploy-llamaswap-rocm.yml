@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Comprobar conectividad SSH
+      - name: Comprobar vía SSH que el LXC está levantado
         run: |
           if ! timeout 5 bash -c "echo > /dev/tcp/$HOST/22"; then
             echo "::error::SSH no disponible en $HOST. Abortando despliegue."
