@@ -200,3 +200,11 @@ local LLM inference). All hosts share a common base with NVF (Neovim).
 - **All containers are unprivileged.** Never add configuration that requires
   privileged LXC features. GPU and device access must go through Proxmox's
   unprivileged device passthrough (`lxc.cgroup2.devices.allow`).
+
+## Commit messages
+
+Subjects follow `TAG - imperative subject`, with the tags already used by the
+history: `FEATURE`, `FIX`, `REFACTOR`, `DOCS`, `CHORE`. Only these five exist;
+`CI`, `UTILS` and `WIP` are retired.
+Never invent a tag and never omit it. Git-generated `Merge` or `Revert` subjects
+are exempt. A `.githooks/commit-msg` hook in the workspace root enforces this.

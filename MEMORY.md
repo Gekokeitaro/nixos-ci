@@ -6,7 +6,7 @@
 > `DECISIONS.md`. El estado de los repos del workspace vive en el `MEMORY.md` de
 > la raíz.
 
-Última actualización: 2026-11-10.
+Última actualización: 2026-11-14.
 
 ## Hosts
 
@@ -14,7 +14,7 @@
 |---|---|---|---|
 | `nixos-ci` | compila imágenes LXC y corre los runners de Forgejo | configuración del repo | despliegue automático de `nixos-llamaswap-rocm` activo desde `main` |
 | `llamaswap-lxc` | llama-swap + llama.cpp (ROCm) | llama.cpp `v0.9.0` (build 8642541) | sirviendo GGUF |
-| `nixos-pi-agent` | sesiones de `pi` contra OmniRoute | cambios en `FEATURE_pi-lxc` | pendiente de merge a `main` |
+| `nixos-pi-agent` | sesiones de `pi` contra OmniRoute | configuración en `main` | despliegue manual; `models.json` pendiente |
 
 `nixos-forgejo` aloja Forgejo con Actions activas y registro cerrado.
 `nixos-ci` corre dos runners: `ci` (`host:host`, despliegue) y
@@ -31,10 +31,8 @@ toma la más nueva.
 
 ## Batería `llama-bench`
 
-Estrenada el 2026-11-09 en `llamaswap-lxc` (AMD Radeon 680M, 13900 MiB, backend
-ROCm) con `gemma-4-E4B-it-qat-UD-Q4_K_XL.gguf`: `tg64` base 23.42 → 23.27 tras el
-primer paso, lejos del umbral de corte (16.39). GPU sana. Quedan los pasos
-restantes de la batería (procedimiento en el `AGENTS.md` de la raíz).
+Qwen3.5-9B y Spark medidas; el detalle vive en el `MEMORY.md` de la raíz y en
+`llama-bench-runner/MEMORY.md`. No hay mediciones de aceptación especulativa.
 
 ## Despliegue
 
@@ -53,16 +51,14 @@ restantes de la batería (procedimiento en el `AGENTS.md` de la raíz).
 
 ## Pendiente
 
-1. Mergear `FEATURE_pi-lxc` a `main`: incluye el cambio de `pi` a OmniRoute, la
-   lista de modelos y los `packages` de `settings.json`.
-2. Normalizar `hosts/nixos-pi-agent/config/models.json`: `baseUrl` tiene doble
+1. Normalizar `hosts/nixos-pi-agent/config/models.json`: `baseUrl` tiene doble
    barra (`...:20128//v1`), la API key está en claro y `defaultModel` no aparece
    en la lista de modelos.
-3. Contrastar el broker de n8n: el runner apunta al puerto `5678`, pero también
+2. Contrastar el broker de n8n: el runner apunta al puerto `5678`, pero también
    se publica el `5679`.
-4. Decidir qué hacer con `hosts/pihole-lxc/`: existe pero no tiene salida en
+3. Decidir qué hacer con `hosts/pihole-lxc/`: existe pero no tiene salida en
    `flake.nix` ni documentación propia.
-5. Decidir si `.agents/` y `skills-lock.json` (sin seguimiento en este repo)
+4. Decidir si `.agents/` y `skills-lock.json` (sin seguimiento en este repo)
    pertenecen aquí o son una copia del workspace.
-6. Modularizar las convenciones de los ficheros de modelos de
+5. Modularizar las convenciones de los ficheros de modelos de
    `hosts/llamaswap-lxc/models/`; falta acordar la forma más simple.
