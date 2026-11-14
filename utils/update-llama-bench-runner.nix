@@ -1,7 +1,7 @@
 {pkgs}:
 pkgs.writeShellApplication {
   name = "update-llama-bench-runner";
-  runtimeInputs = with pkgs; [coreutils git gnused jq nix-prefetch-git];
+  runtimeInputs = with pkgs; [coreutils gawk git gnused jq nix-prefetch-git];
   text = ''
     REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
     TARGET_FILE="$REPO_ROOT/hosts/llamaswap-lxc/configuration.nix"
