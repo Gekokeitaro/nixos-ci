@@ -1,3 +1,8 @@
+# Spec bench 2026-11-14 (llama.cpp 0.9.0, 192 tok, 3 reps x prose/code/json, seed 42):
+# --spec-draft-n-max 2 wins: 18.15 t/s vs 11.36 without MTP at temp 0 (+60 %), and
+# 13.91 vs 11.39 at the deployed temp 1 (+22 %), where prose is neutral and code
+# reaches 1.63x. n-max 3 is the old default: it ties at temp 0 and loses 14 % of
+# prose at temp 1. n-max 8 ties globally at temp 0 only by trading 10 % of prose.
 # Battery 2026-11-12 (llama.cpp 0.9.0): tg64 base 11.10, guards 10.55-11.66, peak VRAM+GTT 5541-9809 MiB.
 # Winner: -b 256 -ub 128 -ctk f16 -ctv f16, the preset below. One run of the four
 # b/ub pairs: pp512/pp4096 169.64/164.38 at d0 and 135.01/134.04 at d16384, tg128
@@ -10,7 +15,7 @@
     cmd = ''
       ${llama-server} --port ''${PORT}
       --model /models/Qwen3.5-9B-UD-Q4_K_XL.gguf
-      --spec-type draft-mtp
+      --spec-type draft-mtp --spec-draft-n-max 2
       -ngl 99 -fa 1
       -b 256 -ub 128 -ctk f16 -ctv f16
       --dry-multiplier 0.4 --dry-base 1.75 --dry-allowed-length 3 --dry-penalty-last-n 2048
