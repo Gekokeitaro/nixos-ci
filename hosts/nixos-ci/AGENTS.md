@@ -95,3 +95,7 @@ sops-nix with `defaultSopsFile = ./secrets.yaml` and
 Add a new `services.forgejo-runner.instances.<name>` entry, set its connection
 UUID and token, and choose labels that match the workflows. Keep the `ci`
 instance reserved for jobs that need the host and the deploy credential.
+
+## Skills
+
+Load the `caveman` skill at the start of every session (`skill` tool, id `caveman`).

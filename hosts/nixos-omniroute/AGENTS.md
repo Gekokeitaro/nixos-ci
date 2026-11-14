@@ -49,3 +49,7 @@ Nix after first boot if needed.
 - No inline Nix logic; OCI config is the only NixOS surface.
 - To change PUID/PGID: update the OCI env; the volume dir must match the
   new UID/GID owner (adjust the `tmpfiles` rule accordingly).
+
+## Skills
+
+Load the `caveman` skill at the start of every session (`skill` tool, id `caveman`).

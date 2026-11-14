@@ -32,6 +32,7 @@
     options = "--delete-older-than 3d";
   };
 
+  # Permite que las config desplegadas persistan entre reinicios
   system.activationScripts.proxmoxLxcInit = ''
     ln -sfn /nix/var/nix/profiles/system/init /sbin/init
   '';

@@ -57,3 +57,7 @@ sops-nix with `age.keyFile = "/home/nixos-postgresql/.config/sops/age/keys.txt"`
 4. If passwords are managed by sops, add a new secret and an `ALTER ROLE`
    statement to `one-shot-config`.
 5. Add `networking.firewall.allowedTCPPorts` if the new port differs.
+
+## Skills
+
+Load the `caveman` skill at the start of every session (`skill` tool, id `caveman`).

@@ -36,7 +36,8 @@
   llamaBenchRunner = pkgs.fetchgit {
     url = "https://gitlab.com/Gekokeitaro/llama-bench-runner.git";
     rev = "60f52ddeb5e5ca67edcfc0b7d7926a3cd5369f0a";
-    # Hash real: nix-prefetch-git https://gitlab.com/Gekokeitaro/llama-bench-runner.git 60f52ddeb5e5ca67edcfc0b7d7926a3cd5369f0a
+    # Sin submódulos, que es lo que asume update-llama-bench-runner al prefetchear.
+    fetchSubmodules = false;
     hash = "sha256-wRapC5mjsPuUEC2qiaof6vpSTraNODNhh1RorQgarKQ=";
   };
 

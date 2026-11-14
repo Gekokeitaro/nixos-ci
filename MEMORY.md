@@ -6,7 +6,7 @@
 > `DECISIONS.md`. El estado de los repos del workspace vive en el `MEMORY.md` de
 > la raíz.
 
-Última actualización: 2026-11-10.
+Última actualización: 2026-11-14.
 
 ## Hosts
 
@@ -14,7 +14,7 @@
 |---|---|---|---|
 | `nixos-ci` | compila imágenes LXC y corre los runners de Forgejo | configuración del repo | despliegue automático de `nixos-llamaswap-rocm` activo desde `main` |
 | `llamaswap-lxc` | llama-swap + llama.cpp (ROCm) | llama.cpp `v0.9.0` (build 8642541) | sirviendo GGUF |
-| `nixos-pi-agent` | sesiones de `pi` contra OmniRoute | cambios en `FEATURE_pi-lxc` | pendiente de merge a `main` |
+| `nixos-pi-agent` | sesiones de `pi` contra OmniRoute | configuración en `main` | despliegue manual; `models.json` pendiente |
 
 `nixos-forgejo` aloja Forgejo con Actions activas y registro cerrado.
 `nixos-ci` corre dos runners: `ci` (`host:host`, despliegue) y
@@ -31,10 +31,24 @@ toma la más nueva.
 
 ## Batería `llama-bench`
 
-Estrenada el 2026-11-09 en `llamaswap-lxc` (AMD Radeon 680M, 13900 MiB, backend
-ROCm) con `gemma-4-E4B-it-qat-UD-Q4_K_XL.gguf`: `tg64` base 23.42 → 23.27 tras el
-primer paso, lejos del umbral de corte (16.39). GPU sana. Quedan los pasos
-restantes de la batería (procedimiento en el `AGENTS.md` de la raíz).
+Qwen3.5-9B y Spark medidas; el detalle vive en el `MEMORY.md` de la raíz y en
+`llama-bench-runner/MEMORY.md`.
+
+`spec-bench.sh` barrió `--spec-draft-n-max` 2/3/4/6/8 en
+`Qwen3.5-9B-UD-Q4_K_XL.gguf` con llama.cpp `v0.9.0`: gana `2`, con 18.15 t/s
+frente a 11.36 sin MTP a temp 0 (+60 %) y 13.91 frente a 11.39 a temp 1 (+22 %,
+prosa neutra y code 1.63x). El `3` desplegado perdía un 14 % de prosa a temp 1. El
+detalle vive en `llama-bench-runner/MEMORY.md`.
+
+El modelo sirve `--spec-draft-n-max 2` desde el despliegue del 2026-11-14:
+comprobado en la config renderizada de llama-swap, que lleva
+`--spec-type draft-mtp --spec-draft-n-max 2` para `Qwen3.5-9B-UD-Q4_K_XL.gguf`.
+
+El pin de los scripts (`llamaBenchRunner`) deja de subirse a mano: el workflow de
+despliegue ejecuta `nix run .#update-llama-bench-runner` antes de compilar y
+adopta el `main` publicado del repo del runner. El rev usado queda en el log del
+job, y lo desplegado puede ir por delante del pin commiteado. Hasta el primer
+push con esta automatización, el pin sigue en `60f52dd`.
 
 ## Despliegue
 
@@ -48,21 +62,23 @@ restantes de la batería (procedimiento en el `AGENTS.md` de la raíz).
   los pulls manuales se hacen desde el host de desarrollo o los hace el usuario.
   El runner de Forgejo hace su propio checkout, así que el despliegue no depende
   de ese pull.
-- El resto de hosts se aplica a mano. `FEATURE_pi-lxc` no lo despliega el
-  workflow: solo se dispara desde `main` y `llamaswap-rocm`.
+- El resto de hosts se aplica a mano: el workflow solo se dispara desde `main`
+  y `llamaswap-rocm`, así que un cambio en otro host no llega solo.
 
 ## Pendiente
 
-1. Mergear `FEATURE_pi-lxc` a `main`: incluye el cambio de `pi` a OmniRoute, la
-   lista de modelos y los `packages` de `settings.json`.
-2. Normalizar `hosts/nixos-pi-agent/config/models.json`: `baseUrl` tiene doble
+1. Normalizar `hosts/nixos-pi-agent/config/models.json`: `baseUrl` tiene doble
    barra (`...:20128//v1`), la API key está en claro y `defaultModel` no aparece
    en la lista de modelos.
-3. Contrastar el broker de n8n: el runner apunta al puerto `5678`, pero también
+2. Contrastar el broker de n8n: el runner apunta al puerto `5678`, pero también
    se publica el `5679`.
-4. Decidir qué hacer con `hosts/pihole-lxc/`: existe pero no tiene salida en
+3. Decidir qué hacer con `hosts/pihole-lxc/`: existe pero no tiene salida en
    `flake.nix` ni documentación propia.
-5. Decidir si `.agents/` y `skills-lock.json` (sin seguimiento en este repo)
+4. Decidir si `.agents/` y `skills-lock.json` (sin seguimiento en este repo)
    pertenecen aquí o son una copia del workspace.
-6. Modularizar las convenciones de los ficheros de modelos de
+5. Modularizar las convenciones de los ficheros de modelos de
    `hosts/llamaswap-lxc/models/`; falta acordar la forma más simple.
+6. Aplicar `nixos-ci` a mano: el servicio `forgejo-runner-ci` gana `nix` en su
+   `path` para que los pasos del workflow puedan usar `nix run`. El workflow ya
+   se apaña anteponiendo `/run/current-system/sw/bin`, pero eso es un parche
+   hasta el `nixos-rebuild switch` de este host.

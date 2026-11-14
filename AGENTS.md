@@ -89,7 +89,8 @@ local LLM inference). All hosts share a common base with NVF (Neovim).
 │   ├── nixos-hindsight/       # Hindsight data platform (OCI + LLM)
 │   └── pihole-lxc/            # Legacy Pi-hole config; not wired into flake.nix.
 └── utils/
-    └── update-llama-cpp.nix   # Script to update llama-cpp version/hash.
+    ├── update-llama-cpp.nix   # Script to update llama-cpp version/hash.
+    └── update-llama-bench-runner.nix  # Script to bump the benchmark scripts pin.
 ```
 
 ## CI/CD and deployment
@@ -99,9 +100,14 @@ local LLM inference). All hosts share a common base with NVF (Neovim).
   `docker`, used for containerized jobs).
 - `.forgejo/workflows/deploy-llamaswap-rocm.yml` deploys the ROCm host:
   - push to `main` → `nixos-rebuild switch` against `nixos-llamaswap-rocm`;
-  - push to `llamaswap-rocm` → `nixos-rebuild test` (build without activating).
+  - push to `llamaswap-rocm` → `nixos-rebuild test` (activates in the running
+    system without making it the boot default; a reboot reverts it).
 - The deploy key is the sops secret `deploy-key`; systemd exposes it to
   `forgejo-runner-ci` as a credential.
+- Before building, the workflow runs `nix run .#update-llama-bench-runner`, which
+  points `llamaBenchRunner` at the runner repository's published `main` (see
+  `DECISIONS.md`). That change is not committed: the deployed pin can be ahead of
+  the committed one and the job log is its record.
 - Only `nixos-llamaswap-rocm` is automated. The rest of the hosts are applied
   manually. A push to `main` is therefore a production action: do not push
   configuration that is not ready to deploy.
@@ -200,3 +206,15 @@ local LLM inference). All hosts share a common base with NVF (Neovim).
 - **All containers are unprivileged.** Never add configuration that requires
   privileged LXC features. GPU and device access must go through Proxmox's
   unprivileged device passthrough (`lxc.cgroup2.devices.allow`).
+
+## Commit messages
+
+Subjects follow `TAG - imperative subject`, with the tags already used by the
+history: `FEATURE`, `FIX`, `REFACTOR`, `DOCS`, `CHORE`. Only these five exist;
+`CI`, `UTILS` and `WIP` are retired.
+Never invent a tag and never omit it. Git-generated `Merge` or `Revert` subjects
+are exempt. A `.githooks/commit-msg` hook in the workspace root enforces this.
+
+## Skills
+
+Load the `caveman` skill at the start of every session (`skill` tool, id `caveman`).

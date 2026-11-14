@@ -59,3 +59,7 @@ sops-nix with `age.keyFile = "/home/nixos-hindsight/.config/sops/age/keys.txt"`:
 - To add extra env vars (non-secret): add to the `environment` attrset;
   for secrets: add to `hindsight-env.env` (sops format `dotenv`) and
   ensure the key is added to `environmentFiles`.
+
+## Skills
+
+Load the `caveman` skill at the start of every session (`skill` tool, id `caveman`).

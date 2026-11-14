@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  HOST: nixos-llamaswap-rocm
+  HOST: 192.168.18.11
   DEPLOY_KEY: /run/credentials/forgejo-runner-ci.service/deploykey
 
 jobs:
@@ -22,6 +22,26 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Comprobar vía SSH que el LXC está levantado
+        run: |
+          if ! timeout 5 bash -c "echo > /dev/tcp/$HOST/22"; then
+            echo "::error::SSH no disponible en $HOST. Abortando despliegue."
+            exit 1
+          fi
+
+      # El pin de llamaBenchRunner se quedaba atrás cada vez que el repo del runner
+      # ganaba commits. Se actualiza aquí, antes de compilar: el rev nuevo queda en
+      # el log del job, porque este cambio no se commitea.
+      - name: Actualizar el pin de llama-bench-runner
+        run: |
+          export HOME="$PWD/.ci-home"
+          mkdir -p "$HOME"
+          # El servicio del runner fija su PATH en systemd y `nix` sólo aparece ahí
+          # a partir del próximo `nixos-rebuild` de este host; el perfil del sistema
+          # lo tiene ya, así que se antepone. Sobra en cuanto el host esté aplicado.
+          export PATH="/run/current-system/sw/bin:$PATH"
+          nix run .#update-llama-bench-runner
 
       - name: Desplegar
         run: |
@@ -40,5 +60,5 @@ jobs:
             action=test
           fi
 
-          nixos-rebuild "$action" --flake ".#$HOST" \
-            --target-host "$HOST@$HOST" --elevate=sudo
+          nixos-rebuild "$action" --flake ".#nixos-llamaswap-rocm" \
+            --target-host "nixos-llamaswap-rocm@$HOST" --elevate=sudo
