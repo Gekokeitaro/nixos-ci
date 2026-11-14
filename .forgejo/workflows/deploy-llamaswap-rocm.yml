@@ -30,6 +30,15 @@ jobs:
             exit 1
           fi
 
+      # El pin de llamaBenchRunner se quedaba atrás cada vez que el repo del runner
+      # ganaba commits. Se actualiza aquí, antes de compilar: el rev nuevo queda en
+      # el log del job, porque este cambio no se commitea.
+      - name: Actualizar el pin de llama-bench-runner
+        run: |
+          export HOME="$PWD/.ci-home"
+          mkdir -p "$HOME"
+          nix run .#update-llama-bench-runner
+
       - name: Desplegar
         run: |
           export HOME="$PWD/.ci-home"

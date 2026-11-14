@@ -199,3 +199,35 @@ while keeping the blast radius to a single host. A separate `host:host` runner
 keeps privileged deployment jobs out of the containerized `docker` runner, and
 the sops-backed credential avoids putting a private key in the repository or
 the workflow file.
+
+---
+
+## 2026-11-14 — The runner pin updates itself before each ROCm deploy
+
+**Context**: `llamaBenchRunner` (`pkgs.fetchgit`) pins the benchmark scripts, so
+every commit in `llama-bench-runner` needed a manual `rev`/`hash` bump in
+`hosts/llamaswap-lxc/configuration.nix` before it could reach the host. The bump
+is mechanical — resolve the remote HEAD, prefetch the NAR hash — and was the step
+most often forgotten, leaving the host on stale scripts.
+
+**Decision**: `nix run .#update-llama-bench-runner`
+(`utils/update-llama-bench-runner.nix`, modelled on `update-llama-cpp`) reads
+`refs/heads/main` of the runner repository, prefetches the hash with
+`nix-prefetch-git` and rewrites the pin. The ROCm deploy workflow runs it after
+the SSH check and before `nixos-rebuild`, so a push to `nixos-ci` also picks up
+whatever the runner has published.
+
+- The change is not committed: the deployed pin can be ahead of the one in the
+  repository, and the job log (old rev, new rev) is its only record.
+- A network failure while resolving the remote is not fatal: the committed pin is
+  valid and reproducible, so the deploy continues with it and says so.
+- A failure while prefetching a *new* rev is fatal and leaves the file untouched.
+- `fetchSubmodules = false` on the pin makes the committed hash and the prefetched
+  one comparable without arguing about submodules.
+
+**Rationale**: The scripts and the host configuration live in different
+repositories; automating the bump keeps them in step without giving the CI job
+push rights into `nixos-ci`, which would need a deploy token and would let a build
+rewrite history. The price is that "what was deployed" cannot be read from the
+repository alone; accepted because the rev is printed in the log and setting the
+pin back is one `nix run` away.
