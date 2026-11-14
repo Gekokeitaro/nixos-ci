@@ -46,8 +46,8 @@ Qwen3.5-9B y Spark medidas; el detalle vive en el `MEMORY.md` de la raíz y en
   los pulls manuales se hacen desde el host de desarrollo o los hace el usuario.
   El runner de Forgejo hace su propio checkout, así que el despliegue no depende
   de ese pull.
-- El resto de hosts se aplica a mano. `FEATURE_pi-lxc` no lo despliega el
-  workflow: solo se dispara desde `main` y `llamaswap-rocm`.
+- El resto de hosts se aplica a mano: el workflow solo se dispara desde `main`
+  y `llamaswap-rocm`, así que un cambio en otro host no llega solo.
 
 ## Pendiente
 
