@@ -40,9 +40,9 @@ frente a 11.36 sin MTP a temp 0 (+60 %) y 13.91 frente a 11.39 a temp 1 (+22 %,
 prosa neutra y code 1.63x). El `3` desplegado perdía un 14 % de prosa a temp 1. El
 detalle vive en `llama-bench-runner/MEMORY.md`.
 
-El modelo ya lleva `--spec-draft-n-max 2` en su `.nix` (commit `a453708`), pero el
-despliegue que lo llevaba falló antes de compilar (el paso del pin no encontró
-`nix`), así que lo servido sigue siendo el default `3` hasta que pase un job.
+El modelo sirve `--spec-draft-n-max 2` desde el despliegue del 2026-11-14 10:57
+UTC: comprobado en la config renderizada de llama-swap, que lleva
+`--spec-type draft-mtp --spec-draft-n-max 2` para `Qwen3.5-9B-UD-Q4_K_XL.gguf`.
 
 El pin de los scripts (`llamaBenchRunner`) deja de subirse a mano: el workflow de
 despliegue ejecuta `nix run .#update-llama-bench-runner` antes de compilar y
