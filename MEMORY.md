@@ -32,7 +32,17 @@ toma la más nueva.
 ## Batería `llama-bench`
 
 Qwen3.5-9B y Spark medidas; el detalle vive en el `MEMORY.md` de la raíz y en
-`llama-bench-runner/MEMORY.md`. No hay mediciones de aceptación especulativa.
+`llama-bench-runner/MEMORY.md`.
+
+`spec-bench.sh` barrió `--spec-draft-n-max` 2/3/4/6/8 en
+`Qwen3.5-9B-UD-Q4_K_XL.gguf` con llama.cpp `v0.9.0`: gana `2`, con 18.15 t/s
+frente a 11.36 sin MTP a temp 0 (+60 %) y 13.91 frente a 11.39 a temp 1 (+22 %,
+prosa neutra y code 1.63x). El `3` desplegado perdía un 14 % de prosa a temp 1. El
+detalle vive en `llama-bench-runner/MEMORY.md`.
+
+El modelo ya lleva `--spec-draft-n-max 2` en su `.nix` (commit `a453708`), pero
+está pendiente de push: lo servido sigue siendo el default `3` hasta que ese
+commit se publique.
 
 ## Despliegue
 
