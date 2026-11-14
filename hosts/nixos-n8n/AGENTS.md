@@ -54,3 +54,7 @@ sops-nix with `defaultSopsFile = ./secrets.yaml`:
 - The broker port in `N8N_RUNNERS_TASK_BROKER_URI` on the runner must match the
   port n8n exposes for the broker (`5678` in the current config; `5679` is also
   published).
+
+## Skills
+
+Load the `caveman` skill at the start of every session (`skill` tool, id `caveman`).

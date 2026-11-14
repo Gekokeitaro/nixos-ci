@@ -18,7 +18,9 @@ flake outputs: `nixos-llamaswap-vulkan` and `nixos-llamaswap-rocm`.
 
 - `nixos-llamaswap-rocm` is deployed automatically from `main` by the Forgejo
   workflow on `nixos-ci`. Pushing to `main` runs `nixos-rebuild switch`.
-- The `llamaswap-rocm` branch only runs `nixos-rebuild test` (build, no switch).
+- The `llamaswap-rocm` branch runs `nixos-rebuild test`: it activates the
+  configuration in the running system without making it the boot default, so a
+  reboot reverts it.
 - `nixos-llamaswap-vulkan` is applied manually.
 
 ## Dependencies
@@ -72,6 +74,10 @@ No sops-nix configuration. GPU/cache paths are not secret.
    `{llama-server}: { "model-name" = { … }; }`.
 2. `git add` the file: flakes only see files tracked by Git.
 3. Ensure the GGUF exists under `/models/` (external Proxmox bind mount).
+4. A speculative preset is a second attribute in the same file (`"… MTP"`),
+   sharing `commonArgs` and `commonFilters`. `--spec-*` are server flags and
+   cannot travel through `filters.setParamsByID`; copy the shape of
+   `Unsloth-gemma-4-12B-it-qat-UD-Q4_K_XL.nix`.
 
 No list in `configuration.nix` needs editing: `models/default.nix` picks the
 file up automatically. Do not reuse a model id — two files defining the same id
@@ -218,7 +224,9 @@ not through the budget.
 A draft model proposes the next few tokens and the target checks them, so the
 speedup depends on how many proposals survive. Here the draft is an MTP head
 (`--spec-type draft-mtp` plus `-md`), and `--spec-draft-n-max` (3 by default) is
-how many tokens it proposes per step.
+how many tokens it proposes per step. `--spec-draft-n-min` (0 by default) is the
+minimum number of draft tokens used; `--spec-draft-p-min` and
+`--spec-draft-p-split` set how many proposals survive.
 
 `--spec-draft-sampling` decides how the draft picks: `greedy` (default) takes its
 best token, `probabilistic` samples the draft and has the target verify it by
@@ -238,3 +246,7 @@ context repeats something already seen, so on novel text it has nothing to offer
 and MTP drafts instead: an agentic session uses both, and a combo pays both
 stacks. A single prompt full of repeated code shows only ngram drafting, which is
 why the combo looks redundant there and is not.
+
+## Skills
+
+Load the `caveman` skill at the start of every session (`skill` tool, id `caveman`).

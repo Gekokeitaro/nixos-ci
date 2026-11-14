@@ -50,3 +50,7 @@ sops-nix with `age.keyFile = "/home/nixos-n8n-runner/.config/sops/age/keys.txt"`
   in the OCI env. `"0"` keeps runners alive indefinitely.
 - To rotate the auth token: update `./secrets/auth-env.yaml` with sops and
   `hosts/nixos-n8n/secrets.yaml` on the n8n host, then re-apply both.
+
+## Skills
+
+Load the `caveman` skill at the start of every session (`skill` tool, id `caveman`).

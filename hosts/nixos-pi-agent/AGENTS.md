@@ -91,3 +91,7 @@ boot.
 
 Add them to the `packages` array in `config/settings.json`. The module sets
 `NPM_CONFIG_PREFIX` so `pi` installs them under `~/.pi/agent/npm/`.
+
+## Skills
+
+Load the `caveman` skill at the start of every session (`skill` tool, id `caveman`).

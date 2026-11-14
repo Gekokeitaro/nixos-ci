@@ -100,7 +100,8 @@ local LLM inference). All hosts share a common base with NVF (Neovim).
   `docker`, used for containerized jobs).
 - `.forgejo/workflows/deploy-llamaswap-rocm.yml` deploys the ROCm host:
   - push to `main` → `nixos-rebuild switch` against `nixos-llamaswap-rocm`;
-  - push to `llamaswap-rocm` → `nixos-rebuild test` (build without activating).
+  - push to `llamaswap-rocm` → `nixos-rebuild test` (activates in the running
+    system without making it the boot default; a reboot reverts it).
 - The deploy key is the sops secret `deploy-key`; systemd exposes it to
   `forgejo-runner-ci` as a credential.
 - Before building, the workflow runs `nix run .#update-llama-bench-runner`, which
@@ -213,3 +214,7 @@ history: `FEATURE`, `FIX`, `REFACTOR`, `DOCS`, `CHORE`. Only these five exist;
 `CI`, `UTILS` and `WIP` are retired.
 Never invent a tag and never omit it. Git-generated `Merge` or `Revert` subjects
 are exempt. A `.githooks/commit-msg` hook in the workspace root enforces this.
+
+## Skills
+
+Load the `caveman` skill at the start of every session (`skill` tool, id `caveman`).

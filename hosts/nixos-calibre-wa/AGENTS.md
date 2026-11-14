@@ -58,3 +58,7 @@ sops-nix with `age.keyFile = "/home/nixos-calibre-web-auto/.config/sops/age/keys
   `ExecStart` mountpoint consistently.
 - `systemd.services.rclone-pcloud` restarts on failure (`Restart=on-failure`,
   `RestartSec=5s`) — network drops are handled automatically.
+
+## Skills
+
+Load the `caveman` skill at the start of every session (`skill` tool, id `caveman`).

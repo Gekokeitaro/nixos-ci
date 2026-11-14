@@ -72,3 +72,7 @@ forgejo-admin admin user create --username <name> --admin --email <email> --rand
 Configure it on the runner host (see `hosts/nixos-ci`), then confirm it appears
 under **Actions → Runners**. Do not enable Actions per-repository manually if
 the global switch is already on.
+
+## Skills
+
+Load the `caveman` skill at the start of every session (`skill` tool, id `caveman`).
