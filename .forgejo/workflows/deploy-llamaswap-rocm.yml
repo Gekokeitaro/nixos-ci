@@ -37,6 +37,10 @@ jobs:
         run: |
           export HOME="$PWD/.ci-home"
           mkdir -p "$HOME"
+          # El servicio del runner fija su PATH en systemd y `nix` sólo aparece ahí
+          # a partir del próximo `nixos-rebuild` de este host; el perfil del sistema
+          # lo tiene ya, así que se antepone. Sobra en cuanto el host esté aplicado.
+          export PATH="/run/current-system/sw/bin:$PATH"
           nix run .#update-llama-bench-runner
 
       - name: Desplegar
