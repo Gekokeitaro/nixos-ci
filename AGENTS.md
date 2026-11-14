@@ -89,7 +89,8 @@ local LLM inference). All hosts share a common base with NVF (Neovim).
 │   ├── nixos-hindsight/       # Hindsight data platform (OCI + LLM)
 │   └── pihole-lxc/            # Legacy Pi-hole config; not wired into flake.nix.
 └── utils/
-    └── update-llama-cpp.nix   # Script to update llama-cpp version/hash.
+    ├── update-llama-cpp.nix   # Script to update llama-cpp version/hash.
+    └── update-llama-bench-runner.nix  # Script to bump the benchmark scripts pin.
 ```
 
 ## CI/CD and deployment
@@ -102,6 +103,10 @@ local LLM inference). All hosts share a common base with NVF (Neovim).
   - push to `llamaswap-rocm` → `nixos-rebuild test` (build without activating).
 - The deploy key is the sops secret `deploy-key`; systemd exposes it to
   `forgejo-runner-ci` as a credential.
+- Before building, the workflow runs `nix run .#update-llama-bench-runner`, which
+  points `llamaBenchRunner` at the runner repository's published `main` (see
+  `DECISIONS.md`). That change is not committed: the deployed pin can be ahead of
+  the committed one and the job log is its record.
 - Only `nixos-llamaswap-rocm` is automated. The rest of the hosts are applied
   manually. A push to `main` is therefore a production action: do not push
   configuration that is not ready to deploy.

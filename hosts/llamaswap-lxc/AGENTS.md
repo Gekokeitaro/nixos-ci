@@ -95,6 +95,18 @@ the source hash, forces the npm-deps hash mismatch to discover the new value,
 and updates `llamacppVersion`, `llamacppHash` and `llamacppNpmHash` in place.
 It requires a Nix host because it evaluates `pkg.npmDeps`.
 
+### Updating the benchmark scripts
+
+```bash
+nix run .#update-llama-bench-runner
+```
+
+It reads `refs/heads/main` of `llama-bench-runner`, prefetches the hash and
+rewrites `llamaBenchRunner`'s `rev` and `hash` in `configuration.nix`. The deploy
+workflow runs it on every push, so a manual bump is only needed when working
+outside CI. It is idempotent: when the pin already matches the remote it exits
+without prefetching, and a network failure leaves the committed pin in place.
+
 ## Sampling and filters
 
 Sampling is set in two places, and they are not interchangeable:

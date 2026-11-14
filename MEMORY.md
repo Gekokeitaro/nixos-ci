@@ -44,6 +44,12 @@ El modelo ya lleva `--spec-draft-n-max 2` en su `.nix` (commit `a453708`), pero
 está pendiente de push: lo servido sigue siendo el default `3` hasta que ese
 commit se publique.
 
+El pin de los scripts (`llamaBenchRunner`) deja de subirse a mano: el workflow de
+despliegue ejecuta `nix run .#update-llama-bench-runner` antes de compilar y
+adopta el `main` publicado del repo del runner. El rev usado queda en el log del
+job, y lo desplegado puede ir por delante del pin commiteado. Hasta el primer
+push con esta automatización, el pin sigue en `60f52dd`.
+
 ## Despliegue
 
 - El workflow `.forgejo/workflows/deploy-llamaswap-rocm.yml` corre en el runner
