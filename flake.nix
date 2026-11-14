@@ -23,14 +23,16 @@
     updateScript = import ./utils/update-llama-cpp.nix {inherit pkgs;};
     updateBenchRunnerScript = import ./utils/update-llama-bench-runner.nix {inherit pkgs;};
   in {
-    apps.${system}.update-llama-cpp = {
-      type = "app";
-      program = "${updateScript}/bin/update-llama-cpp";
-    };
+    apps.${system} = {
+      update-llama-cpp = {
+        type = "app";
+        program = "${updateScript}/bin/update-llama-cpp";
+      };
 
-    apps.${system}.update-llama-bench-runner = {
-      type = "app";
-      program = "${updateBenchRunnerScript}/bin/update-llama-bench-runner";
+      update-llama-bench-runner = {
+        type = "app";
+        program = "${updateBenchRunnerScript}/bin/update-llama-bench-runner";
+      };
     };
 
     nixosConfigurations = {
