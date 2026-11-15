@@ -10,10 +10,11 @@ Last updated: 2026-11-15.
 
 ## Working tree
 
-Clean: everything is committed. `main` is one commit ahead of `origin/main`,
-`1d45f5c FEATURE - Add jq to the model host` (it adds `jq` to the host's
-`environment.systemPackages`). A commit reaches `nixos-llamaswap-rocm` only when
-it is pushed to `main`, so the host cannot be serving that one yet.
+Clean: everything is committed. `main` is ahead of `origin/main`; the oldest
+unpushed commit is `1d45f5c FEATURE - Add jq to the model host`, which adds `jq`
+to the host's `environment.systemPackages`. A commit reaches
+`nixos-llamaswap-rocm` only when it is pushed to `main`, so nothing in that range
+is on the host.
 
 ## Hosts
 
