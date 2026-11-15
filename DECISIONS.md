@@ -231,3 +231,70 @@ push rights into `nixos-ci`, which would need a deploy token and would let a bui
 rewrite history. The price is that "what was deployed" cannot be read from the
 repository alone; accepted because the rev is printed in the log and setting the
 pin back is one `nix run` away.
+
+---
+
+## 2026-11-15 - Documentation and comments in English
+
+**Context**: The workspace root `AGENTS.md` requires English everywhere: code
+comments, documentation, script messages and commit messages. This repository
+still said the opposite — its own `AGENTS.md` asked for Spanish comments — and
+`MEMORY.md` plus several `configuration.nix` files were Spanish.
+
+**Decision**: English wins at every layer: comments, script messages, CI step
+names and `MEMORY.md`. The comment-language rule in `AGENTS.md` is corrected, and
+the Spanish text is translated in place without changing an expression, a flag or
+a value.
+
+**Rationale**: One language across the four repositories is one vocabulary and one
+search. A per-repo exception means an agent has to know which file it is editing
+before it can write a comment.
+
+---
+
+## 2026-11-15 — Procedures move to skills, rules stay in AGENTS.md
+
+**Context**: `hosts/llamaswap-lxc/AGENTS.md` had grown to 253 lines: host facts, the
+four modification recipes and 133 lines of sampling reference, loaded in full even
+when the task was editing a port. The workspace now owns an authoring standard
+(`SKILLS.md`) and discovery of `<repo>/skills`, so a long, conditional procedure has
+a place outside the document that every reader loads.
+
+**Decision**: Two skills own the procedures — `model-files` (adding, renaming and
+archiving an entry under `models/`) and `sampling` (the chain, the samplers, the
+penalties, DRY, the reasoning budget, the `--spec-*` flags) — each with
+`references/` for the depth and `evals/<id>.json` for its triggers. The host
+`AGENTS.md` keeps the rules that bind configuration (unique model id, preset as a
+second attribute, where a value goes, sampling cannot be measured in t/s) and
+points at the skill. The two update commands stay inline: one command each.
+
+**Rationale**: A constraint has to bind whether or not a skill is loaded; a
+procedure can wait to be pulled in. Splitting on that line keeps the document short
+without making a rule depend on an on-demand file, and it leaves one owner per fact:
+the skill for how, `AGENTS.md` for what is forbidden.
+
+---
+
+## 2026-11-15 — A fragment library for the model files
+
+**Context**: Sixteen files repeated the host invariants, the DRY block and the
+`setParamsByID` roles; the copies had already drifted.
+
+**Decision**: `models/lib/default.nix` is a plain attrset of fragments that
+`models/default.nix` imports once and passes to every file as `modelLib`:
+
+1. The model file still exports `{ "id" = { name; cmd; filters; ttl; }; }` and
+   interpolates the text: no builder assembles an entry.
+2. `memDefault` (`-b 256 -ub 128 -ctk f16 -ctv f16`, measured on
+   `Qwen3.5-9B-UD-Q4_K_XL.gguf`, battery 2026-11-12) is inherited only by a file
+   whose header cites the battery of its own GGUF; the rest write the flags.
+3. Every file takes `{llama-server, modelLib}:`; the `import` lives only in
+   `models/default.nix`.
+4. The shape is owned by `skills/model-files/references/module-shape.md`, linked
+   from the host `README.md` and `AGENTS.md`.
+
+**Rationale**: One owner per flag, so a change reaches sixteen files once. The
+`memDefault` rule keeps the sharing honest: a value measured on one GGUF is
+evidence for that GGUF only. The shape stays an attrset because the rendered
+`cmd` must stay readable in the file that serves it. This entry reaches the
+log's 300-line ceiling; the next decision becomes an ADR under `docs/adr/`.

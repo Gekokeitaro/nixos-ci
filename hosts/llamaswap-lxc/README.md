@@ -73,20 +73,20 @@ update-initramfs -u -k all && reboot
 
 ## Models
 
-GGUFs are expected at `/models/` (mounted from the Proxmox host).
-Each model is a single Nix file in `models/` with signature
-`{llama-server}: { "model-name" = { … }; }`. `models/default.nix` discovers
-every `.nix` file in that directory and merges them; subdirectories such as
-`archived/` are ignored. The binary path is interpolated as `${llama-server}`
-(aliased to a delayed wrapper with `sleep 2` to avoid DeviceLost on swap).
+GGUFs are expected at `/models/` (mounted from the Proxmox host). Each model is
+one Nix file in `models/`; adding, renaming or archiving one, with its
+prerequisites and the add-model checklist:
+[`skills/model-files/SKILL.md`](../../skills/model-files/SKILL.md).
 
-To add a model: create `models/<name>.nix` and `git add` it (flakes only see
-tracked files), then ensure the GGUF exists under `/models/` (external Proxmox
-bind mount). No list in `configuration.nix` is edited. Two files defining the
-same model id abort evaluation.
+## Adding or changing a model
 
-To archive a model: move its file to `models/archived/`; it stays in the repo
-but is no longer served.
+1. One file per model in `models/`, opening with `{llama-server, modelLib}:`. A
+   fragment that two models would repeat belongs in `models/lib/default.nix`.
+2. Follow the procedure in
+   [`skills/model-files/references/module-shape.md`](../../skills/model-files/references/module-shape.md) —
+   the layers, the signature, where each flag goes, and the checks for each step.
+3. `git add` the file (a flake cannot see an untracked one) and deploy through
+   the `llamaswap-rocm` branch first, then `main`; see *Apply changes* below.
 
 ## First boot
 
