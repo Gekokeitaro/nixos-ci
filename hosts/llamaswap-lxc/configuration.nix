@@ -73,6 +73,7 @@ in {
       git
       curl
       wget
+      jq
       magic-wormhole
       vulkan-tools
       radeontop
