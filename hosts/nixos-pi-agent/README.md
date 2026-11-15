@@ -28,7 +28,7 @@ When `enable = true`, the module:
 ## Configuration
 
 **`config/models.json`** — one provider named `llama-swap` pointing at OmniRoute
-(`http://192.168.18.32:20128/v1` in [INFRA.md](../../INFRA.md), API `openai-completions`):
+(`http://192.168.18.28:20128/v1` in [INFRA.md](../../INFRA.md), API `openai-completions`):
 
 | Model id | Context |
 |---|---|
@@ -59,12 +59,12 @@ nixos-rebuild build-image --image-variant lxc --flake .#nixos-pi-agent
 ## Exposed ports
 
 No TCP ports opened. The agent connects outbound to OmniRoute at
-`http://192.168.18.32:20128/v1` in [INFRA.md](../../INFRA.md).
+`http://192.168.18.28:20128/v1` in [INFRA.md](../../INFRA.md).
 
 ## First boot
 
 1. Import the tarball as LXC template in Proxmox and create the container.
-2. Ensure the host can reach `192.168.18.32:20128` (OmniRoute) in [INFRA.md](../../INFRA.md).
+2. Ensure the host can reach `192.168.18.28:20128` (OmniRoute) in [INFRA.md](../../INFRA.md).
 3. Start the container.
 4. Confirm `pi --version` works.
 5. Verify the agent directories: `ls ~/.pi/agent/`.

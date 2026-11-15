@@ -41,7 +41,7 @@
 
     environment = {
       HINDSIGHT_API_LLM_PROVIDER = "openai";
-      HINDSIGHT_API_LLM_BASE_URL = "http://192.168.18.32:20128/v1";
+      HINDSIGHT_API_LLM_BASE_URL = "http://192.168.18.28:20128/v1";
       HINDSIGHT_API_LLM_MODEL = "static-best-free";
     };
 

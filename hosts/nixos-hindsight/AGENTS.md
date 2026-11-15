@@ -33,7 +33,7 @@ sops-nix with `age.keyFile = "/home/nixos-hindsight/.config/sops/age/keys.txt"`:
 
 - OCI env (non-secret):
   - `HINDSIGHT_API_LLM_PROVIDER = "openai"`
-  - `HINDSIGHT_API_LLM_BASE_URL = "http://192.168.18.32:20128/v1"`
+  - `HINDSIGHT_API_LLM_BASE_URL = "http://192.168.18.28:20128/v1"`
   - `HINDSIGHT_API_LLM_MODEL = "free-models"`
 - Additional secrets (API keys, etc.) come from the `.env` file via sops.
 - `networking.hostName = "nixos-hindsight"`.

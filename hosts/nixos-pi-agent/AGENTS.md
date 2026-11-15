@@ -16,7 +16,7 @@ the endpoint listed in [INFRA.md](../../INFRA.md) (`v1` OpenAI-compatible).
 ## Dependencies
 
 - `pi-coding-agent` Nix package, wrapped via `environment.systemPackages`.
-- `nixos-omniroute` (`192.168.18.32:20128` in [INFRA.md](../../INFRA.md)) as the inference backend.
+- `nixos-omniroute` (`192.168.18.28:20128` in [INFRA.md](../../INFRA.md)) as the inference backend.
 - `nodejs`, `ripgrep`, and `fd` — runtime dependencies added to the wrapped
   `pi` binary's `PATH`.
 - `config/models.json` — provider and model catalog.
@@ -34,7 +34,8 @@ key into documentation or logs.
 - `modelsPath = ./config/models.json`; `settingsPath = ./config/settings.json`;
   `extensions = []` (no extension files are symlinked).
 - `models.json`: one provider named `llama-swap` whose `baseUrl` points to
-  OmniRoute (`192.168.18.32:20128` in [INFRA.md](../../INFRA.md)) , path `//v1` in the current file), API
+  OmniRoute (`192.168.18.28:20128` in [INFRA.md](../../INFRA.md)); the current
+  file writes the path as `//v1`, a doubled slash. The API is
   `openai-completions`. Models:
   - `llamacpp/Gemma 4 12B QAT UD Q4_K_XL` (262144 context)
   - `llamacpp/OmniCoder-9B Q5_K_M DFlash` (262144)
@@ -59,7 +60,7 @@ key into documentation or logs.
 - Unprivileged LXC (no privileged features).
 - SSH keys must be present in `configuration.nix` before building the image or
   remote deployment will fail.
-- The agent depends on OmniRoute at `192.168.18.32:20128` in [INFRA.md](../../INFRA.md); if it moves, update
+- The agent depends on OmniRoute at `192.168.18.28:20128` in [INFRA.md](../../INFRA.md); if it moves, update
   `config/models.json`.
 - The `defaultModel` in `settings.json` is not in the current model catalog.
   Verify it before relying on the default.

@@ -1,7 +1,7 @@
 {
   "providers": {
     "llama-swap": {
-      "baseUrl": "http://192.168.18.32:20128//v1", 
+      "baseUrl": "http://192.168.18.28:20128//v1", 
       "api": "openai-completions", 
       "apiKey": "sk-65de9bfe77f89019-4c9a25-9fef0dba", 
       "models": [

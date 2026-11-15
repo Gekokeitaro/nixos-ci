@@ -104,11 +104,7 @@ the repository.
    `forgejo-runner-ci` (`hosts/nixos-ci/modules/forgejo-runner.nix`); until that
    reaches the host, the workflow prepends `/run/current-system/sw/bin`, and
    that prepend can be removed after the host's `nixos-rebuild switch`.
-5. Resolve OmniRoute's address: `INFRA.md` records `192.168.18.28`, while
-   `hosts/nixos-hindsight/configuration.nix` and the `nixos-pi-agent` config and
-   docs still point at `192.168.18.32:20128`. One of the two is stale; Proxmox
-   is the only place that settles it.
-6. Verify the fragment-library refactor post hoc: it reached the host with the
+5. Verify the fragment-library refactor post hoc: it reached the host with the
    2026-11-15 deploy, so compare the served model ids and the rendered
    llama-swap config on the host against `e52c157`, the last commit before the
    refactor. Same ids and same `cmd` text means the refactor rendered identical.
