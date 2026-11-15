@@ -5,8 +5,8 @@ description: Changes what a model samples on the llama-swap host — the order o
 
 # Sampling
 
-Changes what a model serves: the chain in `commonArgs`, the per-variant values in
-`filters.setParamsByID`.
+Changes what a model serves: the server flags in the `cmd` of the model file and
+the per-variant values in `filters.setParamsByID`.
 
 Measured at llama.cpp 0.9.0. `llama-server --help` is the source of truth;
 re-check it after a version bump.
@@ -24,8 +24,10 @@ re-check it after a version bump.
 
 Two places, and they are not interchangeable:
 
-- **`commonArgs` in the model's `cmd`** — server flags (`--temp`, `--top-k`,
-  `--samplers`…): the default for every request that model serves.
+- **`cmd` in the model file** — server flags (`--temp`, `--top-k`,
+  `--samplers`…): the default for every request that model serves. A `let` named
+  `commonCmd` in the file is only a shared string, not a second place: the value
+  still reaches the server through `cmd`.
 - **`filters.setParamsByID`** — request parameters for one variant
   (`dry_multiplier`, `reasoning_budget`…), applied when the client id carries the
   suffix.

@@ -6,6 +6,16 @@ that bind configuration are in
 [`hosts/llamaswap-lxc/AGENTS.md`](../../../hosts/llamaswap-lxc/AGENTS.md); this
 file is the how.
 
+- [Layers](#layers)
+- [Signature](#signature)
+- [What the library owns](#what-the-library-owns)
+- [What a model file owns](#what-a-model-file-owns)
+- [Where each flag goes](#where-each-flag-goes)
+- [Creation procedure](#creation-procedure)
+- [Worked example](#worked-example)
+- [Comments](#comments)
+- [Archive](#archive)
+
 ## Layers
 
 Three layers, one owner each. A value lives in exactly one of them.
@@ -43,7 +53,7 @@ Forbidden in a model file:
 
 - `pkgs`, `lib`, `with pkgs;` — the library arrives whole as `modelLib`.
 - `import ./lib` — the import lives only in `models/default.nix`.
-- a local `let commonArgs` or `let commonFilters` that only repeats a fragment.
+- a local `let` whose value is one fragment (`commonArgs = modelLib.deviceArgs;`).
   A `let` stays when the values are shared by the several ids of one file: the
   base `cmd` and its speculative preset.
 - a helper that assembles the entry (`mkEntry`, `mkModel`) — it hides the
