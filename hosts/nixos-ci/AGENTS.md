@@ -15,7 +15,7 @@ Forgejo runner instances:
 
 | Service | Port | Notes |
 |---|---|---|
-| `forgejo-runner-ci` | — | Host runner; `PATH` includes `nixos-rebuild` and `openssh`; loads the `deploykey` credential |
+| `forgejo-runner-ci` | — | Host runner; `PATH` includes `nix`, `nixos-rebuild` and `openssh`; loads the `deploykey` credential |
 | `forgejo-runner-nixos-runner` | — | Podman runner; label `docker` |
 
 No inbound TCP ports. Both runners connect outbound to `nixos-forgejo`.
