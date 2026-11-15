@@ -10,11 +10,11 @@ Last updated: 2026-11-15.
 
 ## Working tree
 
-Clean: everything is committed. `origin/main` is `697c811`, pushed on
-2026-11-15 at 18:17, and that push ran the deploy workflow, so
-`nixos-llamaswap-rocm` runs that revision. A commit above it is unpushed and not
-on the host until someone pushes; the job log, not this file, records what the
-build resolved.
+Clean: everything is committed. `origin/main` is `035d7d1`, pushed on
+2026-11-15 at 18:29, and that push ran the deploy workflow, so
+`nixos-llamaswap-rocm` runs that revision unless the job failed: its log, not
+this file, records the build and says so. A commit above `origin/main` is
+unpushed and not on the host until someone pushes.
 
 ## Hosts
 
@@ -78,7 +78,8 @@ the repository.
   - push to `main` → `nixos-rebuild switch` against the host;
   - push to `llamaswap-rocm` → `nixos-rebuild test` (activates in the running
     system without making it the boot default, so a reboot reverts it).
-- The push of `main` at `697c811` ran it on 2026-11-15 and switched the host.
+- The pushes of `main` on 2026-11-15 (`697c811` at 18:17, `035d7d1` at 18:29)
+  ran it and switched the host.
 - The deploy key is the sops secret `deploy-key` of `hosts/nixos-ci`;
   systemd exposes it as a credential to the `forgejo-runner-ci` service.
 - `nixos-ci` cannot `git pull` from GitHub (its key is not authorized):
