@@ -11,10 +11,6 @@ Last updated: 2026-11-15.
 
 - 14 of the 16 model files serve the default sampler chain. Only Spark X2.6 4B and
   Gemma 4 12B spell their own: `top_k;top_p;min_p;temperature;dry;typ_p;xtc`.
-- **Open: `--repeat-penalty 1.1` is inert in both.** Their chain has no `penalties`
-  stage, so the flag does nothing. Left as it is on purpose: adding the stage would
-  change what two already-evaluated models generate. Decide with quality
-  measurements, not by eye.
 - **Open: the `:dry-budget-4000*` variants set `reasoning_budget = 4096`.** The
   suffix says 4000. Rename one or the other deliberately, not by accident.
 - **Open: in both custom chains temperature runs ahead of DRY**, unlike the default

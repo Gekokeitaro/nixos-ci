@@ -15,8 +15,8 @@ re-check it after a version bump.
 
 - `--dry-sequence-breaker` **replaces** the default breakers (newline, `:`, `"`,
   `*`) instead of adding to them, and `none` removes all of them.
-- `--repeat-penalty 1.1` is inert in the chain Spark and Gemma 4 12B override: it
-  has no `penalties` stage.
+- `--repeat-penalty` is inert in a chain that has no `penalties` stage: a
+  `--samplers` list that omits that stage makes the flag do nothing.
 - `:instruct` turns reasoning off through `chat_template_kwargs`, not through
   `reasoning_budget`. Budget 0 is a different change.
 

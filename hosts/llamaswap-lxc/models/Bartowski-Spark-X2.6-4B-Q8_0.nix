@@ -11,7 +11,7 @@
       ${modelLib.checkpointArgs}
       -b 256 -ub 128 -ctk f16 -ctv f16
       --ctx-size 65536
-      --temp .6 --top-p 0.95 --top-k 20 --repeat-penalty 1.1
+      --temp .6 --top-p 0.95 --top-k 20
       --samplers "top_k;top_p;min_p;temperature;dry;typ_p;xtc"
     '';
 
