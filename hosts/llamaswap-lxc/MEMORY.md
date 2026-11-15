@@ -1,9 +1,9 @@
 # MEMORY.md — llamaswap-lxc
 
 State of this host and what is still open. Mechanics live in
-[`../skills/sampling/SKILL.md`](../skills/sampling/SKILL.md) and
-[`../skills/model-files/SKILL.md`](../skills/model-files/SKILL.md); what is
-deployed on the host, in [`nixos-ci/MEMORY.md`](../../MEMORY.md).
+[`../../skills/sampling/SKILL.md`](../../skills/sampling/SKILL.md) and
+[`../../skills/model-files/SKILL.md`](../../skills/model-files/SKILL.md); what is
+deployed on the host, in [`../../MEMORY.md`](../../MEMORY.md).
 
 Last updated: 2026-11-15.
 
