@@ -105,8 +105,9 @@ ssh nixos-llamaswap-vulkan@<IP>  # or nixos-llamaswap-rocm@<IP>
 
 `nixos-llamaswap-rocm` is deployed automatically from `main` by the Forgejo
 workflow on `nixos-ci`. Pushing to `main` runs `nixos-rebuild switch` against
-`nixos-llamaswap-rocm` (address in [INFRA.md](../../INFRA.md)); the `llamaswap-rocm` branch runs
-`nixos-rebuild test` only.
+`nixos-llamaswap-rocm` (address in [INFRA.md](../../INFRA.md)). A push to the
+`llamaswap-rocm` branch runs `nixos-rebuild test`: it activates the configuration
+in the running system without making it the boot default, so a reboot reverts it.
 
 `nixos-llamaswap-vulkan` is applied manually. Remote:
 
