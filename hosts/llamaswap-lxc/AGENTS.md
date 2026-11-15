@@ -44,10 +44,13 @@ No sops-nix configuration. GPU/cache paths are not secret.
 - `llamaCpp = import ./packages/llama-cpp {inherit pkgs isLlamacppRocm;}`.
 - `llama-server-delayed`: wrapper script adds `sleep 2` before exec to avoid
   DeviceLost errors on model swap (GPU needs time to clear state).
-- `models/default.nix` discovers every model file in `./models/` (one file per
-  model); `archived/` is a directory and is ignored.
-- Duplicate model ids make evaluation fail (`lib.unionOfDisjoint`), so two files
-  cannot silently define the same model.
+- A model id is unique across `models/`: a duplicate aborts evaluation.
+- A model file opens with `{llama-server, modelLib}:`; `llama-server` is the
+  delayed wrapper and `modelLib` the fragment library, imported once in
+  `models/default.nix`. The shape:
+  [`skills/model-files/references/module-shape.md`](../../skills/model-files/references/module-shape.md).
+- A speculative preset is a second attribute in the same file (`"… MTP"`),
+  sharing the base `cmd` and `filters` through a `let`, not by repeating them.
 - Vulkan profile: `AMD_VULKAN_ICD=RADV`, `vulkan-loader`, `hardware.graphics.extraPackages`.
 - ROCm profile: `rocmPackages.clr{,.icd}`, `HSA_OVERRIDE_GFX_VERSION=10.3.0`.
 - Both: `GGML_VK_MAX_NODES_PER_SUBMIT=1`, `GGML_CUDA_ENABLE_UNIFIED_MEMORY=1`.
@@ -68,27 +71,8 @@ No sops-nix configuration. GPU/cache paths are not secret.
 
 ## Modification guide
 
-### Adding a model
-
-1. Create `hosts/llamaswap-lxc/models/<model-name>.nix` with signature
-   `{llama-server}: { "model-name" = { … }; }`.
-2. `git add` the file: flakes only see files tracked by Git.
-3. Ensure the GGUF exists under `/models/` (external Proxmox bind mount).
-4. A speculative preset is a second attribute in the same file (`"… MTP"`),
-   sharing `commonArgs` and `commonFilters`. `--spec-*` are server flags and
-   cannot travel through `filters.setParamsByID`; copy the shape of
-   `Unsloth-gemma-4-12B-it-qat-UD-Q4_K_XL.nix`.
-
-No list in `configuration.nix` needs editing: `models/default.nix` picks the
-file up automatically. Do not reuse a model id — two files defining the same id
-abort evaluation. The file name starts with the publisher's account
-(`DavidAU`, `Unsloth`, `JetBrains`…): that is where its model card lives, and
-the model card is where the family sampling values come from.
-
-### Archiving a model
-
-Move the file to `models/archived/`. It stays in the repository for reference
-and is no longer served; no configuration edit is needed.
+Adding or archiving a model has prerequisites and gotchas: see
+[`skills/model-files/SKILL.md`](../../skills/model-files/SKILL.md).
 
 ### Updating llama-cpp
 
@@ -117,8 +101,10 @@ without prefetching, and a network failure leaves the committed pin in place.
 
 Sampling is set in two places, and they are not interchangeable:
 
-- **`commonArgs` in the model's `cmd`** — server flags (`--temp`, `--top-k`,
-  `--samplers`…): the default for every request that model serves.
+- **`cmd` in the model file** — server flags (`--temp`, `--top-k`,
+  `--samplers`…): the default for every request that model serves. The parts two
+  models share come from `models/lib/default.nix` (`deviceArgs`, `memDefault`,
+  `dryArgs`), never from a copy in each file.
 - **`filters.setParamsByID`** — request parameters for one variant
   (`dry_multiplier`, `reasoning_budget`…), applied when the client id carries the
   suffix.
@@ -127,126 +113,20 @@ Nothing here can tune sampling by measuring speed: `llama-bench` has no sampler
 flags, so a battery sees t/s and VRAM only. Whether a sampling change is good is
 a question about output quality, judged outside this host.
 
-### The chain
-
-For each token the model scores its whole vocabulary, a chain of samplers
-transforms or filters those scores, and one token is drawn. The order is the
-chain, and it changes the result.
-
-`--samplers` lists the names separated by `;`; `--sampler-seq` spells the same
-list in single letters. They are two forms of one chain, not additions: the last
-one given wins.
-
-Default chain in llama.cpp 0.9.0 — `llama-server --help` is the source of truth,
-re-check it after a version bump (the server README quotes an older list for
-`/completion`; see `MEMORY.md`):
-
-    penalties;dry;top_n_sigma;top_k;typ_p;top_p;min_p;xtc;temperature
-
-Spark and Gemma 4 12B override it with
-`top_k;top_p;min_p;temperature;dry;typ_p;xtc`: no `penalties` stage, and
-temperature runs ahead of DRY. Both still pass `--repeat-penalty 1.1`, which in
-that chain does nothing (see `MEMORY.md`).
-
-`top_n_sigma` and `typ_p` sit in the default chain but do nothing at their
-defaults, and the two chains written here leave them out. `--temp 0` is greedy:
-deterministic and prone to loops. Otherwise `--seed` makes a run reproducible.
-
-### Where the values come from
-
-The per-family sampling values are the starting point, not a source of truth:
-they come from the model card on Hugging Face, and the first token of the file name
-is the publisher's account (`DavidAU`, `Unsloth`, `JetBrains`, …). Performance
-depends on the hardware and the llama.cpp version, so re-check before trusting.
-
-### What each sampler does
-
-| Sampler | Flag | Effect | Cost |
-|---|---|---|---|
-| temperature | `--temp` | sharpens the scores below 1, flattens them above 1 | the global precision/variety knob |
-| top-k | `--top-k` | keeps the K best candidates; 0 disables | fixed, ignores how sure the model is |
-| top-p | `--top-p` | keeps the smallest set that adds up to probability p; 1.0 disables | adapts to confidence |
-| min-p | `--min-p` | drops anything below p × the best candidate; 0 disables | adapts, and holds up better than top-p at high temperature |
-| XTC | `--xtc-probability`, `--xtc-threshold` | with probability p removes the most likely candidates above the threshold (0.10 by default); off until p > 0 | creative writing |
-
-`--grammar` and `--json-schema` are not samplers: they forbid the tokens that
-would break the format. `--logit-bias` adds a fixed amount to named tokens.
-
-### Repetition
-
-The three penalties look at the last `--repeat-last-n` tokens (64 by default, 0
-disables them) and act on single tokens, never on sequences.
-
-- `--repeat-penalty` penalises the score of every token seen in the window.
-  Binary and per token: it cannot tell a harmful repeat from a legitimate one —
-  variable names, braces, quotes, JSON keys. 1.0 disables it.
-- `--presence-penalty` subtracts a fixed amount from every token that already
-  appeared, however often.
-- `--frequency-penalty` subtracts in proportion to how often it appeared.
-
-### DRY
-
-DRY penalises repeated *sequences*. If the next token would continue a sequence
-that already appeared, the penalty grows exponentially with the length of the
-repeat — each token past `--dry-allowed-length` (2 by default) multiplies it —
-and repeats shorter than that are free.
-
-- `--dry-multiplier` strength; 0 disables DRY.
-- `--dry-base` how fast the penalty grows; 1.75 by default.
-- `--dry-allowed-length` repeats up to this length are free.
-- `--dry-penalty-last-n` how far back it looks; 64 by default, 0 disables.
-
-`--dry-sequence-breaker` is a trap: passing it **replaces** the default breakers
-(newline, `:`, `"`, `*`) instead of adding to them, and `none` removes all of
-them. Those defaults are what keep dialogue formatting and JSON keys from being
-penalised.
-
-Unlike the repetition penalties, DRY lets isolated repeated tokens through — the
-ones code and JSON need — and reacts only when a stretch is being reproduced.
-
-### Reasoning budget
-
-A model that reasons writes a thinking block first. `reasoning_budget` caps it:
-−1 unrestricted (the default), 0 no reasoning, N a token limit. When it runs out
-the server forces the block closed and injects `reasoning_budget_message` before
-the end-of-thinking tag: *budget forcing* is the server acting, not the model
-deciding to stop.
-
-It is not `max_tokens`/`n_predict`: that caps the whole output, thinking included,
-and running out mid-thought truncates the answer. The budget caps only the
-thinking and leaves room to answer.
-
-`:instruct` turns reasoning off through the template (`chat_template_kwargs`),
-not through the budget.
-
-### Speculative decoding
-
-A draft model proposes the next few tokens and the target checks them, so the
-speedup depends on how many proposals survive. Here the draft is an MTP head
-(`--spec-type draft-mtp` plus `-md`), and `--spec-draft-n-max` (3 by default) is
-how many tokens it proposes per step. `--spec-draft-n-min` (0 by default) is the
-minimum number of draft tokens used; `--spec-draft-p-min` and
-`--spec-draft-p-split` set how many proposals survive.
-
-`--spec-draft-sampling` decides how the draft picks: `greedy` (default) takes its
-best token, `probabilistic` samples the draft and has the target verify it by
-rejection sampling. Under `greedy` a proposal only survives if the target would
-have drawn that same token, so the more random the target's sampling — high
-temperature, XTC — the fewer proposals survive and the smaller the speedup.
-
-`ngram*` spec types were banned until their cost was investigated. Measured on
-Qwen3.5-9B at llama.cpp 0.9.0: `ngram-mod` costs +59 MiB loaded and +123 MiB once
-it generates, constant from 4k to 49k of context, and scales at ~0.93 MiB per
-draft token of `--spec-ngram-mod-n-max`. That is not a memory problem, so the ban
-is lifted; acceptance and speed are a separate question for a spec-decoding
-benchmark.
-
-`ngram-mod` and `draft-mtp` are not alternatives. ngram only drafts where the
-context repeats something already seen, so on novel text it has nothing to offer
-and MTP drafts instead: an agentic session uses both, and a combo pays both
-stacks. A single prompt full of repeated code shows only ngram drafting, which is
-why the combo looks redundant there and is not.
+The chain (its default and override order), what each sampler does, the
+penalties, DRY, the reasoning budget and the speculative flags:
+[`skills/sampling/SKILL.md`](../../skills/sampling/SKILL.md). What is still open
+on this host is in `MEMORY.md`.
 
 ## Skills
+
+Owned by this repository, in `skills/<id>/SKILL.md` with the long detail in
+`references/` beside it. The workspace root lists `nixos-ci/skills` in
+`opencode.json`, so OpenCode discovers them.
+
+| Skill | Use when | Owns |
+|---|---|---|
+| `model-files` | adding, renaming or archiving a model under `models/` | the file signature, the `git add` flakes require, `/models/`, the speculative preset attribute, archiving, the add-model checklist |
+| `sampling` | changing the sampler chain or the filters of a model | the two places, the chain order and defaults, each sampler, the penalties, DRY, the reasoning budget, the `--spec-*` flags |
 
 Load the `caveman` skill at the start of every session (`skill` tool, id `caveman`).
