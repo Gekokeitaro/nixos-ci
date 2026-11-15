@@ -48,6 +48,8 @@ local LLM inference). All hosts share a common base with NVF (Neovim).
 ├── flake.lock
 ├── AGENTS.md                  # This file. Agent context and best practices.
 ├── DECISIONS.md               # Decision log (see above).
+├── docs/
+│   └── adr/                   # Decisions taken after the log froze at 300 lines.
 ├── INFRA.md                   # Network and service inventory (addresses, ports).
 ├── MEMORY.md                  # Deployed state per host (see above).
 ├── .forgejo/
