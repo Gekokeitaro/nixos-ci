@@ -1,0 +1,22 @@
+[
+  {"query": "add llama 3.2 24b to the llama-swap host", "should_trigger": true},
+  {"query": "create a model entry for this GGUF", "should_trigger": true},
+  {"query": "archive Qwen3.5 9B", "should_trigger": true},
+  {"query": "how do i add a models/ file so nixos-rebuild sees it", "should_trigger": true},
+  {"query": "the new model file is not showing up in llama-swap", "should_trigger": true},
+  {"query": "rename the served model id for the 27B", "should_trigger": true},
+  {"query": "add an MTP entry next to the existing 9B model", "should_trigger": true},
+  {"query": "where does the GGUF have to live for a new model", "should_trigger": true},
+  {"query": "duplicate model id aborts evaluation, which file is wrong", "should_trigger": true},
+  {"query": "stop serving a model but keep its file in the repo", "should_trigger": true},
+  {"query": "measure the tok/s of this GGUF", "should_trigger": false},
+  {"query": "how many layers does gemma-4-12B have", "should_trigger": false},
+  {"query": "set --temp 0.7 for the coding variant", "should_trigger": false},
+  {"query": "why does the model loop on repeated lines", "should_trigger": false},
+  {"query": "make --repeat-penalty 1.1 do something", "should_trigger": false},
+  {"query": "raise the context to 48k for Qwen3.5 9B", "should_trigger": false},
+  {"query": "the gpu went slow, tg64 dropped", "should_trigger": false},
+  {"query": "which spec path should i enable", "should_trigger": false},
+  {"query": "set reasoning_budget to 4096 for the instruct variant", "should_trigger": false},
+  {"query": "add an XTC stage to the sampler chain", "should_trigger": false}
+]

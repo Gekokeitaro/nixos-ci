@@ -1,0 +1,22 @@
+[
+  {"query": "tune the sampler chain for qwen3.5 9b", "should_trigger": true},
+  {"query": "set --temp 0.7 for the coding variant", "should_trigger": true},
+  {"query": "it loops on repeated lines, which knob", "should_trigger": true},
+  {"query": "raise min-p to 0.05", "should_trigger": true},
+  {"query": "the thinking block gets cut off too early", "should_trigger": true},
+  {"query": "make --repeat-penalty 1.1 do something", "should_trigger": true},
+  {"query": "add an XTC stage to the sampler chain", "should_trigger": true},
+  {"query": "what does top_n_sigma do in the chain", "should_trigger": true},
+  {"query": "set reasoning_budget to 4096 for the instruct variant", "should_trigger": true},
+  {"query": "DRY is penalising my JSON keys", "should_trigger": true},
+  {"query": "archive Qwen3.5 9B", "should_trigger": false},
+  {"query": "add the new GGUF to models/", "should_trigger": false},
+  {"query": "measure the tok/s of this GGUF", "should_trigger": false},
+  {"query": "how many layers does gemma-4-12B have", "should_trigger": false},
+  {"query": "raise the context to 48k for Qwen3.5 9B", "should_trigger": false},
+  {"query": "the gpu went slow after the last run", "should_trigger": false},
+  {"query": "which spec path should i enable", "should_trigger": false},
+  {"query": "add an MTP preset entry", "should_trigger": false},
+  {"query": "why doesn't nixos-rebuild see my new model file", "should_trigger": false},
+  {"query": "document the VRAM cost at 32k", "should_trigger": false}
+]
