@@ -8,12 +8,12 @@ All architectural and design decisions are recorded in
 [DECISIONS.md](./DECISIONS.md). **Agents must**:
 
 1. **Read** `DECISIONS.md` before making changes to understand prior context.
-2. **Append** a new entry whenever a decision is made (new pattern, dependency
+2. **Record** a new decision whenever one is made (new pattern, dependency
    change, architectural choice, deprecation, etc.): date, context, decision,
-   rationale.
-3. **Never consolidate or rewrite an accepted entry.** At 300 lines the log is
-   frozen where it stands and new decisions become ADRs under `docs/adr/`; a
-   later ADR supersedes an earlier one instead of editing it.
+   rationale. The log is frozen at its 300-line ceiling, so a decision taken now
+   is written as the next numbered ADR under `docs/adr/`.
+3. **Never consolidate or rewrite an accepted entry.** A later ADR supersedes an
+   earlier one instead of editing it.
 
 What is deployed on each host right now lives in [MEMORY.md](./MEMORY.md), not
 here: this file explains how the repo works, that one records state. Addresses,
