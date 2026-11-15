@@ -1,6 +1,8 @@
 # 300626
 # ./llama-bench --delay 2 --progress -m /models/Mellum2-12B-A2.5B-Instruct-MXFP4_MOE.gguf -ngl 99 -t 2 -b 512 -ub 256 -ctk q8_0 -ctv q4_0 -fa 1 -ncmoe 16
-{llama-server}: {
+# This GGUF serves without --jinja, -b/-ub or the cache flags: they stay literal
+# instead of interpolating `deviceArgs`.
+{llama-server, modelLib}: {
   "David AU LFM2.5 8B A1B Q3.8 TBrill NEO MAX Q8_0" = {
     name = "David AU LFM2.5 8B A1B Q3.8 TBrill NEO MAX Q8_0";
     cmd = ''
