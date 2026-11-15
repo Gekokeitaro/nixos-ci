@@ -24,9 +24,10 @@
 
 ## Working on this repo
 
-Edit this repo on a dev machine that is **not** NixOS: `nix`, `nix-build`,
-`nix-shell` and `nixos-rebuild` do not run there. They run on the hosts; validate
-a change by reading the expressions.
+Edit this repo from any OS. What the development machine lacks is the `nix`
+binary, not an operating system: `nix`, `nix-build`, `nix-shell` and
+`nixos-rebuild` are not installed there. Building and switching happen on the
+hosts; validate a change by reading the expressions.
 
 Four documents carry the rest, one question each: `AGENTS.md` the rules,
 `DECISIONS.md` why a choice was made, `MEMORY.md` what is deployed right now, and

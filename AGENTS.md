@@ -204,9 +204,11 @@ local LLM inference). All hosts share a common base with NVF (Neovim).
 ## Critical rules
 
 - **NEVER run `nix`, `nix-build`, `nix-shell`, `nixos-rebuild`, or any Nix
-  CLI command.** The development host is **not** NixOS. These commands are
-  unavailable and will fail. Code changes should be validated by reading and
-  reasoning about the Nix expressions only.
+  CLI command on the dev machine.** The dev machine has no `nix` installed: the
+  limit is the missing binary, not the operating system, so this repository is
+  edited from any OS while building and switching happen on the hosts. These
+  commands are unavailable on the dev machine and will fail there. Validate a
+  change by reading and reasoning about the Nix expressions only.
 - **All containers are unprivileged.** Never add configuration that requires
   privileged LXC features. GPU and device access must go through Proxmox's
   unprivileged device passthrough (`lxc.cgroup2.devices.allow`).

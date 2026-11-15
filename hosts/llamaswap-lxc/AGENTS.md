@@ -83,7 +83,7 @@ nix run .#update-llama-cpp
 This script queries the GitHub API for the latest llama.cpp release, prefetches
 the source hash, forces the npm-deps hash mismatch to discover the new value,
 and updates `llamacppVersion`, `llamacppHash` and `llamacppNpmHash` in place.
-It requires a Nix host because it evaluates `pkg.npmDeps`.
+It needs a machine with `nix` installed, because it evaluates `pkg.npmDeps`.
 
 ### Updating the benchmark scripts
 
