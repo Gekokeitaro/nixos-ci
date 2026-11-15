@@ -29,8 +29,8 @@
       image = "docker.io/diegosouzapw/omniroute:latest";
 
       environment = {
-        # PUID/PGID deben coincidir con dueño de los volúmenes en host,
-        # si no: errores de permisos.
+        # PUID/PGID must match the owner of the volumes on the host,
+        # otherwise: permission errors.
         PUID = "1000";
         PGID = "1000";
         TZ = "Europe/Madrid";

@@ -8,26 +8,26 @@
 
   gpuEnv =
     {
-      # Común: usa memoria principal en vez de fallar si se agota la VRAM.
+      # Shared: use main memory instead of failing when VRAM runs out.
       GGML_CUDA_ENABLE_UNIFIED_MEMORY = "1";
-      # Común: limita el tamaño de las submissions Vulkan/ROCm.
+      # Shared: cap the size of Vulkan/ROCm submissions.
       GGML_VK_MAX_NODES_PER_SUBMIT = "1";
     }
     // lib.optionalAttrs isLlamacppRocm {
-      # gfx1035 no está en la lista oficial de ROCm; forzamos compatibilidad.
-      # Quitar si pasas a los binarios de TheRock gfx103X-all.
+      # gfx1035 is not in the official ROCm list; force compatibility.
+      # Remove if you move to the TheRock gfx103X-all binaries.
       HSA_OVERRIDE_GFX_VERSION = "10.3.0";
     }
     // lib.optionalAttrs (!isLlamacppRocm) {
-      # RADV tiene mejor soporte RDNA2 que amdvlk.
+      # RADV has better RDNA2 support than amdvlk.
       AMD_VULKAN_ICD = "RADV";
     };
 
   llamaCpp = import ./packages/llama-cpp {inherit pkgs isLlamacppRocm;};
   llama-server = "${llamaCpp}/bin/llama-server";
 
-  # 1-June-26. FIX: Parece que DeviceLost ocurre porque entre llamadas a intercambios de modelos no hay tiempo
-  # suficiente para que se limpie el estado de la gpu. El wrapper añade 2s. que está testeado y funciona.
+  # 1-June-26. FIX: DeviceLost seems to happen because between calls to model swaps there is not enough
+  # time for the gpu state to be cleared. The wrapper adds 2s, which is tested and works.
   llama-server-delayed = pkgs.writeShellScript "llama-server-delayed" ''
     sleep 2
     exec ${llama-server} -lv 4 "$@"
@@ -36,12 +36,12 @@
   llamaBenchRunner = pkgs.fetchgit {
     url = "https://gitlab.com/Gekokeitaro/llama-bench-runner.git";
     rev = "60f52ddeb5e5ca67edcfc0b7d7926a3cd5369f0a";
-    # Sin submódulos, que es lo que asume update-llama-bench-runner al prefetchear.
+    # No submodules, which is what update-llama-bench-runner assumes when prefetching.
     fetchSubmodules = false;
     hash = "sha256-wRapC5mjsPuUEC2qiaof6vpSTraNODNhh1RorQgarKQ=";
   };
 
-  # Los scripts del repo, empaquetados en bin/ (store de solo lectura).
+  # The repo's scripts, packaged in bin/ (read-only store).
   llamaBenchRunnerScripts = pkgs.runCommand "llama-bench-runner-scripts" {} ''
     mkdir -p $out/bin
     cp ${llamaBenchRunner}/scripts/* $out/bin/
@@ -84,10 +84,10 @@ in {
     enable = true;
     listenAddress = "0.0.0.0";
     port = 8080;
-    openFirewall = true; # Añade port a allowedTCPPorts. Necesario con Proxmox?
+    openFirewall = true; # Adds the port to allowedTCPPorts. Needed with Proxmox?
     settings = {
       includeAliasesInList = true;
-      # Descubre todos los modelos de ./models; archived/ queda fuera.
+      # Discovers every model in ./models; archived/ stays out.
       models = import ./models {
         inherit pkgs;
         llama-server = llama-server-delayed;
@@ -107,8 +107,8 @@ in {
     };
   };
 
-  # Drivers GPU de runtime según el perfil elegido.
-  # La compilación de llama-cpp ya los incluye como buildInputs via .override.
+  # Runtime GPU drivers, depending on the chosen profile.
+  # The llama-cpp build already pulls them in as buildInputs via .override.
   hardware.graphics.extraPackages = with pkgs;
     if isLlamacppRocm
     then [

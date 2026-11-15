@@ -23,27 +23,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Comprobar vía SSH que el LXC está levantado
+      - name: Check over SSH that the LXC is up
         run: |
           if ! timeout 5 bash -c "echo > /dev/tcp/$HOST/22"; then
-            echo "::error::SSH no disponible en $HOST. Abortando despliegue."
+            echo "::error::SSH not available on $HOST. Aborting deployment."
             exit 1
           fi
 
-      # El pin de llamaBenchRunner se quedaba atrás cada vez que el repo del runner
-      # ganaba commits. Se actualiza aquí, antes de compilar: el rev nuevo queda en
-      # el log del job, porque este cambio no se commitea.
-      - name: Actualizar el pin de llama-bench-runner
+      # The llamaBenchRunner pin lagged behind every time the runner's repository
+      # gained commits. It is updated here, before building: the new rev ends up in
+      # the job log, because this change is not committed.
+      - name: Update the llama-bench-runner pin
         run: |
           export HOME="$PWD/.ci-home"
           mkdir -p "$HOME"
-          # El servicio del runner fija su PATH en systemd y `nix` sólo aparece ahí
-          # a partir del próximo `nixos-rebuild` de este host; el perfil del sistema
-          # lo tiene ya, así que se antepone. Sobra en cuanto el host esté aplicado.
+          # The runner service pins its PATH in systemd and `nix` only shows up there
+          # after this host's next `nixos-rebuild`; the system profile already
+          # has it, so it is prepended. Remove this once the host is applied.
           export PATH="/run/current-system/sw/bin:$PATH"
           nix run .#update-llama-bench-runner
 
-      - name: Desplegar
+      - name: Deploy
         run: |
           export HOME="$PWD/.ci-home"
           mkdir -p "$HOME/.ssh"

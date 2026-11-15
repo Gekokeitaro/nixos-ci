@@ -1,19 +1,19 @@
-# calibre-lxc: sirve Calibre-Web-Automated (CWA).
-# CWA = UI web de Calibre-Web + motor Calibre + auto-ingest, en uno.
+# calibre-lxc: serves Calibre-Web-Automated (CWA).
+# CWA = Calibre-Web web UI + Calibre engine + auto-ingest, all in one.
 # Repo: https://github.com/crocodilestick/Calibre-Web-Automated
 #
-# Librería vive en pCloud, montada local vía rclone+FUSE; el contenedor
-# la ve como directorio normal.
+# Library lives on pCloud, mounted locally via rclone+FUSE; the container
+# sees it as a normal directory.
 #
-# Orden de arranque (fijo, ver systemd.services abajo):
-#   tmpfiles crea /mnt/pcloud + symlink rclone.conf
-#   → rclone-pcloud.service monta pcloud: (Type=notify, avisa cuando listo)
-#   → podman-calibre-web-automated arranca (after+requires rclone, si no
-#     Podman podría statfs /mnt/pcloud antes del mount)
-#   → UI en puerto 8083.
+# Boot order (fixed, see systemd.services below):
+#   tmpfiles creates /mnt/pcloud + rclone.conf symlink
+#   → rclone-pcloud.service mounts pcloud: (Type=notify, signals when ready)
+#   → podman-calibre-web-automated starts (after+requires rclone, otherwise
+#     Podman could statfs /mnt/pcloud before the mount)
+#   → UI on port 8083.
 #
-# Requisito fuera de Nix, host Proxmox, en /etc/pve/lxc/<id>.conf
-# (LXC no-privilegiado, FUSE necesita esto a mano):
+# Requirement outside Nix, Proxmox host, in /etc/pve/lxc/<id>.conf
+# (unprivileged LXC, FUSE needs this by hand):
 #   lxc.cgroup2.devices.allow: c 10:229 rwm
 #   lxc.mount.entry: /dev/fuse dev/fuse none bind,create=file 0 0
 {
@@ -21,10 +21,10 @@
   pkgs,
   ...
 }: let
-  # Config rclone en el Nix store. Token OAuth2 de pCloud abajo (vacío aquí,
-  # secreto no versionado). Renovar: `rclone authorize "pcloud"` en máquina
-  # con navegador, pegar token en `token =`.
-  # hostname = eapi.pcloud.com → endpoint EU de pCloud.
+  # rclone config in the Nix store. pCloud OAuth2 token below (empty here,
+  # unversioned secret). Renew: `rclone authorize "pcloud"` on a machine
+  # with a browser, paste the token into `token =`.
+  # hostname = eapi.pcloud.com → EU pCloud endpoint.
 in {
   imports = [
     ../../common
@@ -38,14 +38,14 @@ in {
     };
   };
 
-  # Usuario de servicio: SSH + montaje rclone (shell interactivo) + CLI
-  # de mantenimiento. El servicio systemd de rclone corre como root porque
-  # usa --allow-other (requiere privilegios; ver programs.fuse abajo).
+  # Service user: SSH + rclone mount (interactive shell) + maintenance
+  # CLI. The rclone systemd service runs as root because it
+  # uses --allow-other (requires privileges; see programs.fuse below).
   users.users.nixos-calibre-web-auto = {
     isNormalUser = true;
-    extraGroups = ["wheel"]; # sudo para mantenimiento
+    extraGroups = ["wheel"]; # sudo for maintenance
 
-    # Clave SSH para conexión remota
+    # SSH key for remote access
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGApUnvphJshC3LJ4QxDu8fm3JqEnSWZ6ewhf6gQuF7V PopOS OCT 2024"
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFeASXjLf7TjNTxO5CZ4Aa6z8hyFG0CXAe4FhcpZOEp6 NixOS-CI MAY 2026"
@@ -56,7 +56,7 @@ in {
       git
       curl
       wget
-      magic-wormhole # transferencia rápida de ficheros entre máquinas
+      magic-wormhole # fast file transfer between machines
       rclone
       fuse3
     ];
@@ -66,8 +66,8 @@ in {
     image = "docker.io/crocodilestick/calibre-web-automated:latest";
 
     environment = {
-      # PUID/PGID deben coincidir con dueño de los volúmenes en host,
-      # si no: errores de permisos.
+      # PUID/PGID must match the owner of the volumes on the host,
+      # otherwise: permission errors.
       PUID = "1000";
       PGID = "1000";
       TZ = "Europe/Madrid";
@@ -76,7 +76,7 @@ in {
     volumes = [
       "/home/nixos-calibre-web-auto/.config/calibre-web-automated/config:/config"
       "/home/nixos-calibre-web-auto/.config/calibre-web-automated/plugins:/config/.config/calibre/plugins"
-      "/mnt/pcloud:/calibre-library" # librería pCloud montada por rclone
+      "/mnt/pcloud:/calibre-library" # pCloud library mounted by rclone
     ];
 
     ports = [
@@ -84,15 +84,15 @@ in {
     ];
   };
 
-  # Sin esta dependencia explícita, systemd podría arrancar ambos servicios
-  # en paralelo y Podman fallaría el statfs de /mnt/pcloud.
+  # Without this explicit dependency, systemd could start both services
+  # in parallel and Podman would fail the statfs of /mnt/pcloud.
   systemd.services.podman-calibre-web-automated = {
     after = ["rclone-pcloud.service"];
     requires = ["rclone-pcloud.service"];
   };
 
-  # Permite a procesos no-root (el contenedor OCI) acceder al mount FUSE
-  # con --allow-other. Equivale a user_allow_other en /etc/fuse.conf.
+  # Allow non-root processes (the OCI container) to access the FUSE mount
+  # with --allow-other. Equivalent to user_allow_other in /etc/fuse.conf.
   programs.fuse.userAllowOther = true;
 
   systemd.tmpfiles.rules = [
@@ -101,14 +101,14 @@ in {
     "d /home/nixos-calibre-web-auto/.config/calibre-web-automated/plugins 0755 nixos-calibre-web-auto users -"
   ];
 
-  # Monta pCloud en /mnt/pcloud.
-  #   --vfs-cache-mode writes → escrituras van a caché local, luego sync;
-  #     lecturas van directas al remoto (streaming).
-  #   --allow-other → necesario para que el contenedor OCI acceda al mount.
-  #   Type=notify → rclone avisa a systemd cuando el mount está listo,
-  #     así podman-calibre-web-automated no arranca antes de tiempo.
+  # Mount pCloud at /mnt/pcloud.
+  #   --vfs-cache-mode writes → writes go to the local cache, then sync;
+  #     reads go straight to the remote (streaming).
+  #   --allow-other → required for the OCI container to access the mount.
+  #   Type=notify → rclone tells systemd when the mount is ready,
+  #     so podman-calibre-web-automated does not start too early.
   systemd.services.rclone-pcloud = {
-    description = "Montaje rclone de pCloud";
+    description = "rclone mount of pCloud";
     after = ["network-online.target"];
     wants = ["network-online.target"];
     wantedBy = ["multi-user.target"];
@@ -123,15 +123,15 @@ in {
         --vfs-cache-mode writes \
         --allow-other
       '';
-      ExecStop = "${pkgs.fuse3}/bin/fusermount3 -u /mnt/pcloud"; # desmonte limpio
-      Restart = "on-failure"; # rclone muere (p.ej. red) → reinicia
+      ExecStop = "${pkgs.fuse3}/bin/fusermount3 -u /mnt/pcloud"; # clean unmount
+      Restart = "on-failure"; # rclone dies (e.g. network) → restart
       RestartSec = "5s";
     };
   };
 
   nix.settings.trusted-users = ["nixos-calibre-web-auto"];
 
-  nix.settings.experimental-features = ["nix-command" "flakes"]; # necesario para nixos-rebuild --flake dentro del LXC
+  nix.settings.experimental-features = ["nix-command" "flakes"]; # required for nixos-rebuild --flake inside the LXC
 
   system.stateVersion = "26.05";
 }

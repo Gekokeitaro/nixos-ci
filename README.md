@@ -22,6 +22,31 @@
 > [!NOTE]
 > All LXC images include NVF (Neovim) as the text editor.
 
+## Working on this repo
+
+Edit this repo on a dev machine that is **not** NixOS: `nix`, `nix-build`,
+`nix-shell` and `nixos-rebuild` do not run there. They run on the hosts; validate
+a change by reading the expressions.
+
+Four documents carry the rest, one question each: `AGENTS.md` the rules,
+`DECISIONS.md` why a choice was made, `MEMORY.md` what is deployed right now, and
+`INFRA.md` the addresses and ports.
+
+Two procedures are skills, read the same way by a person or an agent:
+
+- [`skills/model-files/SKILL.md`](skills/model-files/SKILL.md) — create, rename or
+  archive a model entry. Entries are one file per model in
+  `hosts/llamaswap-lxc/models/`.
+- [`skills/sampling/SKILL.md`](skills/sampling/SKILL.md) — the sampler chain and
+  the filters that go with it.
+
+A change reaches the model host only through a push to `main`; see
+[CI/CD](#cicd) below.
+
+What is still open is in
+[`hosts/llamaswap-lxc/MEMORY.md`](hosts/llamaswap-lxc/MEMORY.md) for the model
+host, and in [`MEMORY.md`](MEMORY.md) for the rest.
+
 ## CI/CD
 
 `.forgejo/workflows/deploy-llamaswap-rocm.yml` runs on the `ci` runner on

@@ -5,9 +5,9 @@
   ...
 }: {
   systemd.services.forgejo-runner-ci = {
-    # `path` reemplaza el PATH por defecto del servicio: lo que no esté aquí no
-    # existe para los pasos del workflow, aunque el host lo tenga en el perfil del
-    # sistema. `nix` hace falta para `nix run` (update-llama-bench-runner).
+    # `path` replaces the service's default PATH: whatever is missing here does
+    # not exist for the workflow steps, even if the host has it in the system
+    # profile. `nix` is required for `nix run` (update-llama-bench-runner).
     path = with pkgs; [
       nix
       nixos-rebuild

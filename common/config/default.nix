@@ -2,20 +2,20 @@
   services.dbus.implementation = "dbus";
   boot.isContainer = true;
 
-  # Stack gráfico base (Mesa, libdrm). Los drivers específicos (Vulkan/ROCm)
-  # se añaden en cada host según el perfil.
+  # Base graphics stack (Mesa, libdrm). The specific drivers (Vulkan/ROCm)
+  # are added per host, according to the profile.
   hardware.graphics.enable = true;
 
   # https://gysli.ng/posts/tech/proxmox-nixos/
-  # Desactivamos unidades de systemd que no funcionan en contenedores LXC.
+  # Disable the systemd units that do not work inside LXC containers.
   systemd.suppressedSystemUnits = [
     "dev-mqueue.mount"
     "sys-kernel-debug.mount"
     "sys-fs-fuse-connections.mount"
   ];
 
-  # Habilitamos openSSH para poder entrar al contenedor.
-  # Acceso por clave pública (sin contraseña). Prohibido el acceso root.
+  # Enable openSSH so the container can be reached.
+  # Public-key access only (no password). Root login is forbidden.
   services.openssh = {
     enable = true;
     settings.PasswordAuthentication = false;
@@ -23,16 +23,16 @@
     settings.PermitRootLogin = "no";
   };
 
-  # Sudo sin contraseña para usuarios del grupo wheel.
+  # Passwordless sudo for users in the wheel group.
   security.sudo.wheelNeedsPassword = false;
 
-  # Garbage collection automático cada 3 días.
+  # Automatic garbage collection every 3 days.
   nix.gc = {
     automatic = true;
     options = "--delete-older-than 3d";
   };
 
-  # Permite que las config desplegadas persistan entre reinicios
+  # Keep the deployed configuration across reboots
   system.activationScripts.proxmoxLxcInit = ''
     ln -sfn /nix/var/nix/profiles/system/init /sbin/init
   '';

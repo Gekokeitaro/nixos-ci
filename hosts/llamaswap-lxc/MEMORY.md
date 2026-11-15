@@ -1,13 +1,15 @@
 # MEMORY.md — llamaswap-lxc
 
-State of this host and what is still open. Mechanics live in `AGENTS.md`; what is
+State of this host and what is still open. Mechanics live in
+[`../skills/sampling/SKILL.md`](../skills/sampling/SKILL.md) and
+[`../skills/model-files/SKILL.md`](../skills/model-files/SKILL.md); what is
 deployed on the host, in [`nixos-ci/MEMORY.md`](../../MEMORY.md).
 
-Last updated: 2026-11-11.
+Last updated: 2026-11-15.
 
 ## Sampling
 
-- 15 of the 17 model files serve the default sampler chain. Only Spark X2.6 4B and
+- 14 of the 16 model files serve the default sampler chain. Only Spark X2.6 4B and
   Gemma 4 12B spell their own: `top_k;top_p;min_p;temperature;dry;typ_p;xtc`.
 - **Open: `--repeat-penalty 1.1` is inert in both.** Their chain has no `penalties`
   stage, so the flag does nothing. Left as it is on purpose: adding the stage would
@@ -24,7 +26,7 @@ Last updated: 2026-11-11.
 **Confirmed on the running server, 2026-11-11:** `GET /props` of a loaded model
 reports the chain given by `--samplers`, not the request default that the server
 README lists for `/completion` (which omits `penalties` and `top_n_sigma`). So the
-flag in `commonArgs` is what applies.
+flag in the model's `cmd` is what applies.
 
 Per-model knob values are in each model's `.nix`, where they are applied.
 
@@ -60,9 +62,9 @@ number of checkpoints kept shrinks.
 
 Context checkpoints are the largest pure overhead found: they only save
 re-processing when the prompt cache misses, and the default keeps 32 per slot.
-The convention already in the model files, `--cache-ram 512 --ctx-checkpoints 4`,
-is the right base. `Unsloth-Qwen3.5-9B` is missing it and runs at the default;
-that is the one file to fix first.
+Six files carry `--cache-ram 512 --ctx-checkpoints 4`, three run
+`--cache-ram 0` instead, and seven carry neither flag: those seven are the first
+thing to check when a model is short on memory.
 
 `--ctx-size` is not the knob to cut: it is what the agentic use case needs. Bound
 everything else first, then experiment upward while the process stays under the
@@ -71,9 +73,10 @@ everything else first, then experiment upward while the process stays under the
 ## Open: spec type
 
 - `ngram-mod` costs +59 MiB loaded and +123 MiB generating, constant to 49k of
-  context: not a memory problem. The ban is lifted (see `AGENTS.md`); what is
-  still unmeasured is its speedup in an agentic session, which belongs to a
-  speculative-decoding benchmark.
+  context: not a memory problem. The ban is lifted (see
+  [`speculative-decoding.md`](../../skills/sampling/references/speculative-decoding.md));
+  what is still unmeasured is its speedup in an agentic session, which belongs to
+  a speculative-decoding benchmark.
 - Two model files use it: `Prism-ML-Ternary-Bonsai-2-9B` (`ngram-mod`) and
   `Unsloth-gemma-4-E4B` (`ngram-mod,draft-mtp`). The combo pays the MTP stack
   (~608 MiB) and is correct: on novel text ngram has no match and MTP drafts.

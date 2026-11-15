@@ -1,5 +1,5 @@
 # 300926
-# 18GB VRAM: -ctk q4_0 -ctv q4_0 permite ~131K ctx
+# 18GB VRAM: -ctk q4_0 -ctv q4_0 allows ~131K ctx
 # --reasoning-effort medium: 91 think tokens vs 106 xhigh, ~+8% throughput
 {llama-server}: {
   "David AU Qwen3.8 27B TTURBO Fable C Fusion 709 L Uncen NM DAU NEO MTP IQ2_M" = {

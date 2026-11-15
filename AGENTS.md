@@ -64,6 +64,7 @@ local LLM inference). All hosts share a common base with NVF (Neovim).
 │   ├── secrets/
 │   │   └── postgresql-shared.yaml  # Shared DB passwords (n8n, hindsight).
 │   └── secrets.yaml
+├── evals/                     # Trigger fixtures, one JSON per skill (see SKILLS.md).
 ├── hosts/
 │   ├── llamaswap-lxc/         # llama-swap + llama-cpp (GPU)
 │   │   ├── models/            # One .nix file per model; archived/ keeps dead ones.
@@ -88,6 +89,9 @@ local LLM inference). All hosts share a common base with NVF (Neovim).
 │   ├── nixos-postgresql/      # Central PostgreSQL + pgvector
 │   ├── nixos-hindsight/       # Hindsight data platform (OCI + LLM)
 │   └── pihole-lxc/            # Legacy Pi-hole config; not wired into flake.nix.
+├── skills/
+│   ├── model-files/           # Adding, renaming or archiving a model file.
+│   └── sampling/              # Chain, samplers, penalties, DRY, reasoning budget.
 └── utils/
     ├── update-llama-cpp.nix   # Script to update llama-cpp version/hash.
     └── update-llama-bench-runner.nix  # Script to bump the benchmark scripts pin.
@@ -118,7 +122,7 @@ local LLM inference). All hosts share a common base with NVF (Neovim).
 
 - **Formatter**: Nix code uses `alejandra` formatting (no trailing commas, no
   unnecessary `with`, aligned attributes).
-- **Comment language**: Spanish. Inline comments are written in Spanish.
+- **Comment language**: English. Inline comments are written in English.
 - **`let … in`**: prefer `let` at the beginning of the module to define local
   variables before the main attrset.
 - **`lib`**: obtained from `pkgs.lib` in files that receive `pkgs` as an
@@ -216,5 +220,15 @@ Never invent a tag and never omit it. Git-generated `Merge` or `Revert` subjects
 are exempt. A `.githooks/commit-msg` hook in the workspace root enforces this.
 
 ## Skills
+
+Owned by this repository, in `skills/<id>/SKILL.md` with the long detail in
+`references/` beside it and the trigger fixtures in `evals/<id>.json`. The
+workspace root lists `nixos-ci/skills` in `opencode.json`, so OpenCode discovers
+them.
+
+| Skill | Use when | Owns |
+|---|---|---|
+| `model-files` | adding, renaming or archiving a model under `hosts/llamaswap-lxc/models/` | the file signature, the `git add` flakes require, `/models/`, the speculative preset attribute, archiving, the add-model checklist |
+| `sampling` | changing the sampler chain or the filters of a model | the two places, the chain order and defaults, each sampler, the penalties, DRY, the reasoning budget, the `--spec-*` flags |
 
 Load the `caveman` skill at the start of every session (`skill` tool, id `caveman`).

@@ -97,7 +97,7 @@
         specialArgs = {
           inherit inputs;
           # https://discourse.nixos.org/t/flakes-idiomatic-way-to-pass-inputs-to-configuration-nix/12379/2
-          # specialArgs permite pasar valores arbitrarios.
+          # specialArgs passes arbitrary values.
           isLlamacppRocm = true;
           hostName = "nixos-llamaswap-rocm";
         };

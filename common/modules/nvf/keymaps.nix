@@ -1,5 +1,5 @@
 {lib}: let
-  # Helper para acortar la asignación de keymaps
+  # Helper to shorten keymap assignment
   keymap = mode: key: action: desc: {
     inherit mode key action desc;
     silent = true;

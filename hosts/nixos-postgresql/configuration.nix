@@ -67,7 +67,7 @@
   };
 
   systemd.services.one-shot-config = {
-    description = "Fija la contraseña del rol n8n desde el secreto de sops";
+    description = "Sets the n8n role password from the sops secret";
     after = ["postgresql.service"];
     wants = ["postgresql.service"];
     wantedBy = ["multi-user.target"];

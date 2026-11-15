@@ -1,39 +1,39 @@
-# nixos-forgejo: aloja Forgejo, una forja Git auto-hospedada.
-# Forgejo es un fork comunitario de Gitea orientado a la privacidad.
-# Docs oficiales: https://forgejo.org/docs/latest/
-# Módulo NixOS: https://search.nixos.org/options?query=services.forgejo
+# nixos-forgejo: hosts Forgejo, a self-hosted Git forge.
+# Forgejo is a community fork of Gitea focused on privacy.
+# Official docs: https://forgejo.org/docs/latest/
+# NixOS module: https://search.nixos.org/options?query=services.forgejo
 #
-# Base de datos: SQLite (sin servidor externo, suficiente para uso personal).
-# Dashboard HTTP accesible en el puerto 3000 del contenedor.
+# Database: SQLite (no external server, enough for personal use).
+# HTTP dashboard reachable on port 3000 of the container.
 #
-# Primer arranque:
-#   1. Despliega la imagen LXC en Proxmox.
-#   2. Accede a http://<ip-lxc>:3000 → asistente de configuración inicial.
-#   3. Crea el usuario administrador desde la UI.
-#   4. Cuando ya no se necesite registro abierto, cambia
-#      services.forgejo.settings.service.DISABLE_REGISTRATION a true
-#      y aplica: nixos-rebuild switch --flake .#nixos-forgejo
+# First boot:
+#   1. Deploy the LXC image on Proxmox.
+#   2. Open http://<lxc-ip>:3000 → first-run configuration wizard.
+#   3. Create the administrator user from the UI.
+#   4. Once open registration is no longer needed, change
+#      services.forgejo.settings.service.DISABLE_REGISTRATION to true
+#      and apply: nixos-rebuild switch --flake .#nixos-forgejo
 #
-# Acciones (CI/CD) no activadas en esta primera versión; se pueden
-# habilitar añadiendo settings.actions.ENABLED = true cuando haya
-# un runner configurado.
+# Actions (CI/CD) are not enabled in this first version; they can be
+# enabled by adding settings.actions.ENABLED = true once there is
+# a configured runner.
 {
   pkgs,
   config,
   ...
 }: {
   imports = [
-    ../../common # base LXC: openssh, sudo, gc automático, boot.isContainer…
+    ../../common # LXC base: openssh, sudo, automatic gc, boot.isContainer…
   ];
 
   networking.hostName = "nixos-forgejo";
 
-  # Usuario de mantenimiento. Solo se usa para SSH y tareas admin.
-  # El servicio Forgejo corre bajo su propio usuario de sistema (`forgejo`),
-  # creado automáticamente por el módulo NixOS.
+  # Maintenance user. Only used for SSH and admin tasks.
+  # The Forgejo service runs under its own system user (`forgejo`),
+  # created automatically by the NixOS module.
   users.users.nixos-forgejo = {
     isNormalUser = true;
-    extraGroups = ["wheel"]; # sudo sin contraseña (ver common: wheelNeedsPassword = false)
+    extraGroups = ["wheel"]; # passwordless sudo (see common: wheelNeedsPassword = false)
 
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGApUnvphJshC3LJ4QxDu8fm3JqEnSWZ6ewhf6gQuF7V PopOS OCT 2024"
@@ -42,15 +42,15 @@
     ];
   };
 
-  # Herramientas CLI disponibles para todos los usuarios del sistema.
-  # NOTA: users.users.<name>.packages no existe en módulos NixOS puros
-  # (solo en home-manager); los paquetes van siempre aquí.
+  # CLI tools available to every user of the system.
+  # NOTE: users.users.<name>.packages does not exist in pure NixOS
+  # modules (only in home-manager); packages always go here.
   environment.systemPackages = with pkgs; [
     tree
     git
     curl
     wget
-    magic-wormhole # transferencia rápida de ficheros entre máquinas sin servidor intermedio
+    magic-wormhole # fast file transfer between machines without an intermediate server
     (pkgs.writeShellScriptBin "forgejo-admin" ''
       exec sudo -u ${config.services.forgejo.user} \
       ${config.services.forgejo.package}/bin/forgejo \
@@ -61,47 +61,47 @@
   services.forgejo = {
     enable = true;
 
-    # SQLite no requiere ningún servidor de base de datos adicional.
-    # Para producción con alta carga habría que migrar a PostgreSQL, pero
-    # para uso personal con pocos repositorios es perfectamente viable.
+    # SQLite needs no additional database server.
+    # Production with a heavy load would have to migrate to PostgreSQL, but
+    # for personal use with a few repositories it is perfectly viable.
     database.type = "sqlite3";
 
-    # Configuración de la aplicación (equivale a app.ini de Gitea/Forgejo).
-    # Referencia completa de opciones: https://forgejo.org/docs/latest/admin/config-cheat-sheet/
+    # Application configuration (equivalent to Gitea/Forgejo's app.ini).
+    # Full option reference: https://forgejo.org/docs/latest/admin/config-cheat-sheet/
     settings = {
-      # false → el registro está abierto; cualquiera puede crear cuenta.
-      # Poner a true una vez creado el admin para cerrar el registro público.
+      # false → registration is open; anyone can create an account.
+      # Set to true once the admin exists, to close public registration.
       service.DISABLE_REGISTRATION = true;
       actions.ENABLED = true;
 
       server = {
-        # Puerto donde escucha el servidor HTTP interno de Forgejo.
-        # Nginx u otro proxy inverso puede reenviar aquí si se quiere HTTPS.
+        # Port the internal Forgejo HTTP server listens on.
+        # Nginx or another reverse proxy can forward here if HTTPS is wanted.
         HTTP_PORT = 3000;
 
-        # Dominio que Forgejo usa para construir URLs absolutas (clones, emails…).
-        # Con "localhost" solo funciona desde el propio contenedor; cambiar a la
-        # IP o FQDN real del LXC cuando se configure un dominio permanente.
+        # Domain Forgejo uses to build absolute URLs (clones, emails…).
+        # With "localhost" it only works from inside the container; change to
+        # the real IP or FQDN of the LXC when a permanent domain is configured.
         DOMAIN = "192.168.18.31";
 
-        # URL raíz que aparece en los enlaces de la interfaz y en los hooks.
-        # Debe coincidir con DOMAIN. Si se añade un proxy inverso con HTTPS,
-        # cambiar a https://<dominio>/.
+        # Root URL that appears in interface links and hooks.
+        # Must match DOMAIN. If a reverse proxy with HTTPS is added,
+        # change to https://<domain>/.
         ROOT_URL = "http://192.168.18.31:3000/";
       };
     };
   };
 
-  # Abre el puerto del dashboard en el firewall interno del LXC.
-  # En Proxmox el tráfico entre la red del host y el LXC pasa por la
-  # interfaz de red virtual; sin esta regla el paquete se descartaría
-  # antes de llegar al proceso Forgejo.
+  # Open the dashboard port in the LXC's internal firewall.
+  # On Proxmox the traffic between the host network and the LXC goes through
+  # the virtual network interface; without this rule the packet would be dropped
+  # before reaching the Forgejo process.
   networking.firewall.allowedTCPPorts = [3000];
 
   nix.settings.trusted-users = ["nixos-forgejo"];
 
-  # Habilita los comandos `nix` y `nixos-rebuild --flake` dentro del LXC,
-  # necesarios para aplicar cambios de configuración desde el propio contenedor.
+  # Enable the `nix` and `nixos-rebuild --flake` commands inside the LXC,
+  # required to apply configuration changes from the container itself.
   nix.settings.experimental-features = ["nix-command" "flakes"];
 
   system.stateVersion = "26.05";

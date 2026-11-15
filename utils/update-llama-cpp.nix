@@ -52,8 +52,8 @@ pkgs.writeShellApplication {
     sed -i "s/llamacppVersion = \"[^\"]*\";/llamacppVersion = \"$VERSION\";/" "$TARGET_FILE"
     sed -i "s|llamacppHash = \"[^\"]*\";|llamacppHash = \"$HASH\";|" "$TARGET_FILE"
 
-    # Refrescar npmDepsHash. Nix solo revela el hash esperado tras un fallo de
-    # coincidencia, así que escribimos uno falso y construimos solo el FOD de npm.
+    # Refreshing npmDepsHash. Nix only reveals the expected hash after a
+    # mismatch, so we write a fake one and build only the npm FOD.
     echo "Refreshing npmDepsHash (forcing an expected hash mismatch)..."
     FAKE_NPM_HASH="sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
     sed -i "s|llamacppNpmHash = \"[^\"]*\";|llamacppNpmHash = \"$FAKE_NPM_HASH\";|" "$TARGET_FILE"

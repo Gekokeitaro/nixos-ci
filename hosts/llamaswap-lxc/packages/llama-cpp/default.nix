@@ -37,9 +37,9 @@ in
 
       # https://github.com/ggml-org/llama.cpp/issues/21724
       # https://drakerossman.com/blog/how-to-patch-a-package-source-on-nixos
-      # 30-May-26: En mi caso, DeviceLost sólo se arregla con el valor a 1, a costa de una pérdida significativa de rendimiento.
-      # El workaround viable sigue siendo aumentar el lockup_timeout.
-      # Sin embargo he encontrado mejoras de rendimiento experimentando con nodes_per_submit, por lo que dejo el parche para hacer fine-tuning.
+      # 30-May-26: In my case, DeviceLost is only fixed with the value set to 1, at the cost of a significant performance loss.
+      # The viable workaround is still raising lockup_timeout.
+      # However I have found performance gains experimenting with nodes_per_submit, so I keep the patch for fine-tuning.
       # 24-Jun-26: https://github.com/ggml-org/llama.cpp/pull/24872 -> FIXED b9782
       #postPatch = ''
       #  substituteInPlace ggml/src/ggml-vulkan/ggml-vulkan.cpp \
@@ -48,7 +48,7 @@ in
 
       # Enable native CPU optimizations (AVX, AVX2, etc.)
       cmakeFlags =
-        # Nos cargamos la flag con el valor por defecto para evitar que compile para todas las arquitecturas.
+        # Drop the flag's default value so it does not build for every architecture.
         (builtins.filter (f: !(lib.hasPrefix "-DCMAKE_HIP_ARCHITECTURES" f)) oldAttrs.cmakeFlags or [])
         ++ [
           "-DCMAKE_BUILD_TYPE=Release"
