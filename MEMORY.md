@@ -87,11 +87,11 @@ already moved it is not readable from the repository.
 
 ## Pending
 
-1. Normalize `hosts/nixos-pi-agent/config/models.json`: `baseUrl` has a double
-   slash (`...:20128//v1`), the API key is in clear text, `defaultModel`
-   (`gpt-oss-20b-NEO-IQ4_NL`) does not appear in the model list, and every
+1. Normalize `hosts/nixos-pi-agent/config/`. In `models.json`, `baseUrl` has a
+   double slash (`...:20128//v1`), the API key is in clear text, and every
    `contextWindow` (262144, or 131072 for the 27B) is larger than the
-   `--ctx-size` the model serves (65536 or 32768).
+   `--ctx-size` the model file serves (65536 or 32768). In `settings.json`,
+   `defaultModel` is `gpt-oss-20b-NEO-IQ4_NL`, which appears in no model list.
 2. Check the n8n broker: the runner points at port `5678`, but `5679` is
    published too.
 3. Decide what to do with `hosts/pihole-lxc/`: it exists but has no output in
