@@ -39,7 +39,9 @@ The workflow `.forgejo/workflows/deploy-llamaswap-rocm.yml` runs on the `ci`
 runner:
 
 - push to `main` → `nixos-rebuild switch` against `nixos-llamaswap-rocm`;
-- push to `llamaswap-rocm` → `nixos-rebuild test` (build only).
+- push to `llamaswap-rocm` → `nixos-rebuild test` (activates the new
+  configuration in the running system without making it the boot default, so a
+  reboot reverts it).
 
 The target is the SSH alias `nixos-llamaswap-rocm` → its address is in
 [INFRA.md](../../INFRA.md). The

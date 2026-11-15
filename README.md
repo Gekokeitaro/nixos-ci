@@ -54,7 +54,9 @@ host, and in [`MEMORY.md`](MEMORY.md) for the rest.
 `nixos-ci`:
 
 - push to `main` → `nixos-rebuild switch` against `nixos-llamaswap-rocm`;
-- push to `llamaswap-rocm` → `nixos-rebuild test` (build only).
+- push to `llamaswap-rocm` → `nixos-rebuild test` (activates the new
+  configuration in the running system without making it the boot default, so a
+  reboot reverts it).
 
 The deployment key is the sops secret `deploy-key`. A push to `main` is a
 production action.

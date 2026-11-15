@@ -57,7 +57,8 @@ sops-nix with `defaultSopsFile = ./secrets.yaml` and
 
 - Triggers: push to `main`, push to `llamaswap-rocm`, and manual dispatch.
 - `main` → `nixos-rebuild switch --flake .#nixos-llamaswap-rocm`.
-- `llamaswap-rocm` → `nixos-rebuild test` (builds without activating).
+- `llamaswap-rocm` → `nixos-rebuild test` (activates in the running system
+  without making it the boot default; a reboot reverts it).
 - The deploy key is read from
   `/run/credentials/forgejo-runner-ci.service/deploykey` and passed to Nix
   through `NIX_SSHOPTS`.
