@@ -9,6 +9,13 @@
 # 11.56 and 10.60. -b 2048 -ub 512 loses 2.8-4.3% of pp in that same process and
 # gains nothing on tg.
 # KV quantisation costs 11-19% of tg at d16384 (q8_0/q4_0 9.49, f16/q8_0 8.58 vs f16/f16 10.60).
+# Copy fidelity 2026-11-16 (llama.cpp 1.0.0, 10 reps per arm, this GGUF): the
+# deployed chain copied a 130-char tool path 0/10 times, dry_multiplier 0 with
+# everything else unchanged 10/10, presence_penalty 0 with DRY on 0/10, greedy with
+# every penalty off 10/10 and greedy with DRY 0.4 0/10. DRY corrupts (`500_AI` →
+# `501_AI`, `solution.js` → `solution_js`); presence is not the cause but it taxes
+# the same repeated tokens, so both go to 0. DRY was also the loop brake: loop
+# control now rests on reasoning_budget and max_tokens.
 {llama-server, modelLib}: {
   "Unsloth Qwen3.5 9B UD Q4_K_XL" = {
     name = "Unsloth Qwen3.5 9B UD Q4_K_XL";
@@ -24,9 +31,14 @@
     '';
 
     filters = modelLib.mkFilters {
-      default = modelLib.profiles.thinking;
-      coding = modelLib.profiles.coding;
-      instruct = modelLib.profiles.instruct;
+      default =
+        modelLib.profiles.thinking
+        // {
+          dry_multiplier = 0.0;
+          presence_penalty = 0.0;
+        };
+      coding = modelLib.profiles.coding // {dry_multiplier = 0.0;};
+      instruct = modelLib.profiles.instruct // {dry_multiplier = 0.0;};
     };
 
     ttl = 600;
