@@ -16,9 +16,20 @@
 # `501_AI`, `solution.js` → `solution_js`); presence is not the cause but it taxes
 # the same repeated tokens, so both go to 0. DRY was also the loop brake: loop
 # control now rests on reasoning_budget and max_tokens.
-{llama-server, modelLib}: {
-  "Unsloth Qwen3.5 9B UD Q4_K_XL" = {
-    name = "Unsloth Qwen3.5 9B UD Q4_K_XL";
+# Fixed-template variant 2026-11-16: the second entry loads
+# /models/templates/qwen/chat_template.jinja (froggeric qwen3.8-v22.5) over the
+# GGUF's embedded template; --jinja stays and no --reasoning-format is added, so the
+# template is the only variable. Expected: no empty-think poisoning, no aborted
+# tool+text turns, no history mutation that breaks the prefix cache. It is an
+# experiment: its client id is new, so no run of it compares to a folder of the
+# bare id.
+{llama-server, modelLib}: let
+  model = "Unsloth Qwen3.5 9B UD Q4_K_XL";
+
+  # Both entries serve one command, one request-level sampling and one timeout; the
+  # variant adds a single flag, so an A/B of the two client ids isolates the
+  # template.
+  shared = {
     cmd = ''
       ${llama-server} --port ''${PORT}
       --model /models/Qwen3.5-9B-UD-Q4_K_XL.gguf
@@ -42,5 +53,14 @@
     };
 
     ttl = 600;
+  };
+in {
+  "${model}" = shared // {
+    name = model;
+  };
+
+  "${model} (Fixed Template)" = shared // {
+    name = "${model} (Fixed Template)";
+    cmd = shared.cmd + "--chat-template-file /models/templates/qwen/chat_template.jinja\n";
   };
 }
