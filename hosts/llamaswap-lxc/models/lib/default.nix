@@ -96,9 +96,12 @@ in {
   # reference model on 2026-11-17 against the pre-DRY bare id: 28 OK against 13,
   # timeouts 5 against 24, and blocked writes down to three rows, none of them an
   # evaluator pass. Caveat: `t07` regressed 2/3 → 0/3 and the sample is one CORE, so
-  # it is a baseline, not a law.
+  # it is a baseline, not a law. The directory is a Git checkout of the upstream
+  # template repository, so a `git pull` can move the file under this path without
+  # any change here: it was verified against qwen3.8-froggeric-v22.5, 28,234 B,
+  # sha256 e57684ba…5349c4b2, and both are worth re-reading when output shifts.
   qwenTemplateArgs = ''
-    --chat-template-file /models/templates/qwen/chat_template.jinja
+    --chat-template-file /models/templates/Qwen-Fixed-Chat-Templates/chat_template.jinja
   '';
 
   # Request-level sampling, one attrset per role. The values are what the files
