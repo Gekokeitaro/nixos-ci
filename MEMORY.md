@@ -6,7 +6,7 @@
 > made, in `DECISIONS.md`. The state of the workspace repos lives in the root
 > `MEMORY.md`.
 
-Last updated: 2026-11-15.
+Last updated: 2026-11-17.
 
 ## Working tree
 
@@ -50,17 +50,17 @@ Qwen3.5-9B and Spark were measured; the detail lives in the root `MEMORY.md` and
 in `llama-bench-runner/MEMORY.md`.
 
 `spec-bench.sh` swept `--spec-draft-n-max` 2/3/4/6/8 on
-`Qwen3.5-9B-UD-Q4_K_XL.gguf` with llama.cpp `v0.9.0`: `2` wins, with 18.15 t/s
-against 11.36 without MTP at temp 0 (+60 %) and 13.91 against 11.39 at temp 1
-(+22 %, neutral prose and 1.63x on code). The `3` that was deployed then lost
-14 % of prose at temp 1.
+`Qwen3.5-9B-UD-Q4_K_XL.gguf` with llama.cpp `v0.9.0`: `2` won that round, with
+18.15 t/s against 11.36 without MTP at temp 0 (+60 %) and 13.91 against 11.39 at
+temp 1 (+22 %, neutral prose and 1.63x on code). The `v1.0.0` spec bench of the
+same GGUF replaced that round: `draft-mtp` with `n-max 1` is 1.311x global, and
+adding `ngram-mod` at 24:32:64 is 1.359x, which is the preset the file serves.
 
-`Unsloth-Qwen3.5-9B-UD-Q4_K_XL.nix` serves the winner:
-`${modelLib.specArgs.mtp {nMax = 2;}}`, which renders
-`--spec-type draft-mtp --spec-draft-n-max 2` for
-`Qwen3.5-9B-UD-Q4_K_XL.gguf`. The host's rendered config carried those two flags
-when it was read on 2026-11-14, before the fragment-library refactor; the
-rendering of `697c811` has not been read yet (see Pending).
+`Unsloth-Qwen3.5-9B-UD-Q4_K_XL.nix` writes those flags itself, because the combo
+spans two spec types and the library fragment covers one. The host's rendered
+config carried the `v0.9.0` flags `--spec-type draft-mtp --spec-draft-n-max 2`
+when it was read on 2026-11-14; the new preset is committed and not deployed, and
+the rendering of `6778922` has not been read either (see Pending).
 
 The scripts' pin (`llamaBenchRunner`) is not bumped by hand: the deploy workflow
 runs `nix run .#update-llama-bench-runner` before building and adopts the

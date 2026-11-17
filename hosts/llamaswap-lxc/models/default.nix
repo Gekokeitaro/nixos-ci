@@ -2,8 +2,8 @@
   lib = pkgs.lib;
 
   # The shared fragments, imported here and nowhere else: every model file
-  # receives them as `modelLib`.
-  modelLib = import ./lib;
+  # receives them as `modelLib`. It takes `pkgs` for the pinned chat template.
+  modelLib = import ./lib {inherit pkgs;};
 
   # One model per .nix file; archived/ is a directory and does not count.
   isModelFile = name: type:

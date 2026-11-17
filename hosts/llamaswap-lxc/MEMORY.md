@@ -5,7 +5,7 @@ State of this host and what is still open. Mechanics live in
 [`../../skills/model-files/SKILL.md`](../../skills/model-files/SKILL.md); what is
 deployed on the host, in [`../../MEMORY.md`](../../MEMORY.md).
 
-Last updated: 2026-11-15.
+Last updated: 2026-11-17.
 
 ## Sampling
 
@@ -65,6 +65,21 @@ thing to check when a model is short on memory.
 `--ctx-size` is not the knob to cut: it is what the agentic use case needs. Bound
 everything else first, then experiment upward while the process stays under the
 16 GiB soft limit (20 GiB of RAM is the hard wall and OOMs the container).
+
+## Pending: the reference model's preset is committed, not deployed
+
+- The tree serves `Unsloth Qwen3.5 9B UD Q4_K_XL` with one MTP implementation:
+  `--spec-type draft-mtp,ngram-mod --spec-draft-n-max 1
+  --spec-ngram-mod-n-match 24 --spec-ngram-mod-n-min 32 --spec-ngram-mod-n-max 64`,
+  and `--ctx-size 196608`, the largest 32k multiple under the measured 217088
+  ceiling. The commit is local; nothing of it is on `nixos-llamaswap-rocm` yet.
+- The gate reference is the control CORE at the old configuration — 65536 of
+  context and `draft-mtp` with `n-max 2` — which was still running when these
+  numbers were committed. A deploy during that run invalidates it, so the deploy
+  comes after the run ends and its result is read.
+- The fixed chat template no longer comes from the `/models/templates/` checkout:
+  a pinned `fetchurl` of the same bytes (28,234 B, same sha256) takes its place.
+  That changes no behaviour, so it needs no CORE of its own.
 
 ## Open: spec type
 

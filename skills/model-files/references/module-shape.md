@@ -76,8 +76,11 @@ Forbidden in a model file:
 | `mkFilters roles` | `{setParamsByID = …}` | always, when the file has filters |
 | `dryVariants {budgets}` | `dry`, `dry-budget-<label>`, `dry-budget-<label>-msg`, `dry-budget-<label>-empty-msg` | the file serves a reasoning budget |
 | `specArgs.mtp` | `--spec-type draft-mtp`, optional `-md`, `--spec-draft-n-min`, `--spec-draft-n-max`, `--spec-draft-p-min` | the speculative preset uses an MTP head |
-| `specArgs.eagle` | the same, with `--spec-type draft-eagle3` | the preset uses an EAGLE draft |
-| `specArgs.dspark` | the same, with `--spec-type draft-dspark` | the preset uses a dspark draft |
+
+There is no `specArgs` entry for a type that needs its own draft GGUF: this host has
+no EAGLE or DSpark draft, and none is going to be converted. A file that serves the
+`draft-mtp,ngram-mod` combo writes its `--spec-*` flags in `cmd` instead, because the
+fragment renders one type.
 
 `mkFilters` renders the key of the `default` role as the bare `${MODEL_ID}` and
 every other role as `${MODEL_ID}:<role>`, so the client-id suffixes have one

@@ -1,9 +1,10 @@
-# Fragments shared by the model files in models/. A plain attrset, not a
-# function: models/default.nix imports it once and passes it to every file as
-# `modelLib`. A model file never imports it itself.
+# Fragments shared by the model files in models/. It takes `pkgs`, and only
+# because the pinned chat template below is a fixed-output derivation:
+# models/default.nix imports it once and passes it to every file as `modelLib`. A
+# model file never imports it itself.
 #
 # The convention is owned by skills/model-files/references/module-shape.md.
-let
+{pkgs}: let
   # Request-level DRY parameters. The same four numbers reach llama.cpp as
   # `--dry-*` server flags through `dryArgs`, or per request through a filter.
   dry = {
@@ -57,6 +58,18 @@ let
       (flag "--spec-draft-n-max" nMax)
       (flag "--spec-draft-p-min" pMin)
     ];
+
+  # The chat template `qwenTemplateArgs` points at. It is fetched from the commit
+  # instead of read out of the `/models/templates/` checkout, and the bytes are the
+  # same: qwen3.8-froggeric-v22.5, 28,234 B, sha256 e57684ba…5349c4b2. That
+  # checkout stops being a dependency of the build, and moving to another template
+  # is now a two-hash diff — this `hash` and this URL's commit — instead of a
+  # `git pull` inside `/models/` that no commit here would record. The pin changes
+  # no behaviour, so it needs no new CORE: the run below stands for it.
+  qwenTemplate = pkgs.fetchurl {
+    url = "https://huggingface.co/froggeric/Qwen-Fixed-Chat-Templates/resolve/855bffc49448e299789730ff92c9b8d834d6cc14/chat_template.jinja";
+    hash = "sha256-5XaEuuQVYhGlVHPFpjvpdqQFo3q1vlrg5avx31NJxLI=";
+  };
 in {
   # Host invariants: offload every layer to the GPU, flash attention, one slot and
   # the Jinja chat template. Every model on this host carries them.
@@ -96,12 +109,9 @@ in {
   # reference model on 2026-11-17 against the pre-DRY bare id: 28 OK against 13,
   # timeouts 5 against 24, and blocked writes down to three rows, none of them an
   # evaluator pass. Caveat: `t07` regressed 2/3 → 0/3 and the sample is one CORE, so
-  # it is a baseline, not a law. The directory is a Git checkout of the upstream
-  # template repository, so a `git pull` can move the file under this path without
-  # any change here: it was verified against qwen3.8-froggeric-v22.5, 28,234 B,
-  # sha256 e57684ba…5349c4b2, and both are worth re-reading when output shifts.
+  # it is a baseline, not a law.
   qwenTemplateArgs = ''
-    --chat-template-file /models/templates/Qwen-Fixed-Chat-Templates/chat_template.jinja
+    --chat-template-file ${qwenTemplate}
   '';
 
   # Request-level sampling, one attrset per role. The values are what the files
@@ -182,10 +192,13 @@ in {
     budgets;
 
   # `--spec-*` are server flags: they go in `cmd`, never in `filters`. The knobs are
-  # the ones a model file already carries; the type name is llama.cpp's.
+  # the ones a model file already carries; the type name is llama.cpp's. `mtp`
+  # stays because its head is embedded in the GGUF the file already serves: no
+  # draft model is needed, and live files interpolate it. `eagle3` and `dspark` were
+  # dropped, not parked: both need a separate draft GGUF, this host has none, and
+  # none is going to be converted, so re-adding one only puts back an attribute no
+  # file can use.
   specArgs = {
     mtp = draftPath "draft-mtp";
-    eagle = draftPath "draft-eagle3";
-    dspark = draftPath "draft-dspark";
   };
 }
