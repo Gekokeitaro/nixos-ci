@@ -192,12 +192,16 @@ in {
     budgets;
 
   # `--spec-*` are server flags: they go in `cmd`, never in `filters`. The knobs are
-  # the ones a model file already carries; the type name is llama.cpp's. `mtp`
-  # stays because its head is embedded in the GGUF the file already serves: no
-  # draft model is needed, and live files interpolate it. `eagle3` and `dspark` were
-  # dropped, not parked: both need a separate draft GGUF, this host has none, and
-  # none is going to be converted, so re-adding one only puts back an attribute no
-  # file can use.
+  # the ones a model file already carries; the type name is llama.cpp's. `mtp` stays
+  # because live files interpolate it and its head is embedded in the GGUF they
+  # serve. `eagle` was dropped because no model file interpolates it and the EAGLE3
+  # entry is not written yet — the draft does exist
+  # (`/models/Qwen3.5-9B-Eagle3-ShareGPT-Q4_K_M.gguf`, 272 MiB), it loads on 1.0.0
+  # and measured 1.159x global at `n-max 1`, which is poison for prose and json,
+  # -6.7 % on code and +861 MiB: put the fragment back when that entry is written.
+  # `dspark` was dropped because no draft GGUF exists for it at all. `dflash` was
+  # never here and does not belong: its draft fails to load on 1.0.0
+  # (`dflash.attention.causal` type) and is not going to be reconverted.
   specArgs = {
     mtp = draftPath "draft-mtp";
   };
