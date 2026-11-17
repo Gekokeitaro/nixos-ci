@@ -90,6 +90,17 @@ in {
     --dry-multiplier 0.4 --dry-base 1.75 --dry-allowed-length 3 --dry-penalty-last-n 2048
   '';
 
+  # The fixed chat template of the Qwen family (3.5/3.6/3.8): froggeric
+  # qwen3.8-v22.5 over whatever template the GGUF embeds. A model adopts it when
+  # its own test round runs, not before. It rests on one guarded CORE of the
+  # reference model on 2026-11-17 against the pre-DRY bare id: 28 OK against 13,
+  # timeouts 5 against 24, and blocked writes down to three rows, none of them an
+  # evaluator pass. Caveat: `t07` regressed 2/3 → 0/3 and the sample is one CORE, so
+  # it is a baseline, not a law.
+  qwenTemplateArgs = ''
+    --chat-template-file /models/templates/qwen/chat_template.jinja
+  '';
+
   # Request-level sampling, one attrset per role. The values are what the files
   # already served: where two of them disagreed, the majority value is here and the
   # file overrides it with `//`.
