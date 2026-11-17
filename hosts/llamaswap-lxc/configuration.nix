@@ -35,10 +35,10 @@
 
   llamaBenchRunner = pkgs.fetchgit {
     url = "https://gitlab.com/Gekokeitaro/llama-bench-runner.git";
-    rev = "60f52ddeb5e5ca67edcfc0b7d7926a3cd5369f0a";
+    rev = "139c6f1f7e9edf2132f912f87ed6a3111d3aac44";
     # No submodules, which is what update-llama-bench-runner assumes when prefetching.
     fetchSubmodules = false;
-    hash = "sha256-wRapC5mjsPuUEC2qiaof6vpSTraNODNhh1RorQgarKQ=";
+    hash = "sha256-O+104HklxJGf0N6DmITsiI1be98BrNgYOr3//od/9P4=";
   };
 
   # The repo's scripts, packaged in bin/ (read-only store).
