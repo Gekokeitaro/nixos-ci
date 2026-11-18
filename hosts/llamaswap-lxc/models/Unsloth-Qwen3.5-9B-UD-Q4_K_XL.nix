@@ -4,12 +4,13 @@
 # takes it to 1.359x — prose 1.223, code 1.894, json 1.609, acceptance 0.5875, RSS
 # 9555 MiB, +336 MiB over MTP alone. The combo is what the file serves, and it is the
 # only MTP implementation it carries: no second entry with MTP alone.
-# Context 2026-11-17 (llama.cpp 1.0.0, this GGUF): the ceiling measures 217088 tokens
-# with a margin of 135 MiB (VmHWM 14201 against an allowance of 14336), so the served
-# window is the largest 32k multiple under it, 196608, with `--ctx-checkpoints 4` kept
-# — at 192k the cache plateaus, +83 MiB over 8 turns of 256 tokens. Load peak
-# 13469 MiB, and 13998 MiB with the cache full at 192k. Cold load 10.13 s median, 2 s
-# of which is `llama-server-delayed`.
+# Context 2026-11-17-18 (llama.cpp 1.0.0, this GGUF): the ceiling measures 217088 tokens
+# with a margin of 135 MiB (VmHWM 14201 against an allowance of 14336), so the grid allows
+# 196608. **Served at 163840**: under `spec-bench` load the candidate peaks at 14292 MiB,
+# which leaves 44 MiB of the 14336 allowance at 192k - not margin, luck. 160k buys back
+# about a gigabyte for a 17 % narrower window, and it is still a multiple of 32k.
+# `--ctx-checkpoints 4` kept: at this depth the cache plateaus, +83 MiB over 8 turns of
+# 256 tokens. Cold load 10.13 s median, 2 s of which is `llama-server-delayed`.
 # Battery 2026-11-12 (llama.cpp 0.9.0): tg64 base 11.10, guards 10.55-11.66, peak VRAM+GTT 5541-9809 MiB.
 # Winner: -b 256 -ub 128 -ctk f16 -ctv f16, the memory flags below. One run of the four
 # b/ub pairs: pp512/pp4096 169.64/164.38 at d0 and 135.01/134.04 at d16384, tg128
@@ -38,7 +39,7 @@
       ${modelLib.deviceArgs}
       ${modelLib.checkpointArgs}
       ${modelLib.memDefault}
-      --ctx-size 196608
+      --ctx-size 163840
       ${modelLib.dryArgs}
       ${modelLib.qwenTemplateArgs}
     '';

@@ -90,17 +90,19 @@ Refresh `pi`'s catalog (`pi update --models`, `/omni sync`) before any run: an i
 absent from the snapshot cannot be addressed, and the snapshot expires after 60
 minutes. Measuring the roles one at a time is session 8 of the workspace `PLAN.md`.
 
-## Pending: the reference model's preset is committed, not deployed
+## The reference model's preset: deployed and gated
 
-- The tree serves `Unsloth Qwen3.5 9B UD Q4_K_XL` with one MTP implementation:
+- The host serves `Unsloth Qwen3.5 9B UD Q4_K_XL` with one MTP implementation:
   `--spec-type draft-mtp,ngram-mod --spec-draft-n-max 1
   --spec-ngram-mod-n-match 24 --spec-ngram-mod-n-min 32 --spec-ngram-mod-n-max 64`,
-  and `--ctx-size 196608`, the largest 32k multiple under the measured 217088
-  ceiling. The commit is local; nothing of it is on `nixos-llamaswap-rocm` yet.
-- The gate reference is the control CORE at the old configuration — 65536 of
-  context and `draft-mtp` with `n-max 2` — which was still running when these
-  numbers were committed. A deploy during that run invalidates it, so the deploy
-  comes after the run ends and its result is read.
+  and `--ctx-size 163840` — a multiple of 32k, chosen for margin (see below).
+- **Deployed and gated 2026-11-18.** The gate CORE `-k 3` gave 27 `OK` / 44 `FAIL` /
+  4 `TIMEOUT` against the control's 28 / 39 / 8 (median 102 s against 105 s): inside the
+  tie band, no test the control passed went to zero, `t03` and `t10` newly pass.
+- **Why 160k and not 192k.** The measured ceiling is 217088 with `mtp n-max 2` and
+  196608 with the candidate, but under `spec-bench` load the candidate peaks at
+  14292 MiB against an allowance of 14336 at 192k: 44 MiB, which is luck, not margin.
+  160k buys about a gigabyte back for a 17 % narrower window.
 - The fixed chat template no longer comes from the `/models/templates/` checkout:
   a pinned `fetchurl` of the same bytes (28,234 B, same sha256) takes its place.
   That changes no behaviour, so it needs no CORE of its own.
