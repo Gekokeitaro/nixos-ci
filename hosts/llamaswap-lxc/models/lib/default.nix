@@ -57,6 +57,17 @@
     dry_multiplier = 0.0;
   };
 
+  # Reasoning off through the chat template, not through a sampling value. The server
+  # defaults carry the sampling; this only closes the thinking block. It lives in the
+  # `let`, not inside `profiles`, because `profiles.roles.instruct` composes it and an
+  # attribute set is not recursive: a sibling key is not in scope inside `roles`.
+  # `profiles.noThink` stays as an alias for the three model files that read it.
+  noThink = {
+    chat_template_kwargs = {
+      enable_thinking = false;
+    };
+  };
+
   # `--flag value`, or nothing when the knob is left at the server default.
   flag = name: value:
     if value == null
@@ -166,13 +177,10 @@ in {
       repeat_penalty = 1.0;
     };
 
-    # Reasoning off through the chat template, not through a sampling value. The
-    # server defaults carry the sampling; this only closes the thinking block.
-    noThink = {
-      chat_template_kwargs = {
-        enable_thinking = false;
-      };
-    };
+    # Alias of the `let`-bound `noThink`: the three model files that serve this filter
+    # read it here, while `roles.instruct` below needs the `let` binding, since an
+    # attribute set is not recursive and a sibling key is not in scope inside `roles`.
+    noThink = noThink;
 
     # Agentic default of a model that samples its own agent loop.
     agent = {
