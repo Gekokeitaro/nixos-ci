@@ -34,13 +34,16 @@ separates them:
 | Mechanism | Use when | In this repo |
 |---|---|---|
 | `let` binding | a constant several fragments share; the value is in scope everywhere in the file | `roleBase`, `noThinkParams`, `dryParams` |
-| builder function | a fragment composes another: take it as a parameter, so the dependency sits in the signature instead of the surrounding scope | `budgetRoles = {label, budget}:`, `dryVariants = {budgets ? …}:`, `mkFilters = roles:`, `overrideAttrs (oldAttrs: …)` |
+| builder function | a fragment composes another: take it as a parameter, so the dependency sits in the signature instead of the surrounding scope | `budgetRoles = {label, budget}:`, `dryVariants = {budgets ? …}:`, `mkFilters = roles:`, `mkRoles = {roleBase, noThinkParams}:`, `overrideAttrs (oldAttrs: …)` |
 | `rec { … }` | the set genuinely refers to itself | one instance: `oldAttrs: rec { … }` in `packages/llama-cpp/default.nix` |
 | `lib.fix (self: …)` | a self-referential set that must also stay overridable | not used here; `lib.fix` appears nowhere in this repo |
 
-The dominant idiom is the builder, so a fragment that composes another can take it
-as an argument rather than closing over it: `roles` would write as
-`mkRoles = {roleBase, noThinkParams}: …` if the implicit dependency ever bites.
+The dominant idiom is the builder, so a fragment that composes another takes it as
+an argument rather than closing over it: `roles` is
+`mkRoles = {roleBase, noThinkParams}: …`, and `profiles.roles` binds it with
+`mkRoles {inherit roleBase noThinkParams;}`. The dependency is visible in the
+signature, so moving either binding or making the surrounding set `rec` cannot
+silently change what it captures.
 
 `rec` costs two things. An alias `x = x;` inside it becomes a self-reference and
 Nix fails with infinite recursion. A set later extended with `//` does not

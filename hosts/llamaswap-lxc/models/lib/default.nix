@@ -62,15 +62,74 @@
   };
 
   # Reasoning off through the chat template, not through a sampling value. The server
-  # defaults carry the sampling; this only closes the thinking block. It lives in the
-  # `let`, not inside `profiles`, because `profiles.roles.instruct` composes it and an
-  # attribute set is not recursive: a sibling key is not in scope inside `roles`.
-  # `profiles.noThink` stays as an alias for the three model files that read it; the
-  # binding carries the `Params` suffix so neither alias reads as `x = x;`.
+  # defaults carry the sampling; this only closes the thinking block. It reaches the
+  # `instruct` role as an argument of `mkRoles` below, not by sitting in whatever set
+  # surrounds it. `profiles.noThink` stays as an alias for the three model files that
+  # read it; the binding carries the `Params` suffix so neither alias reads as `x = x;`.
   noThinkParams = {
     chat_template_kwargs = {
       enable_thinking = false;
     };
+  };
+
+  # The roles of a coding loop, as a function of the two fragments it composes. The
+  # dependency is in the signature, not in the surrounding `let`, so moving either
+  # binding or making `profiles` recursive cannot silently change what this captures:
+  # the deploy of 2026-11-18 failed with `error: undefined variable 'noThink'` on
+  # exactly that. One entry serves them all through `mkFilters`, so the values are
+  # request-level: one `cmd`, one speculative preset, no reload between them. Each role
+  # moves exactly one axis off the `roleBase` it is given — `instruct` is the exception:
+  # it adds the thinking-off trait instead. The axis and its reason are stated on each
+  # entry. `reasoning_budget` is the field the library already uses (`dry-budget-*`),
+  # with no forcing message here.
+  mkRoles = {roleBase, noThinkParams}: {
+    # Plans. Axis: budget 6144, the larger of the two budgets this library ships,
+    # because this role writes the longest single thinking block. Temperature stays
+    # at `thinking`'s 1.0 — a plan explores, and the budget bounds it instead.
+    planner = roleBase // {
+      temperature = 1.0;
+      reasoning_budget = 6144;
+    };
+
+    # Writes the code. Axis: temperature 0.6, `coding`'s value. No budget: a chain
+    # forced shut mid-edit truncates the work instead of ending a loop.
+    implementer = roleBase // {temperature = 0.6;};
+
+    # Reads code and judges it. Axis: budget 4096, the smaller shipped budget, for a
+    # bounded judgement; temperature is `coding`'s 0.6. The control's reviewer row is
+    # 0/6 and its failures were timeouts, which is what a budget cuts.
+    reviewer = roleBase // {
+      temperature = 0.6;
+      reasoning_budget = 4096;
+    };
+
+    # Dispatches and triages. Axis: budget 4096, at `agent`'s temperature 0.7. It is
+    # the loop that repeats until it times out, and the budget is the loop brake this
+    # entry relies on.
+    supervisor = roleBase // {
+      temperature = 0.7;
+      reasoning_budget = 4096;
+    };
+
+    # Resolves a merge between two written sides. Axis: temperature 0.7, from
+    # `instruct`/`agent`: it chooses between what exists instead of composing new
+    # code. No budget, for the same reason as the implementer.
+    integrator = roleBase // {temperature = 0.7;};
+
+    # The only role with the thinking block closed: the `noThinkParams` argument
+    # carries `chat_template_kwargs.enable_thinking = false`, the mechanism three model
+    # files already serve. Reasoning off is a general-purpose variant, not a stage
+    # of the coding loop, so it is a role of its own and it keeps `roleBase`: the
+    # same top_k/top_p/min_p as the rest, because the spec preset in `cmd` is
+    # shared. Temperature 0.7 is what the reference's `:instruct` id served and
+    # what the `instruct`/`agent` family uses.
+    #
+    # Not the same thing as `profiles.instruct`, despite the name: that profile is
+    # sampling only (temperature, top_p, presence) with reasoning left on, and it
+    # is what four fork and David AU files serve. This role takes the trait, not
+    # the sampling. Renaming the old profile touches seven files and is another
+    # session.
+    instruct = roleBase // noThinkParams // {temperature = 0.7;};
   };
 
   # `--flag value`, or nothing when the knob is left at the server default.
@@ -183,9 +242,10 @@ in {
     };
 
     # Alias of the `let`-bound `noThinkParams`: the three model files that serve this
-    # filter read it here, while `roles.instruct` below needs the `let` binding. The
-    # key stays `noThink` and the binding carries the `Params` suffix, so this alias is
-    # not an `x = x;` that only the set's non-recursiveness keeps from looping.
+    # filter read it here, and `roles` receives the same binding through `mkRoles`.
+    # The key stays `noThink` and the binding carries the `Params` suffix, so this
+    # alias is not an `x = x;` that only the set's non-recursiveness keeps from
+    # looping.
     noThink = noThinkParams;
 
     # Agentic default of a model that samples its own agent loop.
@@ -198,61 +258,9 @@ in {
       repeat_penalty = 1.1;
     };
 
-    # The roles of a coding loop. One entry serves them all through `mkFilters`, so
-    # they are request-level: one `cmd`, one speculative preset, no reload between
-    # them. Each role moves exactly one axis off `roleBase` — `instruct` is the
-    # exception: it adds the thinking-off trait instead. The axis and its reason are
-    # stated on each entry. `reasoning_budget` is the field the library already uses
-    # (`dry-budget-*`), with no forcing message here.
-    roles = {
-      # Plans. Axis: budget 6144, the larger of the two budgets this library ships,
-      # because this role writes the longest single thinking block. Temperature stays
-      # at `thinking`'s 1.0 — a plan explores, and the budget bounds it instead.
-      planner = roleBase // {
-        temperature = 1.0;
-        reasoning_budget = 6144;
-      };
-
-      # Writes the code. Axis: temperature 0.6, `coding`'s value. No budget: a chain
-      # forced shut mid-edit truncates the work instead of ending a loop.
-      implementer = roleBase // {temperature = 0.6;};
-
-      # Reads code and judges it. Axis: budget 4096, the smaller shipped budget, for a
-      # bounded judgement; temperature is `coding`'s 0.6. The control's reviewer row is
-      # 0/6 and its failures were timeouts, which is what a budget cuts.
-      reviewer = roleBase // {
-        temperature = 0.6;
-        reasoning_budget = 4096;
-      };
-
-      # Dispatches and triages. Axis: budget 4096, at `agent`'s temperature 0.7. It is
-      # the loop that repeats until it times out, and the budget is the loop brake this
-      # entry relies on.
-      supervisor = roleBase // {
-        temperature = 0.7;
-        reasoning_budget = 4096;
-      };
-
-      # Resolves a merge between two written sides. Axis: temperature 0.7, from
-      # `instruct`/`agent`: it chooses between what exists instead of composing new
-      # code. No budget, for the same reason as the implementer.
-      integrator = roleBase // {temperature = 0.7;};
-
-      # The only role with the thinking block closed: `noThinkParams` carries
-      # `chat_template_kwargs.enable_thinking = false`, the mechanism three model
-      # files already serve. Reasoning off is a general-purpose variant, not a stage
-      # of the coding loop, so it is a role of its own and it keeps `roleBase`: the
-      # same top_k/top_p/min_p as the rest, because the spec preset in `cmd` is
-      # shared. Temperature 0.7 is what the reference's `:instruct` id served and
-      # what the `instruct`/`agent` family uses.
-      #
-      # Not the same thing as `profiles.instruct`, despite the name: that profile is
-      # sampling only (temperature, top_p, presence) with reasoning left on, and it
-      # is what four fork and David AU files serve. This role takes the trait, not
-      # the sampling. Renaming the old profile touches seven files and is another
-      # session.
-      instruct = roleBase // noThinkParams // {temperature = 0.7;};
-    };
+    # The roles of a coding loop, built by `mkRoles`: the two fragments it composes
+    # travel as arguments, so this key depends on nothing that surrounds it.
+    roles = mkRoles {inherit roleBase noThinkParams;};
 
     dry = dryParams;
   };
