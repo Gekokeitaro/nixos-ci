@@ -7,7 +7,11 @@
 {pkgs}: let
   # Request-level DRY parameters. The same four numbers reach llama.cpp as
   # `--dry-*` server flags through `dryArgs`, or per request through a filter.
-  dry = {
+  # The binding carries the `Params` suffix because `profiles` and `dryVariants`
+  # expose a key called `dry`: naming both `dry` would put an `x = x;` shape in
+  # the file, and that shape becomes infinite recursion the moment a `rec` is
+  # written on the enclosing set. The rename is the guard, not a style choice.
+  dryParams = {
     dry_multiplier = 0.4;
     dry_base = 1.75;
     dry_allowed_length = 3;
@@ -29,12 +33,12 @@
   ];
 
   budgetRoles = {label, budget}: {
-    "dry-budget-${label}" = dry // {reasoning_budget = budget;};
-    "dry-budget-${label}-msg" = dry // {
+    "dry-budget-${label}" = dryParams // {reasoning_budget = budget;};
+    "dry-budget-${label}-msg" = dryParams // {
       reasoning_budget = budget;
       reasoning_budget_message = "Enough think. Act now. Finish task. No loops.";
     };
-    "dry-budget-${label}-empty-msg" = dry // {
+    "dry-budget-${label}-empty-msg" = dryParams // {
       reasoning_budget = budget;
       reasoning_budget_message = "...";
     };
@@ -61,8 +65,9 @@
   # defaults carry the sampling; this only closes the thinking block. It lives in the
   # `let`, not inside `profiles`, because `profiles.roles.instruct` composes it and an
   # attribute set is not recursive: a sibling key is not in scope inside `roles`.
-  # `profiles.noThink` stays as an alias for the three model files that read it.
-  noThink = {
+  # `profiles.noThink` stays as an alias for the three model files that read it; the
+  # binding carries the `Params` suffix so neither alias reads as `x = x;`.
+  noThinkParams = {
     chat_template_kwargs = {
       enable_thinking = false;
     };
@@ -177,10 +182,11 @@ in {
       repeat_penalty = 1.0;
     };
 
-    # Alias of the `let`-bound `noThink`: the three model files that serve this filter
-    # read it here, while `roles.instruct` below needs the `let` binding, since an
-    # attribute set is not recursive and a sibling key is not in scope inside `roles`.
-    noThink = noThink;
+    # Alias of the `let`-bound `noThinkParams`: the three model files that serve this
+    # filter read it here, while `roles.instruct` below needs the `let` binding. The
+    # key stays `noThink` and the binding carries the `Params` suffix, so this alias is
+    # not an `x = x;` that only the set's non-recursiveness keeps from looping.
+    noThink = noThinkParams;
 
     # Agentic default of a model that samples its own agent loop.
     agent = {
@@ -232,7 +238,7 @@ in {
       # code. No budget, for the same reason as the implementer.
       integrator = roleBase // {temperature = 0.7;};
 
-      # The only role with the thinking block closed: `noThink` carries
+      # The only role with the thinking block closed: `noThinkParams` carries
       # `chat_template_kwargs.enable_thinking = false`, the mechanism three model
       # files already serve. Reasoning off is a general-purpose variant, not a stage
       # of the coding loop, so it is a role of its own and it keeps `roleBase`: the
@@ -245,10 +251,10 @@ in {
       # is what four fork and David AU files serve. This role takes the trait, not
       # the sampling. Renaming the old profile touches seven files and is another
       # session.
-      instruct = roleBase // noThink // {temperature = 0.7;};
+      instruct = roleBase // noThinkParams // {temperature = 0.7;};
     };
 
-    dry = dry;
+    dry = dryParams;
   };
 
   # `{setParamsByID = …;}` for exactly the roles it is given: `default` renders as
@@ -264,12 +270,12 @@ in {
       }) (builtins.attrNames roles));
   };
 
-  # `dry` plus three roles per budget: the bare budget, the forcing message and the
-  # empty message. Spread it with `//` inside `mkFilters`.
+  # `dryParams` plus three roles per budget: the bare budget, the forcing message and
+  # the empty message. Spread it with `//` inside `mkFilters`.
   dryVariants = {budgets ? defaultBudgets}:
     builtins.foldl'
     (roles: budget: roles // budgetRoles budget)
-    {dry = dry;}
+    {dry = dryParams;}
     budgets;
 
   # `--spec-*` are server flags: they go in `cmd`, never in `filters`. The knobs are
