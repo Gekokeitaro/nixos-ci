@@ -75,7 +75,9 @@ and the control of 2026-11-18, plus `:planner`, `:implementer`, `:reviewer`,
 (`modelLib.profiles.roles`), so moving between two of the seven reloads nothing; the
 trait or axis each role carries, and why, is commented in `models/lib/default.nix`.
 `instruct` is the only one that closes the thinking block, through
-`chat_template_kwargs.enable_thinking = false`.
+`chat_template_kwargs.enable_thinking = false`. It is a general variant, not a factory
+stage: its proposed suite — extraction, triage and edition tests plus `annex`, judged on
+hits and median seconds per turn — lives as pending item 1 in `ai-tests/MEMORY.md`.
 
 **Open: `enable_thinking` as a request parameter has not been read back.** It is
 documented in llama.cpp 1.0.0 and three model files already carry the `noThink`
