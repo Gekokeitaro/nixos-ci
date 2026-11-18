@@ -66,15 +66,23 @@ thing to check when a model is short on memory.
 everything else first, then experiment upward while the process stays under the
 16 GiB soft limit (20 GiB of RAM is the hard wall and OOMs the container).
 
-## The reference model's six ids
+## The reference model's seven ids
 
-`models/Unsloth-Qwen3.5-9B-UD-Q4_K_XL.nix` serves one entry and one `cmd` under six
+`models/Unsloth-Qwen3.5-9B-UD-Q4_K_XL.nix` serves one entry and one `cmd` under seven
 client ids: the bare `Unsloth Qwen3.5 9B UD Q4_K_XL`, which is the measured default
 and the control of 2026-11-18, plus `:planner`, `:implementer`, `:reviewer`,
-`:supervisor` and `:integrator`. The five roles are request-level values
-(`modelLib.profiles.roles`), so moving between two of the six reloads nothing; the
-axis each role moves, and why, is commented in `models/lib/default.nix`. This entry
-no longer serves `:coding` or `:instruct`.
+`:supervisor`, `:integrator` and `:instruct`. The six roles are request-level values
+(`modelLib.profiles.roles`), so moving between two of the seven reloads nothing; the
+trait or axis each role carries, and why, is commented in `models/lib/default.nix`.
+`instruct` is the only one that closes the thinking block, through
+`chat_template_kwargs.enable_thinking = false`.
+
+**Open: `enable_thinking` as a request parameter has not been read back.** It is
+documented in llama.cpp 1.0.0 and three model files already carry the `noThink`
+filter, but the only form this repo has put through a running server is the flag,
+and Gemma's instruct entry sets it to `true` there. The first request against
+`:instruct` must show in its own output that the thinking block is really closed;
+if it is not, the fallback is a `cmd` flag, which would mean a second entry.
 
 Refresh `pi`'s catalog (`pi update --models`, `/omni sync`) before any run: an id
 absent from the snapshot cannot be addressed, and the snapshot expires after 60

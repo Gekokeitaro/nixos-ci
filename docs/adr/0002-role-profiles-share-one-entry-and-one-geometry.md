@@ -18,23 +18,29 @@ longer be comparable to the control of 2026-11-18 or to the other roles.
 
 ## Decision
 
-- The five roles live in `modelLib.profiles.roles`, over a shared `roleBase` that
+- The six roles live in `modelLib.profiles.roles`, over a shared `roleBase` that
   holds every value the roles must keep equal: `top_p 0.95`, `top_k 20`,
   `min_p 0.0`, `presence_penalty 0.0`, `repeat_penalty 1.0` and
   `dry_multiplier 0.0`.
-- Each role moves exactly one axis: temperature or reasoning budget. The axis and
-  its reason are commented on each entry of `profiles.roles`.
+- Each role moves exactly one axis — temperature or reasoning budget — except
+  `instruct`, which adds the thinking-off trait instead. The axis and its reason
+  are commented on each entry of `profiles.roles`.
 - `presence_penalty` and DRY are per-GGUF corrections, not role axes: the reference
   model's copy round of 2026-11-16 took both to 0, and the roles inherit that.
-- The reference model file serves the five roles through `mkFilters` next to the
-  bare id, which stays exactly as measured. One entry, six client ids, no second
+- The reference model file serves the six roles through `mkFilters` next to the
+  bare id, which stays exactly as measured. One entry, seven client ids, no second
   `cmd` and no reload between ids.
-- The entry drops `:coding` and `:instruct`: the role set covers both, and the
-  catalog is read from the ids the entry serves.
+- The entry serves the bare id plus the six roles. `:coding` is dropped because it
+  is byte-identical to `:implementer`; `:instruct` comes back as a role with the
+  thinking block closed, not as a separate sampling profile.
+- `instruct` is a role, not a factory stage: "reasoning off" is a general-purpose
+  variant useful outside the coding loop, so it is served as one more request-level
+  id (`chat_template_kwargs.enable_thinking = false`) instead of being absorbed by
+  the integrator, which keeps reasoning on.
 
 ## Rationale
 
-One entry is one load and one spec stack, so six ids cost the memory of one model
+One entry is one load and one spec stack, so seven ids cost the memory of one model
 and switching between them is a request, not a swap. Freezing the truncation
 geometry is what makes a role comparable: the only difference between a role and
 the control is the axis that role was given, and a regression can be attributed to

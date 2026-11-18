@@ -186,9 +186,10 @@ in {
 
     # The roles of a coding loop. One entry serves them all through `mkFilters`, so
     # they are request-level: one `cmd`, one speculative preset, no reload between
-    # them. Each role moves exactly one axis off `roleBase`; the axis and its reason
-    # are stated on each entry. `reasoning_budget` is the field the library already
-    # uses (`dry-budget-*`), with no forcing message here.
+    # them. Each role moves exactly one axis off `roleBase` — `instruct` is the
+    # exception: it adds the thinking-off trait instead. The axis and its reason are
+    # stated on each entry. `reasoning_budget` is the field the library already uses
+    # (`dry-budget-*`), with no forcing message here.
     roles = {
       # Plans. Axis: budget 6144, the larger of the two budgets this library ships,
       # because this role writes the longest single thinking block. Temperature stays
@@ -222,6 +223,21 @@ in {
       # `instruct`/`agent`: it chooses between what exists instead of composing new
       # code. No budget, for the same reason as the implementer.
       integrator = roleBase // {temperature = 0.7;};
+
+      # The only role with the thinking block closed: `noThink` carries
+      # `chat_template_kwargs.enable_thinking = false`, the mechanism three model
+      # files already serve. Reasoning off is a general-purpose variant, not a stage
+      # of the coding loop, so it is a role of its own and it keeps `roleBase`: the
+      # same top_k/top_p/min_p as the rest, because the spec preset in `cmd` is
+      # shared. Temperature 0.7 is what the reference's `:instruct` id served and
+      # what the `instruct`/`agent` family uses.
+      #
+      # Not the same thing as `profiles.instruct`, despite the name: that profile is
+      # sampling only (temperature, top_p, presence) with reasoning left on, and it
+      # is what four fork and David AU files serve. This role takes the trait, not
+      # the sampling. Renaming the old profile touches seven files and is another
+      # session.
+      instruct = roleBase // noThink // {temperature = 0.7;};
     };
 
     dry = dry;

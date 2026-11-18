@@ -43,11 +43,14 @@
       ${modelLib.qwenTemplateArgs}
     '';
 
-    # One entry, six client ids: the bare id is the measured default and holds the
-    # control of 2026-11-18, untouched; the five roles are request-level filters
+    # One entry, seven client ids: the bare id is the measured default and holds the
+    # control of 2026-11-18, untouched; the six roles are request-level filters
     # (`modelLib.profiles.roles`), so switching between them reloads nothing. The
-    # `:coding` and `:instruct` ids this entry used to serve are gone: the roles
-    # cover both. Values, axes and reasons live in `lib/default.nix`.
+    # `:coding` id this entry used to serve is dropped because it is byte-identical to
+    # `:implementer` (`profiles.coding // {dry_multiplier = 0.0;}` states the same
+    # seven keys as `roles.implementer`), while `:instruct` comes back as a role with
+    # reasoning off through `chat_template_kwargs`. Values, axes and reasons are in
+    # `lib/default.nix`.
     filters = modelLib.mkFilters (modelLib.profiles.roles // {
       default =
         modelLib.profiles.thinking
