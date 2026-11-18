@@ -25,6 +25,33 @@ before writing a file; this page keeps only the gotchas and the checklist.
 - `modelLib` is an argument, not an import. A model file never writes
   `import ./lib` and never repeats a fragment the library already holds.
 
+## Composition scope
+
+A plain attribute set literal is not recursive: in `{a = 1; b = a;}` the `a`
+inside `b` is not in scope. Four mechanisms put a name there, and the criterion
+separates them:
+
+| Mechanism | Use when | In this repo |
+|---|---|---|
+| `let` binding | a constant several fragments share; the value is in scope everywhere in the file | `roleBase`, `noThink` |
+| builder function | a fragment composes another: take it as a parameter, so the dependency sits in the signature instead of the surrounding scope | `budgetRoles = {label, budget}:`, `dryVariants = {budgets ? …}:`, `mkFilters = roles:`, `overrideAttrs (oldAttrs: …)` |
+| `rec { … }` | the set genuinely refers to itself | one instance: `oldAttrs: rec { … }` in `packages/llama-cpp/default.nix` |
+| `lib.fix (self: …)` | a self-referential set that must also stay overridable | not used here; `lib.fix` appears nowhere in this repo |
+
+The dominant idiom is the builder, so a fragment that composes another can take it
+as an argument rather than closing over it: `roles` would write as
+`mkRoles = {roleBase, noThink}: …` if the implicit dependency ever bites.
+
+`rec` costs two things. An alias `x = x;` inside it becomes a self-reference and
+Nix fails with infinite recursion. A set later extended with `//` does not
+participate in the recursion, so an override loses access to the recursive names.
+
+`profiles` carries `dry = dry;` and `noThink = noThink;`, both aliases of the
+enclosing `let`; under `rec` they would be self-references, which is why the
+`let` is the form this file uses. The deploy of 2026-11-18 failed with
+`error: undefined variable 'noThink'` because `profiles.roles.instruct` composed
+a sibling key; `roleBase` had worked only because it lived in the `let`.
+
 ## Add a model
 
 - [ ] create `models/<Account>-<model>-<quant>.nix` opening with
@@ -34,6 +61,8 @@ before writing a file; this page keeps only the gotchas and the checklist.
 - [ ] optional: add the `"… MTP"` attribute beside the model, sharing the base
       `cmd`
 - [ ] check the id is free: `git grep -n '"<id>"' -- hosts/llamaswap-lxc/models`
+- [ ] a fragment composed by another fragment lives in the `let`; a sibling alias
+      `x = x;` inside `profiles` is what forbids making it `rec`
 - [ ] deploy the procedure's way; the ROCm host runs it from `main`
 
 - **Naming.** The first token is the publisher's account (`DavidAU`, `Unsloth`,

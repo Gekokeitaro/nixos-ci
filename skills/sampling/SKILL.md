@@ -18,7 +18,8 @@ re-check it after a version bump.
 - `--repeat-penalty` is inert in a chain that has no `penalties` stage: a
   `--samplers` list that omits that stage makes the flag do nothing.
 - `:instruct` turns reasoning off through `chat_template_kwargs`, not through
-  `reasoning_budget`. Budget 0 is a different change.
+  `reasoning_budget`. Budget 0 is a different change. The `profiles.instruct`
+  filter is sampling only and leaves reasoning on.
 
 ## Where a value goes
 
@@ -62,6 +63,34 @@ publisher's account. Hardware and the llama.cpp version move them, so re-check.
 
 What is still open on this host is in
 [`hosts/llamaswap-lxc/MEMORY.md`](../../hosts/llamaswap-lxc/MEMORY.md).
+
+## Roles
+
+The reference model serves one entry, one `cmd` and six request-level roles, so
+moving between ids reloads nothing: `planner` (budget 6144, temperature 1.0),
+`implementer` (0.6, no budget), `reviewer` (budget 4096, 0.6), `supervisor`
+(budget 4096, 0.7), `integrator` (0.7, no budget, resolves a merge) and
+`instruct` (0.7, the only one with the thinking block closed). The table itself
+is `modelLib.profiles.roles` in `models/lib/default.nix`; read it there instead
+of copying these values.
+
+`top_k`, `top_p` and `min_p` are equal across every role. The speculative preset
+lives in the `cmd` and is shared, so a role that changed the sampling of drafted
+tokens would invalidate the measurement for that role. That is the reason, not
+symmetry.
+
+`instruct` closes the thinking block with
+`chat_template_kwargs.enable_thinking = false` on the **request**, and that was
+verified rather than assumed: on one prompt the bare id spent 1393 characters in
+`reasoning_content` and answered nothing in 400 tokens, while `:instruct`
+produced 0 reasoning characters and 1521 characters of answer.
+
+DRY 0 and `presence_penalty` 0 are a **correction of this GGUF** (copy-fidelity
+round of 2026-11-16), not role axes: moving them per role would confound a role
+with the correction. XTC is a roleplay sampler and stays out.
+
+`profiles.instruct` is sampling only, with reasoning left on; the `instruct`
+**role** takes the template trait instead. Do not treat the two as one value.
 
 ## Depth
 
