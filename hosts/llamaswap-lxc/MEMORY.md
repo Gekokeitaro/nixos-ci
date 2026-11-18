@@ -5,7 +5,7 @@ State of this host and what is still open. Mechanics live in
 [`../../skills/model-files/SKILL.md`](../../skills/model-files/SKILL.md); what is
 deployed on the host, in [`../../MEMORY.md`](../../MEMORY.md).
 
-Last updated: 2026-11-17.
+Last updated: 2026-11-18.
 
 ## Sampling
 
@@ -65,6 +65,20 @@ thing to check when a model is short on memory.
 `--ctx-size` is not the knob to cut: it is what the agentic use case needs. Bound
 everything else first, then experiment upward while the process stays under the
 16 GiB soft limit (20 GiB of RAM is the hard wall and OOMs the container).
+
+## The reference model's six ids
+
+`models/Unsloth-Qwen3.5-9B-UD-Q4_K_XL.nix` serves one entry and one `cmd` under six
+client ids: the bare `Unsloth Qwen3.5 9B UD Q4_K_XL`, which is the measured default
+and the control of 2026-11-18, plus `:planner`, `:implementer`, `:reviewer`,
+`:supervisor` and `:integrator`. The five roles are request-level values
+(`modelLib.profiles.roles`), so moving between two of the six reloads nothing; the
+axis each role moves, and why, is commented in `models/lib/default.nix`. This entry
+no longer serves `:coding` or `:instruct`.
+
+Refresh `pi`'s catalog (`pi update --models`, `/omni sync`) before any run: an id
+absent from the snapshot cannot be addressed, and the snapshot expires after 60
+minutes. Measuring the roles one at a time is session 8 of the workspace `PLAN.md`.
 
 ## Pending: the reference model's preset is committed, not deployed
 

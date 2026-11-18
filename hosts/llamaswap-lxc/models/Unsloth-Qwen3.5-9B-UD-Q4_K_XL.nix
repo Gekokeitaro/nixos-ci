@@ -43,16 +43,19 @@
       ${modelLib.qwenTemplateArgs}
     '';
 
-    filters = modelLib.mkFilters {
+    # One entry, six client ids: the bare id is the measured default and holds the
+    # control of 2026-11-18, untouched; the five roles are request-level filters
+    # (`modelLib.profiles.roles`), so switching between them reloads nothing. The
+    # `:coding` and `:instruct` ids this entry used to serve are gone: the roles
+    # cover both. Values, axes and reasons live in `lib/default.nix`.
+    filters = modelLib.mkFilters (modelLib.profiles.roles // {
       default =
         modelLib.profiles.thinking
         // {
           dry_multiplier = 0.0;
           presence_penalty = 0.0;
         };
-      coding = modelLib.profiles.coding // {dry_multiplier = 0.0;};
-      instruct = modelLib.profiles.instruct // {dry_multiplier = 0.0;};
-    };
+    });
 
     ttl = 600;
   };

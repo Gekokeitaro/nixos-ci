@@ -40,6 +40,23 @@
     };
   };
 
+  # What the five role profiles hold equal, so no role can invalidate the spec preset
+  # its `cmd` drafts with. `top_p` is 0.95 from `thinking`/`coding` instead of 0.8 from
+  # `instruct`/`agent`: the reference's measured default id is `thinking`, so the roles
+  # keep the geometry their control was taken on. `repeat_penalty` is 1.0, the value of
+  # three of the four base profiles. `presence_penalty` and DRY are 0 as a correction
+  # of this GGUF, not as a role value: the copy round of 2026-11-16 (`presence_penalty 0
+  # with DRY on` 0/10, `dry_multiplier 0` 10/10) took both to 0, and the bare id serves
+  # them at 0 too. XTC stays out: it is a roleplay sampler.
+  roleBase = {
+    top_p = 0.95;
+    top_k = 20;
+    min_p = 0.0;
+    presence_penalty = 0.0;
+    repeat_penalty = 1.0;
+    dry_multiplier = 0.0;
+  };
+
   # `--flag value`, or nothing when the knob is left at the server default.
   flag = name: value:
     if value == null
@@ -165,6 +182,46 @@ in {
       min_p = 0.0;
       presence_penalty = 1.5;
       repeat_penalty = 1.1;
+    };
+
+    # The roles of a coding loop. One entry serves them all through `mkFilters`, so
+    # they are request-level: one `cmd`, one speculative preset, no reload between
+    # them. Each role moves exactly one axis off `roleBase`; the axis and its reason
+    # are stated on each entry. `reasoning_budget` is the field the library already
+    # uses (`dry-budget-*`), with no forcing message here.
+    roles = {
+      # Plans. Axis: budget 6144, the larger of the two budgets this library ships,
+      # because this role writes the longest single thinking block. Temperature stays
+      # at `thinking`'s 1.0 — a plan explores, and the budget bounds it instead.
+      planner = roleBase // {
+        temperature = 1.0;
+        reasoning_budget = 6144;
+      };
+
+      # Writes the code. Axis: temperature 0.6, `coding`'s value. No budget: a chain
+      # forced shut mid-edit truncates the work instead of ending a loop.
+      implementer = roleBase // {temperature = 0.6;};
+
+      # Reads code and judges it. Axis: budget 4096, the smaller shipped budget, for a
+      # bounded judgement; temperature is `coding`'s 0.6. The control's reviewer row is
+      # 0/6 and its failures were timeouts, which is what a budget cuts.
+      reviewer = roleBase // {
+        temperature = 0.6;
+        reasoning_budget = 4096;
+      };
+
+      # Dispatches and triages. Axis: budget 4096, at `agent`'s temperature 0.7. It is
+      # the loop that repeats until it times out, and the budget is the loop brake this
+      # entry relies on.
+      supervisor = roleBase // {
+        temperature = 0.7;
+        reasoning_budget = 4096;
+      };
+
+      # Resolves a merge between two written sides. Axis: temperature 0.7, from
+      # `instruct`/`agent`: it chooses between what exists instead of composing new
+      # code. No budget, for the same reason as the implementer.
+      integrator = roleBase // {temperature = 0.7;};
     };
 
     dry = dry;
