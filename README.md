@@ -29,9 +29,9 @@ binary, not an operating system: `nix`, `nix-build`, `nix-shell` and
 `nixos-rebuild` are not installed there. Building and switching happen on the
 hosts; validate a change by reading the expressions.
 
-Four documents carry the rest, one question each: `AGENTS.md` the rules,
-`DECISIONS.md` why a choice was made, `MEMORY.md` what is deployed right now, and
-`INFRA.md` the addresses and ports.
+Five documents carry the rest, one question each: `AGENTS.md` the rules,
+`DECISIONS.md` why a choice was made, `MEMORY.md` what is deployed right now,
+`TASKS.md` what is still open, and `INFRA.md` the addresses and ports.
 
 Two procedures are skills, read the same way by a person or an agent:
 
@@ -46,7 +46,7 @@ A change reaches the model host only through a push to `main`; see
 
 What is still open is in
 [`hosts/llamaswap-lxc/MEMORY.md`](hosts/llamaswap-lxc/MEMORY.md) for the model
-host, and in [`MEMORY.md`](MEMORY.md) for the rest.
+host, and in [`TASKS.md`](TASKS.md) for the rest.
 
 ## CI/CD
 

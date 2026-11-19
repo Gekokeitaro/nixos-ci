@@ -2,9 +2,9 @@
 
 > Canonical source for host addresses, exposed ports, and service
 > dependencies. Update this file when a host moves or a port changes. Host
-> documentation links here instead of repeating addresses. Deployed state and
-> pending work live in [MEMORY.md](./MEMORY.md); architecture and rules live in
-> [AGENTS.md](./AGENTS.md).
+> documentation links here instead of repeating addresses. Deployed state lives in
+> [MEMORY.md](./MEMORY.md) and open work in [TASKS.md](./TASKS.md); architecture
+> and rules live in [AGENTS.md](./AGENTS.md).
 
 Last verified: 2026-11-11.
 

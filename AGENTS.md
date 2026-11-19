@@ -24,7 +24,8 @@ ports, and service dependencies live in [INFRA.md](./INFRA.md).
 | Question | Document |
 |---|---|
 | How does the repo work? What are the rules? | `AGENTS.md` (this file) |
-| What is deployed, on which branch, and what is pending? | `MEMORY.md` |
+| What is deployed, and on which branch? | `MEMORY.md` |
+| What is still open here? | `TASKS.md` |
 | Which host is at which address, with which ports and dependencies? | `INFRA.md` |
 | Why was a decision made? | `DECISIONS.md` |
 | How do I build, boot, or apply this host? | `hosts/<name>/README.md` |
@@ -52,6 +53,7 @@ local LLM inference). All hosts share a common base with NVF (Neovim).
 │   └── adr/                   # Decisions taken after the log froze at 300 lines.
 ├── INFRA.md                   # Network and service inventory (addresses, ports).
 ├── MEMORY.md                  # Deployed state per host (see above).
+├── TASKS.md                   # Open work; a task is deleted when it lands.
 ├── .forgejo/
 │   └── workflows/
 │       └── deploy-llamaswap-rocm.yml  # CI: deploy/test llamaswap-rocm.
@@ -108,8 +110,9 @@ local LLM inference). All hosts share a common base with NVF (Neovim).
   - push to `main` → `nixos-rebuild switch` against `nixos-llamaswap-rocm`;
   - push to `llamaswap-rocm` → `nixos-rebuild test` (activates in the running
     system without making it the boot default; a reboot reverts it).
-  - The file declares no `schedule`, so a pass that also runs hourly is
-    unverified: a push to `main` is what starts the deploy, and
+  - The file declares no `schedule`; Forgejo mirrors the GitHub repository and
+    syncs hourly, and that sync arrives as a push event, so the deploy also runs
+    about once an hour. A push to `main` starts it immediately, and
     `workflow_dispatch` forces one on demand. Consequence, and it outranks
     convenience: **never push `nixos-ci` while a measurement is running** — the
     deploy restarts llama-swap and kills the run.
@@ -190,6 +193,13 @@ local LLM inference). All hosts share a common base with NVF (Neovim).
 
 ## Constraints
 
+- **Scope of a session: only `hosts/llamaswap-lxc/` is touched**, plus
+  `.gitattributes` and `utils/update-llama-cpp.nix`; everything else is reported,
+  not fixed.
+- **`models.json` is not a source of truth.** `pi` fetches its ids from OmniRoute
+  through a plugin, so a new llama-swap entry does not reach `pi`, and cannot be
+  measured, until OmniRoute re-discovers the provider and the snapshot is
+  refreshed by hand. See `hosts/nixos-omniroute/AGENTS.md`.
 - **All LXC containers are unprivileged.** Never assume root-level access to
   host devices or privileged cgroup operations. Proxmox must explicitly grant
   device access (e.g., `/dev/dri`) via the LXC config file.
