@@ -29,11 +29,13 @@
       --temp .6 --top-p 0.95 --top-k 20
     '';
 
+    # The six factory roles, generic from the library, plus the dry-budget variants. The
+    # bare id deliberately has **no** filter: it is the configuration that was measured as
+    # this model's baseline on 2026-11-19 (52/96), so adding a `default` entry would move
+    # the ground under it. `:instruct` changes meaning here: it used to be `noThink` alone
+    # and is now the library's role — same closed thinking block, at the role's 0.7.
     filters = modelLib.mkFilters (
-      {
-        instruct = modelLib.profiles.noThink;
-      }
-      // modelLib.dryVariants {}
+      modelLib.profiles.roles // modelLib.dryVariants {}
     );
 
     ttl = 600;
