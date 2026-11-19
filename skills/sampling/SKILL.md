@@ -89,6 +89,11 @@ DRY 0 and `presence_penalty` 0 are a **correction of this GGUF** (copy-fidelity
 round of 2026-11-16), not role axes: moving them per role would confound a role
 with the correction. XTC is a roleplay sampler and stays out.
 
+DRY and a reasoning budget are **correctives of a role, never variants of their
+own**: `:dry` and `:dry-budget-*` were retired on 2026-11-19, and a measurement
+that asks for a different value composes it into the one role it applies to
+(`profiles.roles.reviewer // modelLib.dryParams`) and re-measures that role.
+
 `profiles.instruct` is sampling only, with reasoning left on; the `instruct`
 **role** takes the template trait instead. Do not treat the two as one value.
 

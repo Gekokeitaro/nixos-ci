@@ -72,9 +72,8 @@ Forbidden in a model file:
 | `profiles.instruct` | `temperature 0.7`, `top_p 0.8`, `top_k 20`, `min_p 0.0`, `presence_penalty 1.5`, `repeat_penalty 1.0` | a model that does not reason, for the instruct role |
 | `profiles.noThink` | `chat_template_kwargs.enable_thinking = false` | reasoning is switched off through the template |
 | `profiles.agent` | `temperature 0.7`, `top_p 0.8`, `top_k 20`, `min_p 0.0`, `presence_penalty 1.5`, `repeat_penalty 1.1` | the agentic default role of a model that samples its own loop |
-| `profiles.dry` | `dry_multiplier 0.4`, `dry_base 1.75`, `dry_allowed_length 3`, `dry_penalty_last_n 2048` | the request-level DRY role |
+| `dryParams` | `dry_multiplier 0.4`, `dry_base 1.75`, `dry_allowed_length 3`, `dry_penalty_last_n 2048`, request-level | a role composes it as a measured corrective: `roles.supervisor // dryParams` |
 | `mkFilters roles` | `{setParamsByID = …}` | always, when the file has filters |
-| `dryVariants {budgets}` | `dry`, `dry-budget-<label>`, `dry-budget-<label>-msg`, `dry-budget-<label>-empty-msg` | the file serves a reasoning budget |
 | `specArgs.mtp` | `--spec-type draft-mtp`, optional `-md`, `--spec-draft-n-min`, `--spec-draft-n-max`, `--spec-draft-p-min` | the speculative preset uses an MTP head |
 
 There is no `specArgs` entry for a type that needs its own draft GGUF: this host has
@@ -85,9 +84,15 @@ fragment renders one type.
 `mkFilters` renders the key of the `default` role as the bare `${MODEL_ID}` and
 every other role as `${MODEL_ID}:<role>`, so the client-id suffixes have one
 owner. It only renders the roles it is given: a file that served no variant keeps
-serving none. `dryVariants` spreads into it with `//`, and its two budget labels
-are `4000` (budget 4096) and `6144` (budget 6144) — the label is the suffix, not
-the budget, because renaming a shipped id breaks the client that uses it.
+serving none.
+
+**A DRY value and a reasoning budget are not variants.** They were served as
+`:dry` and `:dry-budget-*` until 2026-11-19, seven ids per model for two knobs
+every role already decides. They now live on the role: `roleBase` carries DRY 0
+as the correction of this GGUF, and `planner`, `reviewer` and `supervisor` carry
+their own budgets. When a measurement asks for a different pair, it is composed
+into that one role (`roles.reviewer // dryParams`) and the role is re-measured —
+not multiplied across the model.
 
 ### The `memDefault` rule
 
@@ -204,15 +209,12 @@ flag and an MTP preset. Every line is explained beside it.
     ${modelLib.dryArgs}
   '';
 
-  # The three roles this model serves, then the DRY budget ones.
-  commonFilters = modelLib.mkFilters (
-    {
-      default = modelLib.profiles.thinking;
-      coding = modelLib.profiles.coding;
-      instruct = modelLib.profiles.instruct;
-    }
-    // modelLib.dryVariants {}
-  );
+  # The three roles this model serves: no id is added for DRY or a budget.
+  commonFilters = modelLib.mkFilters {
+    default = modelLib.profiles.thinking;
+    coding = modelLib.profiles.coding;
+    instruct = modelLib.profiles.instruct;
+  };
 in {
   "Model Id" = {
     name = "Model Id"; # Ids are the API name; `name` is what the list shows.
@@ -239,8 +241,7 @@ in {
 
 The header is the first two facts a reader needs: what this GGUF measured and
 what won. `memDefault` appears because that header cites this GGUF's battery; a
-file without one writes the four flags. `dryVariants {}` spreads `dry` and the
-two budgets into every request of the model; the preset only adds
+file without one writes the four flags. The preset only adds
 `--spec-type draft-mtp --spec-draft-n-max 2` to the same `cmd`.
 
 ## Comments

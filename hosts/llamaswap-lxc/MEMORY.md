@@ -7,6 +7,15 @@ deployed on the host, in [`../../MEMORY.md`](../../MEMORY.md).
 
 Last updated: 2026-11-19.
 
+## Variants
+
+- **`:dry` and `:dry-budget-*` are retired (2026-11-19).** DRY and a reasoning budget are
+  correctives of a role — `modelLib.profiles.roles.supervisor // modelLib.dryParams` — not
+  variants of their own: seven ids per model carried two knobs that every role already
+  decides for itself. The last served ones were Spark's, and their ids are gone with this
+  deploy. `modelLib.dryParams` stays as the fragment; the labels 4000/6144 do not, because a
+  label existed to avoid renaming a client id that no longer exists.
+
 ## Spark X2.6 4B, served from 2026-11-19
 
 - Deployed after its own battery: `--ctx-size 196608` (ceiling 262144 with 162 MiB of
@@ -16,15 +25,16 @@ Last updated: 2026-11-19.
 - **No reasoning budget.** A 526 s `ERR_API` on 2026-11-19 looked like an unbounded
   thinking block and was the gateway: the same row on the same cmd answered in 122 s once
   OmniRoute was healthy. The server default (-1) stands until something measures a loop.
-- Its `:instruct` variant is served and closes the thinking block.
+- The six factory roles are served (`:planner`, `:implementer`, `:reviewer`,
+  `:supervisor`, `:integrator`, `:instruct`), generic from `modelLib.profiles.roles`.
+  `:instruct` changed meaning here: it used to be `noThink` alone at the `cmd`'s 0.6 and
+  is now the library's role, same closed thinking block at 0.7.
 
 ## Sampling
 
 - 14 of the 16 model files serve the default sampler chain. Only Gemma 4 12B spells its
   own (`top_k;top_p;min_p;temperature;dry;typ_p;xtc`); **Spark dropped its list on
-  2026-11-19** and now uses the default order, with DRY per variant through `dryVariants`.
-- **Open: the `:dry-budget-4000*` variants set `reasoning_budget = 4096`.** The
-  suffix says 4000. Rename one or the other deliberately, not by accident.
+  2026-11-19** and now uses the default order, with DRY travelling as a role's corrective.
 - **Open: in both custom chains temperature runs ahead of DRY**, unlike the default
   chain. Unclear whether that is intended; the order changes the result.
 - **Open: how to disable XTC.** `llama-server --help` prints `1.0 = disabled` for

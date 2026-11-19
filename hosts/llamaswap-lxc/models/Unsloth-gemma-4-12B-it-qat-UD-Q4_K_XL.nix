@@ -11,12 +11,9 @@
     --samplers "top_k;top_p;min_p;temperature;dry;typ_p;xtc"
   '';
 
-  commonFilters = modelLib.mkFilters (
-    {
-      instruct = modelLib.profiles.noThink;
-    }
-    // modelLib.dryVariants {}
-  );
+  commonFilters = modelLib.mkFilters {
+    instruct = modelLib.profiles.noThink;
+  };
 in {
   "Unsloth Gemma 4 12B QAT UD Q4_K_XL" = {
     name = "Unsloth Gemma 4 12B QAT UD Q4_K_XL";

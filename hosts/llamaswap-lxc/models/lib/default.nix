@@ -5,43 +5,18 @@
 #
 # The convention is owned by skills/model-files/references/module-shape.md.
 {pkgs}: let
-  # Request-level DRY parameters. The same four numbers reach llama.cpp as
-  # `--dry-*` server flags through `dryArgs`, or per request through a filter.
-  # The binding carries the `Params` suffix because `profiles` and `dryVariants`
-  # expose a key called `dry`: naming both `dry` would put an `x = x;` shape in
-  # the file, and that shape becomes infinite recursion the moment a `rec` is
-  # written on the enclosing set. The rename is the guard, not a style choice.
+  # Request-level DRY, as a corrective fragment. The same four numbers reach
+  # llama.cpp as `--dry-*` server flags through `dryArgs` for a model that sets it
+  # once, and as request parameters for a model that sets it per role. It is not a
+  # variant of its own: `:dry` and `:dry-budget-*` were retired on 2026-11-19
+  # because they multiplied every id a model served by seven to carry two knobs that
+  # belong to a role. DRY and a reasoning budget are composed into the role that a
+  # measurement asks for them on, and each role already carries its budget.
   dryParams = {
     dry_multiplier = 0.4;
     dry_base = 1.75;
     dry_allowed_length = 3;
     dry_penalty_last_n = 2048;
-  };
-
-  # Client-id suffix and reasoning budget of each `dry-budget-*` role. The label
-  # is not derived from the budget: the two shipped ids say 4000 while the budget
-  # is 4096, and renaming an id breaks the client that already uses it.
-  defaultBudgets = [
-    {
-      label = "4000";
-      budget = 4096;
-    }
-    {
-      label = "6144";
-      budget = 6144;
-    }
-  ];
-
-  budgetRoles = {label, budget}: {
-    "dry-budget-${label}" = dryParams // {reasoning_budget = budget;};
-    "dry-budget-${label}-msg" = dryParams // {
-      reasoning_budget = budget;
-      reasoning_budget_message = "Enough think. Act now. Finish task. No loops.";
-    };
-    "dry-budget-${label}-empty-msg" = dryParams // {
-      reasoning_budget = budget;
-      reasoning_budget_message = "...";
-    };
   };
 
   # What the five role profiles hold equal, so no role can invalidate the spec preset
@@ -80,8 +55,9 @@
   # request-level: one `cmd`, one speculative preset, no reload between them. Each role
   # moves exactly one axis off the `roleBase` it is given — `instruct` is the exception:
   # it adds the thinking-off trait instead. The axis and its reason are stated on each
-  # entry. `reasoning_budget` is the field the library already uses (`dry-budget-*`),
-  # with no forcing message here.
+  # entry. `reasoning_budget` is the field that bounds a thinking block, with no
+  # forcing message here: the message variants are gone, and a budget is a property of
+  # the role it brakes.
   mkRoles = {roleBase, noThinkParams}: {
     # Plans. Axis: budget 6144, the larger of the two budgets this library ships,
     # because this role writes the longest single thinking block. Temperature stays
@@ -195,6 +171,11 @@ in {
     --dry-multiplier 0.4 --dry-base 1.75 --dry-allowed-length 3 --dry-penalty-last-n 2048
   '';
 
+  # The request-level form of the same four numbers, for a role that a measurement
+  # asks for DRY on: a file writes `modelLib.profiles.roles.supervisor
+  # // modelLib.dryParams`.
+  inherit dryParams;
+
   # The fixed chat template of the Qwen family (3.5/3.6/3.8): froggeric
   # qwen3.8-v22.5 over whatever template the GGUF embeds. A model adopts it when
   # its own test round runs, not before. It rests on one guarded CORE of the
@@ -261,8 +242,6 @@ in {
     # The roles of a coding loop, built by `mkRoles`: the two fragments it composes
     # travel as arguments, so this key depends on nothing that surrounds it.
     roles = mkRoles {inherit roleBase noThinkParams;};
-
-    dry = dryParams;
   };
 
   # `{setParamsByID = …;}` for exactly the roles it is given: `default` renders as
@@ -277,14 +256,6 @@ in {
         value = roles.${role};
       }) (builtins.attrNames roles));
   };
-
-  # `dryParams` plus three roles per budget: the bare budget, the forcing message and
-  # the empty message. Spread it with `//` inside `mkFilters`.
-  dryVariants = {budgets ? defaultBudgets}:
-    builtins.foldl'
-    (roles: budget: roles // budgetRoles budget)
-    {dry = dryParams;}
-    budgets;
 
   # `--spec-*` are server flags: they go in `cmd`, never in `filters`. The knobs are
   # the ones a model file already carries; the type name is llama.cpp's. `mtp` stays

@@ -14,15 +14,12 @@
       --reasoning-format deepseek
     '';
 
-    filters = modelLib.mkFilters (
-      {
-        default = modelLib.profiles.agent;
-        thinking = modelLib.profiles.thinking // {repeat_penalty = 1.1;};
-        coding = modelLib.profiles.coding;
-        instruct = modelLib.profiles.noThink;
-      }
-      // modelLib.dryVariants {}
-    );
+    filters = modelLib.mkFilters {
+      default = modelLib.profiles.agent;
+      thinking = modelLib.profiles.thinking // {repeat_penalty = 1.1;};
+      coding = modelLib.profiles.coding;
+      instruct = modelLib.profiles.noThink;
+    };
 
     ttl = 600;
   };

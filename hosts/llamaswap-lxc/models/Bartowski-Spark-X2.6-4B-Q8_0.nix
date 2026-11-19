@@ -12,7 +12,8 @@
 # Chain 2026-11-19: the explicit `--samplers` list is gone, so llama.cpp's order applies -
 # penalties, dry, top_k, top_p, min_p, temperature. The old list ran dry after truncation,
 # where it reweights survivors instead of removing tokens, and put temperature before the
-# cuts. DRY stays per variant through `dryVariants`.
+# cuts. DRY and a reasoning budget are correctives of a role, never variants of their own
+# (2026-11-19).
 # No reasoning budget on purpose: a 526 s `ERR_API` on 2026-11-19 looked like an unbounded
 # thinking block and was not. The same row on the same cmd answered in 122 s once the
 # gateway was healthy, so the server default (-1) stands until something measures a loop.
@@ -29,14 +30,12 @@
       --temp .6 --top-p 0.95 --top-k 20
     '';
 
-    # The six factory roles, generic from the library, plus the dry-budget variants. The
-    # bare id deliberately has **no** filter: it is the configuration that was measured as
-    # this model's baseline on 2026-11-19 (52/96), so adding a `default` entry would move
-    # the ground under it. `:instruct` changes meaning here: it used to be `noThink` alone
-    # and is now the library's role — same closed thinking block, at the role's 0.7.
-    filters = modelLib.mkFilters (
-      modelLib.profiles.roles // modelLib.dryVariants {}
-    );
+    # The six factory roles, generic from the library. The bare id deliberately has **no**
+    # filter: it is the configuration that was measured as this model's baseline on
+    # 2026-11-19 (52/96), so adding a `default` entry would move the ground under it.
+    # `:instruct` changes meaning here: it used to be `noThink` alone and is now the
+    # library's role — same closed thinking block, at the role's 0.7.
+    filters = modelLib.mkFilters modelLib.profiles.roles;
 
     ttl = 600;
   };
