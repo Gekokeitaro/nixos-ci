@@ -13,13 +13,9 @@
 # penalties, dry, top_k, top_p, min_p, temperature. The old list ran dry after truncation,
 # where it reweights survivors instead of removing tokens, and put temperature before the
 # cuts. DRY stays per variant through `dryVariants`.
-# Reasoning budget 2026-11-19: without one, the bare id reasons until the client gives up -
-# a `t17` row streamed for 526 s and died as `ERR_API` ("OpenAI Responses stream ended
-# before a terminal response event"), while the same test on `:instruct` (thinking closed)
-# answered in 45 s. The server default is -1, unrestricted. 4096 is the smaller budget this
-# library already ships (`dry-budget-4000`); a variant can still override it per request.
-# The copy probe of 2026-11-16 is the check for the chain change on the reference GGUF;
-# here the chain is measured before and after on t07 and t06.
+# No reasoning budget on purpose: a 526 s `ERR_API` on 2026-11-19 looked like an unbounded
+# thinking block and was not. The same row on the same cmd answered in 122 s once the
+# gateway was healthy, so the server default (-1) stands until something measures a loop.
 {llama-server, modelLib}: {
   "Bartowski Spark X2.6 4B Q8_0" = {
     name = "Bartowski Spark X2.6 4B Q8_0";
@@ -30,7 +26,6 @@
       ${modelLib.checkpointArgs}
       -b 256 -ub 128 -ctk f16 -ctv f16
       --ctx-size 196608
-      --reasoning-budget 4096
       --temp .6 --top-p 0.95 --top-k 20
     '';
 
