@@ -31,8 +31,8 @@ sops-nix with `age.keyFile = "/home/nixos-n8n-runner/.config/sops/age/keys.txt"`
 
 - `N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT = "15"` — runners stop 15s after task
   completion; `0` disables auto-shutdown.
-- `N8N_RUNNERS_TASK_BROKER_URI = "http://192.168.18.22:5678"` — must match
-  `nixos-n8n`'s runner broker port.
+- `N8N_RUNNERS_TASK_BROKER_URI = "http://192.168.18.22:5678"` — the task broker
+  listens on `5679`, so this value is the pending fix.
 - Port `20128` is also exposed (container default).
 - User `nixos-n8n-runner` with `extraGroups = ["wheel"]`, `jq` available.
 

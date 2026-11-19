@@ -19,7 +19,7 @@ Last verified: 2026-11-11.
 | `nixos-omniroute` | OmniRoute AI gateway | `192.168.18.28` | 20128 | none |
 | `nixos-hindsight` | Hindsight data platform | `192.168.18.19` | 8888, 9999 | OmniRoute, PostgreSQL |
 | `nixos-n8n` | n8n automation | `192.168.18.22` | 5678, 5679 | PostgreSQL |
-| `nixos-n8n-runner` | n8n task runners | — | 20128 | `nixos-n8n` (`192.168.18.22:5678`) |
+| `nixos-n8n-runner` | n8n task runners | — | 20128 | `nixos-n8n` (`192.168.18.22:5679`) |
 | `nixos-postgresql` | PostgreSQL + pgvector | `192.168.18.91` | 5432 | none |
 | `nixos-pi-agent` | `pi` coding agent | — | none | OmniRoute (`192.168.18.28:20128`) |
 | `nixos-calibre-web-auto` | Calibre-Web-Automated + rclone | `192.168.18.21` | 8083 | pCloud, `/dev/fuse` |
@@ -34,7 +34,7 @@ Proxmox or the host's network configuration and add it here once known.
 - `nixos-hindsight` → `nixos-omniroute`: LLM provider (`/v1`).
 - `nixos-hindsight` → `nixos-postgresql`: database `hindsight` with pgvector.
 - `nixos-n8n` → `nixos-postgresql`: database `n8n`.
-- `nixos-n8n-runner` → `nixos-n8n`: task broker.
+- `nixos-n8n-runner` → `nixos-n8n`: task broker (`5679`).
 - `nixos-pi-agent` → `nixos-omniroute`: LLM provider (`/v1`).
 - `nixos-calibre-web-auto` → pCloud via rclone/FUSE.
 

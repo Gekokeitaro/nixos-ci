@@ -190,8 +190,8 @@ sampling change is good is judged on output quality.
 
 ## Worked example
 
-A model with `memDefault`, three roles, the DRY budget variants, DRY as a server
-flag and an MTP preset. Every line is explained beside it.
+A model with `memDefault`, three roles, DRY as a server flag and an MTP preset.
+Every line is explained beside it.
 
 ```nix
 # Battery 2026-11-12 (llama.cpp 0.9.0): tg64 base 11.10, guards 10.55-11.66.

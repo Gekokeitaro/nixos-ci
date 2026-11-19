@@ -32,10 +32,10 @@ Last updated: 2026-11-19.
 
 ## Sampling
 
-- 14 of the 16 model files serve the default sampler chain. Only Gemma 4 12B spells its
+- 15 of the 16 model files serve the default sampler chain. Only Gemma 4 12B spells its
   own (`top_k;top_p;min_p;temperature;dry;typ_p;xtc`); **Spark dropped its list on
   2026-11-19** and now uses the default order, with DRY travelling as a role's corrective.
-- **Open: in both custom chains temperature runs ahead of DRY**, unlike the default
+- **Open: in the custom chain temperature runs ahead of DRY**, unlike the default
   chain. Unclear whether that is intended; the order changes the result.
 - **Open: how to disable XTC.** `llama-server --help` prints `1.0 = disabled` for
   `--xtc-threshold`; the server README says anything above `0.5` disables it. XTC is

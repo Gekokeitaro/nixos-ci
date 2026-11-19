@@ -11,7 +11,7 @@ external PostgreSQL, with external task runners (`nixos-n8n-runner`).
 
 | Service | Port | Notes |
 |---|---|---|
-| n8n (OCI) | 5678 (UI/API), 5679 (runner broker) | `docker.io/n8nio/n8n:stable` |
+| n8n (OCI) | 5678 (UI/API), 5679 (task broker) | `docker.io/n8nio/n8n:stable` |
 
 ## Dependencies
 
@@ -43,17 +43,15 @@ sops-nix with `defaultSopsFile = ./secrets.yaml`:
 - Unprivileged LXC.
 - The DB password is also stored in `common/secrets/postgresql-shared.yaml`
   (shared with `nixos-postgresql`); rotate it in both places.
-- The runner URI currently points to port `5678`, while `5679` is also
-  published. If runners fail to connect, verify which port the task broker is
-  actually using on this n8n version.
+- The task broker listens on `5679`; the runner URI currently points at `5678`,
+  n8n's own HTTP port. The tree publishes both.
 
 ## Modification guide
 
 - To change DB: update `DB_POSTGRESDB_*` env vars and the secret if needed.
 - Runner auth token must match in `nixos-n8n` and `nixos-n8n-runner`.
-- The broker port in `N8N_RUNNERS_TASK_BROKER_URI` on the runner must match the
-  port n8n exposes for the broker (`5678` in the current config; `5679` is also
-  published).
+- The broker port in `N8N_RUNNERS_TASK_BROKER_URI` on the runner must be `5679`,
+  the task broker n8n exposes; the current runner config uses `5678`.
 
 ## Skills
 

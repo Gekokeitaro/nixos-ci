@@ -108,10 +108,11 @@ local LLM inference). All hosts share a common base with NVF (Neovim).
   - push to `main` → `nixos-rebuild switch` against `nixos-llamaswap-rocm`;
   - push to `llamaswap-rocm` → `nixos-rebuild test` (activates in the running
     system without making it the boot default; a reboot reverts it).
-  - **It also runs on an hourly schedule**, so a push to `main` is deployed within the
-    hour whether or not anyone touches the forge; the user can force it on demand to go
-    faster. Consequence, and it outranks convenience: **never push `nixos-ci` while a
-    measurement is running** — the deploy restarts llama-swap and kills the run.
+  - The file declares no `schedule`, so a pass that also runs hourly is
+    unverified: a push to `main` is what starts the deploy, and
+    `workflow_dispatch` forces one on demand. Consequence, and it outranks
+    convenience: **never push `nixos-ci` while a measurement is running** — the
+    deploy restarts llama-swap and kills the run.
 - The deploy key is the sops secret `deploy-key`; systemd exposes it to
   `forgejo-runner-ci` as a credential.
 - Before building, the workflow runs `nix run .#update-llama-bench-runner`, which

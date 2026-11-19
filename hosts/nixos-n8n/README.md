@@ -14,9 +14,11 @@ nixos-rebuild build-image --image-variant lxc --flake .#nixos-n8n
 | Service | Port |
 |---|---|
 | n8n UI & API | 5678 |
-| n8n runner broker | 5679 |
+| n8n task broker | 5679 |
 
-Both are in `networking.firewall.allowedTCPPorts`.
+Both are in `networking.firewall.allowedTCPPorts`. `5678` is n8n's own HTTP
+port; `5679` is the task broker that external runners connect to in queue mode.
+The runner URI currently uses `5678`.
 
 ## Dependencies
 
@@ -66,6 +68,6 @@ sudo nixos-rebuild switch --flake .#nixos-n8n
 ## Notes
 
 - The external runner URI is the broker URI listed in
-  [INFRA.md](../../INFRA.md). Port `5679` is also published; verify the broker
-  port if runners cannot connect.
+  [INFRA.md](../../INFRA.md). The broker is `5679`; the runner currently points
+  at `5678`.
 - The database credentials live in sops and are mounted at `/run/secrets/…`.
