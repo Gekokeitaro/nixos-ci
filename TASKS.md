@@ -22,10 +22,3 @@ moves to the file that owns it.
    `forgejo-runner-ci` (`hosts/nixos-ci/modules/forgejo-runner.nix`); until that
    reaches the host, the workflow prepends `/run/current-system/sw/bin`, and
    that prepend can be removed after the host's `nixos-rebuild switch`.
-5. Verify the fragment-library refactor post hoc: it reached the host with the
-   2026-11-15 deploy, so compare the served model ids and the rendered
-   llama-swap config on the host against `e52c157`, the last commit before the
-   refactor. Same ids and same `cmd` text means the refactor rendered identical.
-   Later deploys moved the host past that point, so today's rendering also
-   carries `e9d4069` and everything after it; the comparison now needs
-   `e52c157` rendered rather than read from the host.

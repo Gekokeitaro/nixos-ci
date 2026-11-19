@@ -49,6 +49,18 @@ The committed benchmark-scripts pin is `llamaBenchRunner`, rev
 own checkout, so the deployed scripts can be ahead of that pin and the job log is
 the record of what each deploy resolved (see `AGENTS.md`).
 
+## Verified
+
+- The fragment-library refactor preserves behaviour at the llama-swap argument
+  level. `e52c157` (last commit before it) and `1089dc0 REFACTOR - Migrate the
+  model files to the fragment library` (`7ca3eed` added the library) both
+  render 17 model ids, with identical `filters`. The `cmd` text differs on 16
+  models only in flag order, blank lines and Nix float formatting
+  (`--spec-draft-p-min 0.6` → `0.600000`), and a shell-token comparison found
+  identical argv on all 17. Measured 2026-11-19 by `nix eval` of
+  `config.services.llama-swap.settings.models` on a path flake of each commit,
+  then a shell-token comparison of every `cmd`.
+
 ## Served configuration
 
 `nixos-llamaswap-rocm` serves `Qwen3.5-9B-UD-Q4_K_XL` under one
