@@ -5,12 +5,24 @@ State of this host and what is still open. Mechanics live in
 [`../../skills/model-files/SKILL.md`](../../skills/model-files/SKILL.md); what is
 deployed on the host, in [`../../MEMORY.md`](../../MEMORY.md).
 
-Last updated: 2026-11-18.
+Last updated: 2026-11-19.
+
+## Spark X2.6 4B, served from 2026-11-19
+
+- Deployed after its own battery: `--ctx-size 196608` (ceiling 262144 with 162 MiB of
+  margin, the policy cap; 192k buys the margin back), `-b 256 -ub 128 -ctk/-ctv f16`
+  (re-measured at the served thread default: pp512 411, pp4096 295 - the best pair),
+  chain left to llama.cpp's default order, `--temp .6 --top-p .95 --top-k 20`.
+- **No reasoning budget.** A 526 s `ERR_API` on 2026-11-19 looked like an unbounded
+  thinking block and was the gateway: the same row on the same cmd answered in 122 s once
+  OmniRoute was healthy. The server default (-1) stands until something measures a loop.
+- Its `:instruct` variant is served and closes the thinking block.
 
 ## Sampling
 
-- 14 of the 16 model files serve the default sampler chain. Only Spark X2.6 4B and
-  Gemma 4 12B spell their own: `top_k;top_p;min_p;temperature;dry;typ_p;xtc`.
+- 14 of the 16 model files serve the default sampler chain. Only Gemma 4 12B spells its
+  own (`top_k;top_p;min_p;temperature;dry;typ_p;xtc`); **Spark dropped its list on
+  2026-11-19** and now uses the default order, with DRY per variant through `dryVariants`.
 - **Open: the `:dry-budget-4000*` variants set `reasoning_budget = 4096`.** The
   suffix says 4000. Rename one or the other deliberately, not by accident.
 - **Open: in both custom chains temperature runs ahead of DRY**, unlike the default
