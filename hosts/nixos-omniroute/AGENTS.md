@@ -28,6 +28,12 @@ Nix after first boot if needed.
 
 ## Special config
 
+- **A new llama-swap model or variant does not reach clients on its own.** OmniRoute keeps
+  its own list of the llama.cpp provider's models: after deploying a new id, re-discover the
+  provider (UI) before anything can call it. `pi update --models` only refreshes `pi`'s view
+  of OmniRoute, and `/api/*` needs a management token that the client key is not
+  (`AUTH_001: Invalid management token`). Measured the hard way on 2026-11-19: six new ids,
+  three batteries that died in two seconds each.
 - `PUID=1000`, `PGID=1000`, `TZ=Europe/Madrid`.
 - `OMNIROUTE_BOOTSTRAPPED = "true"` — skips first-run wizard.
 - Stream timeouts raised for slow local models:
