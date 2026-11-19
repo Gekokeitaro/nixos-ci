@@ -22,3 +22,9 @@ moves to the file that owns it.
    `forgejo-runner-ci` (`hosts/nixos-ci/modules/forgejo-runner.nix`); until that
    reaches the host, the workflow prepends `/run/current-system/sw/bin`, and
    that prepend can be removed after the host's `nixos-rebuild switch`.
+5. **The 35B's window is measured and unpushed.** `Unsloth-Qwen3.6-35B-A3B-REAP-48-v2.nix`
+   now serves `--ctx-size 163840` (was 32768) and carries its battery in the header; the
+   commit is local because a push to `main` deploys. Its ceiling is 196608 at load and
+   229376 misses it by 34 MiB, so 163840 keeps ~1.9 GiB of margin. Owed before it has a
+   baseline: its first CORE `-k 3`, and `pp4096` at `-t 2` if the threads are to move. The
+   six roles are not adopted yet — the tuning loop puts them after the `cmd` settles.
