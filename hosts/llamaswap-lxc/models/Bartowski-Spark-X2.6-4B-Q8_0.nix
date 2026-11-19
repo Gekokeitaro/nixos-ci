@@ -1,6 +1,25 @@
 # https://llama-dry-docs.site/view/docs
-# Battery: tg64 base 14.91, range 14.52-15.07 (all within 3% of base), peak VRAM 4459-7281 MiB.
-# Winner: -b 256 -ub 128 (tg64 15.02, 4651 MiB), which is what the file already used.
+# Battery 2026-11-19 (llama.cpp 1.0.0, this GGUF, 12 CPUs, served thread default 8): tg is
+# flat at 15.0 t/s in every arm, so the only lever is prompt processing. `-b 256 -ub 128`
+# gives pp512 411 and pp4096 295 at the served threads - the best pair measured; `-ub 256`
+# reads 400 at one thread and 218 at eight, which is why threads are fixed before comparing
+# batch (see skills/llama-bench-battery). KV quantisation rejected: f16/f16 13.01 t/s at
+# d16384 against q8_0/q8_0 10.56, -19 %. `-b 4096` with `ub >= 1024` costs 5243-7281 MiB for
+# no gain. Peak with this preset 4651 MiB.
+# Context 2026-11-19: the ceiling measures 262144 with a margin of 162 MiB (VmHWM 14174, KV
+# 9297), the policy cap. Served at 196608: 256k leaves 162 MiB, which is luck rather than
+# margin, and 64k of window is the cheaper thing to give up. `--ctx-checkpoints 4` kept.
+# Chain 2026-11-19: the explicit `--samplers` list is gone, so llama.cpp's order applies -
+# penalties, dry, top_k, top_p, min_p, temperature. The old list ran dry after truncation,
+# where it reweights survivors instead of removing tokens, and put temperature before the
+# cuts. DRY stays per variant through `dryVariants`.
+# Reasoning budget 2026-11-19: without one, the bare id reasons until the client gives up -
+# a `t17` row streamed for 526 s and died as `ERR_API` ("OpenAI Responses stream ended
+# before a terminal response event"), while the same test on `:instruct` (thinking closed)
+# answered in 45 s. The server default is -1, unrestricted. 4096 is the smaller budget this
+# library already ships (`dry-budget-4000`); a variant can still override it per request.
+# The copy probe of 2026-11-16 is the check for the chain change on the reference GGUF;
+# here the chain is measured before and after on t07 and t06.
 {llama-server, modelLib}: {
   "Bartowski Spark X2.6 4B Q8_0" = {
     name = "Bartowski Spark X2.6 4B Q8_0";
@@ -10,9 +29,9 @@
       ${modelLib.deviceArgs}
       ${modelLib.checkpointArgs}
       -b 256 -ub 128 -ctk f16 -ctv f16
-      --ctx-size 65536
+      --ctx-size 196608
+      --reasoning-budget 4096
       --temp .6 --top-p 0.95 --top-k 20
-      --samplers "top_k;top_p;min_p;temperature;dry;typ_p;xtc"
     '';
 
     filters = modelLib.mkFilters (
