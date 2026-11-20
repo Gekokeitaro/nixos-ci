@@ -27,12 +27,13 @@
       --reasoning-format deepseek
     '';
 
-    filters = modelLib.mkFilters {
-      default = modelLib.profiles.agent;
-      thinking = modelLib.profiles.thinking // {repeat_penalty = 1.1;};
-      coding = modelLib.profiles.coding;
-      instruct = modelLib.profiles.noThink;
-    };
+    # The six factory roles, and nothing inherited: the legacy profiles this file served
+    # (`agent`, `thinking`, `coding`, `instruct`) were set from precedent and never swept, so
+    # they are gone rather than kept beside the new ones. The bare id therefore carries **no
+    # filter** — it runs on llama.cpp's server defaults, which is the same shape Spark serves.
+    # Consequence, stated so nobody is surprised: the 45/96 CORE of 2026-11-20 was taken with
+    # `default = agent` and is **stale** from this commit on.
+    filters = modelLib.mkFilters modelLib.profiles.roles;
 
     ttl = 600;
   };
