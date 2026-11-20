@@ -25,9 +25,13 @@ moves to the file that owns it.
 5. **The 35B serves 163840 and has its baseline.** `--ctx-size 163840` (its ceiling is 196608
    at load; 229376 misses by 34 MiB) with the battery in its header, deployed 2026-11-20. Its
    first CORE `k=3` is done: **45/96**, `cross` 12/12 and `planner` 2/12
-   (`ai-tests/measurements/qwen3.6-35b-a3b-reap-48-v2.md`). Owed: `pp4096` at `-t 2` if the
-   threads are to move, and the six roles — not adopted yet, the tuning loop puts them after
-   the `cmd` settles.
+   (`ai-tests/measurements/qwen3.6-35b-a3b-reap-48-v2.md`). Threads are settled: `-t 1` wins on
+   both prompt sizes (`pp512` 348, `pp4096` 302) against `-t 2/4/8`. **Owed: the six roles.**
+   `Unsloth-Qwen3.6-35B-A3B-REAP-48-v2.nix` still serves the legacy filters
+   (`default = profiles.agent`, `thinking`, `coding`, `instruct`), so adopting
+   `profiles.roles` changes the bare id's sampling as well as adding the role budgets — and
+   that invalidates the 45/96 above, which is why it wants its own CORE afterwards. `ngram` is
+   the only speculative path left untested on it (no MTP heads).
 6. **`reasoning_effort` is a lever, and it travels from the client (decided 2026-11-20).** It
    exists only where the GGUF template implements it: the 27B base quants and two served 27B
    entries (`Ukisai Swift 1.5`, `Ternary Bonsai 2 27B`) declare `{xhigh, medium, low}` and
