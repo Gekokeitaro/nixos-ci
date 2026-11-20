@@ -116,6 +116,14 @@ returns `score=none`, and `none` is not a zero**: it is a row that cannot answer
 question, so a top-down sweep spends hours of GPU on ceilings and learns nothing. A finished
 row at `low` is worth more than a `TIMEOUT` at `xhigh`.
 
+**The cheap tier was measured on 2026-11-20 and did not brake the loop.** Spark at
+`reasoning_effort=low` — the gateway log confirms `effort=low`, so the value reached llama.cpp —
+returned **0 of 9 on `t04`/`t05`/`t12`, every row at the 900 s ceiling**, the same 0/9 the
+default `high` gives on those tests. The effort is a *thinking* instruction, and those rows fail
+while writing: the captured server log shows a row producing a **valid file at 691 s** and still
+generating to the ceiling. When the loop is in the writing, the brake is the budget and its
+forced message, not the tier.
+
 **DRY and `reasoning_budget` attach to the expensive end**, not to the cheap one: they are what
 keeps `high` or `xhigh` inside a 900 s ceiling when the quality forces the tier. Where the
 template implements the effort, **the effort comes before both**: it is the model's own
