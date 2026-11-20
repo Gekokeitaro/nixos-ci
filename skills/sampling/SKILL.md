@@ -89,13 +89,16 @@ produced 0 reasoning characters and 1521 characters of answer.
 and raises on anything else, or ignores the field — there is no middle, and which one it is
 belongs to the GGUF, not the family. Ask the template, with no GPU involved:
 `reasoning-efforts.sh /models/<model.gguf` (in `llama-bench-runner`) prints the accepted set
-and its default. Measured 2026-11-20: `Spark-X2.6-4B` accepts **`high` (its default) and
-`low`**; `Qwen3.6-35B` and the reference `Qwen3.5-9B` do not read it at all, so an effort
-axis on them would measure nothing. Two consequences: the field can bound loops on a model
-that implements it, and **a gateway in front can rewrite it** — OmniRoute clamps an unlisted
-value to the nearest accepted tier and retries, so the model receives `high` although the
-client asked for `medium`. Trust the gateway's own `… | effort=<value>` log line over the
-flag that was passed.
+and its default. The set does not follow the family — measured 2026-11-20: the **27B base
+quants** declare `{xhigh, medium, low}` defaulting to `xhigh`, the **27B Turbo-Brilliance
+fine-tune of the same family declares nothing**, and `Spark-X2.6-4B` declares `{high, low}`
+defaulting to `high`. The three entries this workspace leans on — the reference
+`Qwen3.5-9B-UD`, the 35B and the served 27B fine-tune — **do not read the field at all**. The
+sweep is `llama-bench-runner/measurements/reasoning-effort-templates.md`. Two consequences:
+the field can bound loops on a model that implements it, and **a gateway in front can rewrite
+it** — OmniRoute clamps an unlisted value to the nearest accepted tier and retries, so the
+model receives `high` although the client asked for `medium`. Trust the gateway's own
+`… | effort=<value>` log line over the flag that was passed.
 
 DRY 0 and `presence_penalty` 0 are a **correction of this GGUF** (copy-fidelity
 round of 2026-11-16), not role axes: moving them per role would confound a role
