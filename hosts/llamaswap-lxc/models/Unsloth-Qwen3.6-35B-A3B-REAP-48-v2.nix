@@ -8,10 +8,15 @@
 # `llama-bench-runner/measurements/qwen3.6-35b-a3b-reap-48-v2.md`.
 # Context 2026-11-20: the ceiling is 196608 at load (VmHWM 13665, KV 3840 at 20 MiB per 1k
 # tokens) and 229376 misses it by 34 MiB; a 32k session with checkpoints peaks at 14207 MiB,
-# 129 MiB inside the frame. Serving 163840 keeps ~1.9 GiB of margin for one grid step. No
-# spec path, and it is measured, not assumed: the GGUF carries no MTP layers, and `ngram-mod`
-# peaks at 1.014x for ~300 MiB of RSS (2026-11-20), which is drift, not a win. The model
-# serves `--spec-type none`.
+# 129 MiB inside the frame. Serving 163840 keeps ~1.9 GiB of margin for one grid step.
+# Spec 2026-11-20: `ngram-mod` is universal, and it is measured, not assumed. The GGUF has no
+# MTP layers, and of the four triples the grid ran at `temp 0.8` and `chain=none`, 24:32:48 is
+# the one that holds every class: prose 0.977, code **1.600**, json 1.058, global 1.008,
+# acceptance 0.522 at 1.91 drafted per accepted, +260 MiB of RSS. The global number buries the
+# point — this is a code preset that pays 2.3 % on prose, and 12:32:64 was out for -3.1 % on
+# json. Flags live in `cmd` because `--spec-*` are startup flags, never request parameters, and
+# the window above is the one measured **without** the stack: rerun `ctx-ceiling.sh` with it
+# before quoting 163840 again.
 {llama-server, modelLib}: {
   "Unsloth Qwen3.6 35B A3B REAP 48 v2" = {
     name = "Unsloth Qwen3.6 35B A3B REAP 48 v2";
@@ -26,6 +31,8 @@
       --ctx-size 163840
       --reasoning-preserve
       --reasoning-format deepseek
+      --spec-type ngram-mod
+      --spec-ngram-mod-n-match 24 --spec-ngram-mod-n-min 32 --spec-ngram-mod-n-max 48
     '';
 
     # The six factory roles, and nothing inherited: the legacy profiles this file served
