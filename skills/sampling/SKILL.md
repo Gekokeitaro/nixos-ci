@@ -108,22 +108,30 @@ timeout-prone tier and its quality does not buy back a 900 s ceiling; what the c
 default is `medium`, which the 27B accepts and Spark rejects with a 400, so the gateway
 clamps it up to `high`.
 
-**Order of the loop levers — decided 2026-11-20, conditional on the measurement below.**
-The progression over the tiers is **`medium` → `low` → `high` → `xhigh`**, filtered by what the
-template accepts: the two cheap tiers are the preferred ones, and `high`/`xhigh` are the
-exception, taken only when quality forces them. **DRY and `reasoning_budget` attach to that
-expensive end**, not to the cheap one: they are what keeps `high` or `xhigh` inside a 900 s
-ceiling when the quality demands the tier. And where the template implements the effort,
-**the effort comes before both**: it is the model's own instruction, injected by its template,
-so it changes the plan the model follows, while DRY penalises repeated sequences and the
-budget truncates the thinking block by force — external corrections to a model that is already
-misbehaving.
+**Order of the loop levers — decided 2026-11-20, bottom-up.** The progression over the tiers is
+**`medium` → `low` → `high` → `xhigh`**, filtered by what the template accepts, and the
+direction is **up only on evidence**: start at the cheapest preferred tier, and climb only when
+it loses a test the tier below passed. The reason is not taste — **a tier that times out
+returns `score=none`, and `none` is not a zero**: it is a row that cannot answer the quality
+question, so a top-down sweep spends hours of GPU on ceilings and learns nothing. A finished
+row at `low` is worth more than a `TIMEOUT` at `xhigh`.
 
-Applied to what this host serves: **Spark** accepts `{high, low}`, so its progression starts at
-`low` and only escalates to `high` with DRY or a budget behind it; the **27B base quants**
-accept `{xhigh, medium, low}`, so they start at `medium`, fall to `low`, and reach `xhigh`
-only with that support. The **reference, the 35B and the served 27B fine-tune read nothing**,
-so for those three the effort is not a lever at all and DRY/budget are all there is.
+**DRY and `reasoning_budget` attach to the expensive end**, not to the cheap one: they are what
+keeps `high` or `xhigh` inside a 900 s ceiling when the quality forces the tier. Where the
+template implements the effort, **the effort comes before both**: it is the model's own
+instruction, injected by its template, so it changes the plan the model follows, while DRY
+penalises repeated sequences and the budget truncates the thinking block by force.
+
+**And the climb is judged blind where the evaluator cannot see.** A cheap tier that keeps the
+`OK` count can still ship a worse artefact: on the coarse tests (`t10`, `t15-B`, `t08`) the
+checks do not separate them, so a tier that is about to be adopted goes through the frozen
+rubric and the blind pair before it is quoted.
+
+Applied to what this host serves: **Spark** accepts `{high, low}`, so it starts at `low` and
+escalates to `high` only if `low` loses a test — with DRY or a budget behind it. The **27B base
+quants** accept `{xhigh, medium, low}`: they start at `medium`, fall to `low`, and reach
+`xhigh` only under that support. The **reference, the 35B and the served 27B fine-tune read
+nothing**, so for those three the effort is not a lever at all and DRY/budget are all there is.
 
 DRY 0 and `presence_penalty` 0 are a **correction of this GGUF** (copy-fidelity
 round of 2026-11-16), not role axes: moving them per role would confound a role
