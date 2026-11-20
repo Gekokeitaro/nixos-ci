@@ -85,6 +85,18 @@ verified rather than assumed: on one prompt the bare id spent 1393 characters in
 `reasoning_content` and answered nothing in 400 tokens, while `:instruct`
 produced 0 reasoning characters and 1521 characters of answer.
 
+**`reasoning_effort` is not a universal knob.** A chat template either enumerates its values
+and raises on anything else, or ignores the field — there is no middle, and which one it is
+belongs to the GGUF, not the family. Ask the template, with no GPU involved:
+`reasoning-efforts.sh /models/<model.gguf` (in `llama-bench-runner`) prints the accepted set
+and its default. Measured 2026-11-20: `Spark-X2.6-4B` accepts **`high` (its default) and
+`low`**; `Qwen3.6-35B` and the reference `Qwen3.5-9B` do not read it at all, so an effort
+axis on them would measure nothing. Two consequences: the field can bound loops on a model
+that implements it, and **a gateway in front can rewrite it** — OmniRoute clamps an unlisted
+value to the nearest accepted tier and retries, so the model receives `high` although the
+client asked for `medium`. Trust the gateway's own `… | effort=<value>` log line over the
+flag that was passed.
+
 DRY 0 and `presence_penalty` 0 are a **correction of this GGUF** (copy-fidelity
 round of 2026-11-16), not role axes: moving them per role would confound a role
 with the correction. XTC is a roleplay sampler and stays out.
