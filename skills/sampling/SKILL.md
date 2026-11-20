@@ -129,9 +129,14 @@ rubric and the blind pair before it is quoted.
 
 Applied to what this host serves: **Spark** accepts `{high, low}`, so it starts at `low` and
 escalates to `high` only if `low` loses a test — with DRY or a budget behind it. The **27B base
-quants** accept `{xhigh, medium, low}`: they start at `medium`, fall to `low`, and reach
-`xhigh` only under that support. The **reference, the 35B and the served 27B fine-tune read
-nothing**, so for those three the effort is not a lever at all and DRY/budget are all there is.
+quants** accept `{xhigh, medium, low}` — **no `high` at all**, so the ladder has three rungs
+and no middle step — and `xhigh` is reported as that family's most effective tier, which makes
+it a contender rather than a last resort: `medium` first, `low` as the cheaper fallback,
+`xhigh` as the serious candidate **with a budget behind it**, because that is the tier most
+likely to spend 900 s. The **reference, the 35B and the served 27B fine-tune read nothing**, so
+for those the effort is not a lever at all and DRY/budget are all there is — and note the
+precondition for the 27B work: the entry the host actually serves is the Turbo-Brilliance
+fine-tune, not a base quant, so the effort only exists there if that entry is changed.
 
 DRY 0 and `presence_penalty` 0 are a **correction of this GGUF** (copy-fidelity
 round of 2026-11-16), not role axes: moving them per role would confound a role
