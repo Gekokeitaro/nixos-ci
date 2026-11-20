@@ -56,6 +56,16 @@ No sops-nix configuration. GPU/cache paths are not secret.
 - Both: `GGML_VK_MAX_NODES_PER_SUBMIT=1`, `GGML_CUDA_ENABLE_UNIFIED_MEMORY=1`.
 - `MESA_SHADER_CACHE_DIR` / `XDG_CACHE_HOME` → `/var/cache/llama-swap` for the
   llama-swap systemd service.
+- **The child's output is in no log.** llama-swap 268 swallows `llama-server`'s stdout: its
+  `-help` carries no log-level flag, no per-model log file exists, and a whole burst leaves
+  **zero** `srv`/`slot` lines in the journal. The only live view is
+  `curl -Ns http://127.0.0.1:8080/logs/stream/upstream`, which replays a short buffer (about
+  10 KB) and then streams — so redirect it to a file **before** the event to be read, with
+  `setsid nohup curl -Ns … > ~/llama-upstream-<date>.log 2>&1 &`. Measured 2026-11-20 over
+  6 h 11 of CORE: 20,842 lines, 2.4 MB, no error line, and every abnormal ending was
+  `W srv stop: cancel task` plus `slot release`. **A cancel is not a server failure**: it is
+  llama-swap cancelling the upstream after its client side went away, so it points above
+  llama-swap — OmniRoute, or the `pi`↔OmniRoute leg. Raising `logLevel` belongs there.
 - User `nixos-llamaswap-vulkan` or `nixos-llamaswap-rocm` (per `hostName`)
   with `extraGroups = ["wheel" "render" "video"]`.
 
