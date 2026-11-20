@@ -1,0 +1,67 @@
+name: deploy-omniroute
+
+on:
+  push:
+    branches:
+      - main
+    # Only a change that can alter this host pays for its rebuild. `common/` and the
+    # flake do, everything else does not.
+    paths:
+      - "hosts/nixos-omniroute/**"
+      - "common/**"
+      - "flake.nix"
+      - "flake.lock"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-omniroute
+  cancel-in-progress: false
+
+env:
+  HOST: 192.168.18.28
+  DEPLOY_KEY: /run/credentials/forgejo-runner-ci.service/deploykey
+
+jobs:
+  deploy:
+    runs-on: host
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check over SSH that the LXC is up
+        run: |
+          if ! timeout 5 bash -c "echo > /dev/tcp/$HOST/22"; then
+            echo "::error::SSH not available on $HOST. Aborting deployment."
+            exit 1
+          fi
+
+      # A key cannot deploy itself. The deploy key is authorized in
+      # `hosts/nixos-omniroute/configuration.nix`, so until that file has been applied on
+      # the host once by hand this step fails — and it says exactly that, instead of
+      # leaving a raw `Permission denied` for the reader to interpret.
+      - name: Check that the deploy key is authorized
+        run: |
+          export HOME="$PWD/.ci-home"
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+
+          if ! ssh -i "$DEPLOY_KEY" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=10 \
+              -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+              "nixos-omniroute@$HOST" true; then
+            echo "::error::The deploy key is not authorized on $HOST yet: apply hosts/nixos-omniroute/configuration.nix there by hand once. A key cannot deploy itself."
+            exit 1
+          fi
+
+      - name: Deploy
+        run: |
+          export HOME="$PWD/.ci-home"
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+
+          export NIX_SSHOPTS="-i $DEPLOY_KEY \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=accept-new \
+            -o UserKnownHostsFile=$HOME/.ssh/known_hosts"
+
+          nixos-rebuild switch --flake ".#nixos-omniroute" \
+            --target-host "nixos-omniroute@$HOST" --elevate=sudo

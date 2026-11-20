@@ -13,6 +13,21 @@ unified LLM routing layer by other services (e.g., `nixos-hindsight`).
 |---|---|---|
 | OmniRoute (OCI) | 20128 | `docker.io/diegosouzapw/omniroute:latest`; listen address and port are in [INFRA.md](../../INFRA.md) |
 
+## Deployment
+
+- Automated from Forgejo: a push to `main` of `nixos-ci` touching
+  `hosts/nixos-omniroute/`, `common/` or the flake runs `.forgejo/workflows/deploy-omniroute.yml`
+  (`nixos-rebuild switch` over SSH with the sops deploy key), and `workflow_dispatch` forces
+  one. A switch restarts the container, so **never push while a measurement runs**.
+- **The first apply is manual.** The deploy key is authorized in this host's
+  `configuration.nix`, and a key cannot deploy itself: until that file has been applied on
+  the host once, every workflow run fails with `Permission denied (publickey)`.
+- **A restart drops every in-flight stream.** Clients see
+  `recovered from upstream disconnection` on the model host and a battery row in flight
+  dies as `ERR_API`, which is never a model failure.
+- Runtime output is read with `sudo docker logs --since 15m omniroute`; this file exposes no
+  log verbosity of its own.
+
 ## Dependencies
 
 - Persistent data on host: `/var/lib/omniroute:/app/data` (bind mount).

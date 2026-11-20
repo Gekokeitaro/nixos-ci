@@ -11,6 +11,12 @@
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGApUnvphJshC3LJ4QxDu8fm3JqEnSWZ6ewhf6gQuF7V PopOS OCT 2024"
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFeASXjLf7TjNTxO5CZ4Aa6z8hyFG0CXAe4FhcpZOEp6 NixOS-CI MAY 2026"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOItHReLpLr0DZHohVHBdqu7CePpsuQ3ANa0UsUX0xj+ pablo.bugarin.camara@gmail.com"
+      # The Forgejo runner's deploy key, the same one the model host carries: it is what
+      # `.forgejo/workflows/deploy-omniroute.yml` authenticates with. It only works once
+      # this configuration has been applied to the host **once by hand** — a key cannot
+      # deploy itself.
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG1kMUYO4VHcsypjXFxKcmdzki6/L0dcIW2BW2eopotS deploy-runner"
     ];
     packages = with pkgs; [
       tree

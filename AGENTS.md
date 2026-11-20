@@ -116,15 +116,22 @@ local LLM inference). All hosts share a common base with NVF (Neovim).
     `workflow_dispatch` forces one on demand. Consequence, and it outranks
     convenience: **never push `nixos-ci` while a measurement is running** — the
     deploy restarts llama-swap and kills the run.
+- `.forgejo/workflows/deploy-omniroute.yml` deploys the gateway:
+  - push to `main` touching `hosts/nixos-omniroute/`, `common/` or the flake →
+    `nixos-rebuild switch` against `nixos-omniroute`; `workflow_dispatch` forces one.
+  - It authenticates with the same sops deploy key, so that key had to be added to
+    `hosts/nixos-omniroute/configuration.nix`. **A key cannot deploy itself**: until
+    that host has been applied by hand once, the workflow fails with
+    `Permission denied (publickey)`, and that is the bootstrap, not a broken job.
 - The deploy key is the sops secret `deploy-key`; systemd exposes it to
   `forgejo-runner-ci` as a credential.
 - Before building, the workflow runs `nix run .#update-llama-bench-runner`, which
   points `llamaBenchRunner` at the runner repository's published `main` (see
   `DECISIONS.md`). That change is not committed: the deployed pin can be ahead of
   the committed one and the job log is its record.
-- Only `nixos-llamaswap-rocm` is automated. The rest of the hosts are applied
-  manually. A push to `main` is therefore a production action: do not push
-  configuration that is not ready to deploy.
+- Only `nixos-llamaswap-rocm` and `nixos-omniroute` are automated. The rest of the
+  hosts are applied manually. A push to `main` is therefore a production action: do
+  not push configuration that is not ready to deploy.
 
 ## Nix conventions
 
