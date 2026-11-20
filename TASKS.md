@@ -22,16 +22,13 @@ moves to the file that owns it.
    `forgejo-runner-ci` (`hosts/nixos-ci/modules/forgejo-runner.nix`); until that
    reaches the host, the workflow prepends `/run/current-system/sw/bin`, and
    that prepend can be removed after the host's `nixos-rebuild switch`.
-5. **The 35B serves 163840 and has its baseline.** `--ctx-size 163840` (its ceiling is 196608
-   at load; 229376 misses by 34 MiB) with the battery in its header, deployed 2026-11-20. Its
-   first CORE `k=3` is done: **45/96**, `cross` 12/12 and `planner` 2/12
-   (`ai-tests/measurements/qwen3.6-35b-a3b-reap-48-v2.md`). Threads are settled: `-t 1` wins on
-   both prompt sizes (`pp512` 348, `pp4096` 302) against `-t 2/4/8`. **Owed: the six roles.**
-   `Unsloth-Qwen3.6-35B-A3B-REAP-48-v2.nix` still serves the legacy filters
-   (`default = profiles.agent`, `thinking`, `coding`, `instruct`), so adopting
-   `profiles.roles` changes the bare id's sampling as well as adding the role budgets — and
-   that invalidates the 45/96 above, which is why it wants its own CORE afterwards. `ngram` is
-   the only speculative path left untested on it (no MTP heads).
+5. **The 35B serves 163840 from the six roles, and its baseline is stale.** `--ctx-size 163840`
+   (ceiling 196608 at load; 229376 misses by 34 MiB) with the battery in its header. The CORE
+   `k=3` of 2026-11-20 gave **45/96** (`cross` 12/12, `planner` 2/12), but it was taken with
+   `default = agent`; the file now serves `profiles.roles` and nothing inherited, so the bare
+   id runs on llama.cpp's server defaults and **that CORE has to be repeated** as its real
+   baseline. Threads are settled (`-t 1`: `pp512` 348, `pp4096` 302). `ngram` is the only
+   speculative path left untested on it (no MTP heads). **Not deployed yet.**
 6. **`reasoning_effort` is a lever, and it travels from the client (decided 2026-11-20).** It
    exists only where the GGUF template implements it: the 27B base quants and two served 27B
    entries (`Ukisai Swift 1.5`, `Ternary Bonsai 2 27B`) declare `{xhigh, medium, low}` and
