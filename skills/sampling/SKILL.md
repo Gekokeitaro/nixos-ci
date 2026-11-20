@@ -101,12 +101,12 @@ model receives `high` although the client asked for `medium`. Trust the gateway'
 `… | effort=<value>` log line over the flag that was passed.
 
 **It is a lever, not an axis — decided 2026-11-20.** The effort is *not* swept per role: it is
-offered for the tests that run into the ceiling, and only there. Being a request field, it can
-travel in `filters.setParamsByID` exactly like `reasoning_budget`, so a client asks for the
-cheaper tier through a variant (`:low`) and no second `cmd` is needed. `xhigh` is the most
-timeout-prone tier and its quality does not buy back a 900 s ceiling; what the client sends by
-default is `medium`, which the 27B accepts and Spark rejects with a 400, so the gateway
-clamps it up to `high`.
+offered for the tests that run into the ceiling, and only there. **It travels from the client**
+— `pi`'s thinking level, `PI_EXTRA='--thinking low'` in the harness — and not from a variant of
+the model: no `:low` id is created, and the factory is the place that will eventually send it.
+Consequences of that choice: the model host records nothing about it, so the run's `--note` and
+the gateway's `… | effort=<value>` line are the only evidence, and two tiers of the same id
+share one client id, so the folder is quarantined between them.
 
 **Order of the loop levers — decided 2026-11-20, bottom-up.** The progression over the tiers is
 **`medium` → `low` → `high` → `xhigh`**, filtered by what the template accepts, and the

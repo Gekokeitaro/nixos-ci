@@ -28,11 +28,12 @@ moves to the file that owns it.
    (`ai-tests/measurements/qwen3.6-35b-a3b-reap-48-v2.md`). Owed: `pp4096` at `-t 2` if the
    threads are to move, and the six roles — not adopted yet, the tuning loop puts them after
    the `cmd` settles.
-6. **`reasoning_effort` is a variant, not an axis (decided 2026-11-20).** It exists only where
-   the GGUF template implements it: the 27B base quants `{xhigh, medium, low}`, Spark
-   `{high, low}`, and the three entries this workspace leans on read nothing
-   (`llama-bench-runner/measurements/reasoning-effort-templates.md`). Being a request field it
-   travels in `filters.setParamsByID`, so a variant costs one line and no second `cmd`. It is
-   **not** swept per role: it is offered for the tests that run into the ceiling. Open:
-   measure Spark at `low` against the `high` its template defaults to, then decide whether
-   the `:low` variant earns its own id.
+6. **`reasoning_effort` is a lever, and it travels from the client (decided 2026-11-20).** It
+   exists only where the GGUF template implements it: the 27B base quants and two served 27B
+   entries (`Ukisai Swift 1.5`, `Ternary Bonsai 2 27B`) declare `{xhigh, medium, low}` and
+   Spark `{high, low}`, while the reference, the 35B and the `David AU` 27B read nothing
+   (`llama-bench-runner/measurements/reasoning-effort-templates.md`). **No variant is created**:
+   it is sent by `pi` (`PI_EXTRA='--thinking <tier>'`) and the factory is the place that will
+   eventually send it, so nothing has to change on the host. It is **not** swept per role — it
+   is offered for the tests that run into the ceiling. Open: measure Spark at `low` against the
+   `high` its template defaults to, then repeat at the top tier on a served 27B.
