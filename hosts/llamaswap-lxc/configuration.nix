@@ -88,6 +88,13 @@ in {
     openFirewall = true; # Adds the port to allowedTCPPorts. Needed with Proxmox?
     settings = {
       includeAliasesInList = true;
+      # Verbose enough to say why a stream ended. `llama-swap 268` accepts the key (its
+      # config struct declares `logLevel`); `-validate` does not check the value, so this
+      # is the conventional Go level name. Remove it once the ERR_API bursts are explained:
+      # it is forensic scaffolding, not a serving setting. Measured 2026-11-20: at the
+      # default level a whole burst leaves no trace of the client side, only
+      # `recovered from upstream disconnection`.
+      logLevel = "debug";
       # Discovers every model in ./models; archived/ stays out.
       models = import ./models {
         inherit pkgs;
