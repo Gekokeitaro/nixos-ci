@@ -27,8 +27,10 @@ moves to the file that owns it.
    `k=3` of 2026-11-20 gave **45/96** (`cross` 12/12, `planner` 2/12), but it was taken with
    `default = agent`; the file now serves `profiles.roles` and nothing inherited, so the bare
    id runs on llama.cpp's server defaults and **that CORE has to be repeated** as its real
-   baseline. Threads are settled (`-t 1`: `pp512` 348, `pp4096` 302). `ngram` is the only
-   speculative path left untested on it (no MTP heads). **Not deployed yet.**
+   baseline. Threads are settled (`-t 1`: `pp512` 348, `pp4096` 302). **The spec is closed**:
+   no MTP layers, and `ngram-mod`'s best triple peaks at 1.014× for ~300 MiB, so the entry
+   serves `--spec-type none` — there is nothing left to try on it.
+   **Not deployed yet.**
 6. **`reasoning_effort` is a lever, and it travels from the client (decided 2026-11-20).** It
    exists only where the GGUF template implements it: the 27B base quants and two served 27B
    entries (`Ukisai Swift 1.5`, `Ternary Bonsai 2 27B`) declare `{xhigh, medium, low}` and

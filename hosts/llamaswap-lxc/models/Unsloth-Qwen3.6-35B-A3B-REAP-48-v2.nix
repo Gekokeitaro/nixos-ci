@@ -9,8 +9,9 @@
 # Context 2026-11-20: the ceiling is 196608 at load (VmHWM 13665, KV 3840 at 20 MiB per 1k
 # tokens) and 229376 misses it by 34 MiB; a 32k session with checkpoints peaks at 14207 MiB,
 # 129 MiB inside the frame. Serving 163840 keeps ~1.9 GiB of margin for one grid step. No
-# spec path: the GGUF carries no MTP layers (the loader says so), no draft model exists for
-# it, and ngram was never measured here.
+# spec path, and it is measured, not assumed: the GGUF carries no MTP layers, and `ngram-mod`
+# peaks at 1.014x for ~300 MiB of RSS (2026-11-20), which is drift, not a win. The model
+# serves `--spec-type none`.
 {llama-server, modelLib}: {
   "Unsloth Qwen3.6 35B A3B REAP 48 v2" = {
     name = "Unsloth Qwen3.6 35B A3B REAP 48 v2";
