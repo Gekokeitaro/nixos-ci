@@ -100,6 +100,14 @@ it** — OmniRoute clamps an unlisted value to the nearest accepted tier and ret
 model receives `high` although the client asked for `medium`. Trust the gateway's own
 `… | effort=<value>` log line over the flag that was passed.
 
+**It is a lever, not an axis — decided 2026-11-20.** The effort is *not* swept per role: it is
+offered for the tests that run into the ceiling, and only there. Being a request field, it can
+travel in `filters.setParamsByID` exactly like `reasoning_budget`, so a client asks for the
+cheaper tier through a variant (`:low`) and no second `cmd` is needed. `xhigh` is the most
+timeout-prone tier and its quality does not buy back a 900 s ceiling; what the client sends by
+default is `medium`, which the 27B accepts and Spark rejects with a 400, so the gateway
+clamps it up to `high`.
+
 DRY 0 and `presence_penalty` 0 are a **correction of this GGUF** (copy-fidelity
 round of 2026-11-16), not role axes: moving them per role would confound a role
 with the correction. XTC is a roleplay sampler and stays out.

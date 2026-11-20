@@ -22,9 +22,17 @@ moves to the file that owns it.
    `forgejo-runner-ci` (`hosts/nixos-ci/modules/forgejo-runner.nix`); until that
    reaches the host, the workflow prepends `/run/current-system/sw/bin`, and
    that prepend can be removed after the host's `nixos-rebuild switch`.
-5. **The 35B's window is measured and unpushed.** `Unsloth-Qwen3.6-35B-A3B-REAP-48-v2.nix`
-   now serves `--ctx-size 163840` (was 32768) and carries its battery in the header; the
-   commit is local because a push to `main` deploys. Its ceiling is 196608 at load and
-   229376 misses it by 34 MiB, so 163840 keeps ~1.9 GiB of margin. Owed before it has a
-   baseline: its first CORE `-k 3`, and `pp4096` at `-t 2` if the threads are to move. The
-   six roles are not adopted yet — the tuning loop puts them after the `cmd` settles.
+5. **The 35B serves 163840 and has its baseline.** `--ctx-size 163840` (its ceiling is 196608
+   at load; 229376 misses by 34 MiB) with the battery in its header, deployed 2026-11-20. Its
+   first CORE `k=3` is done: **45/96**, `cross` 12/12 and `planner` 2/12
+   (`ai-tests/measurements/qwen3.6-35b-a3b-reap-48-v2.md`). Owed: `pp4096` at `-t 2` if the
+   threads are to move, and the six roles — not adopted yet, the tuning loop puts them after
+   the `cmd` settles.
+6. **`reasoning_effort` is a variant, not an axis (decided 2026-11-20).** It exists only where
+   the GGUF template implements it: the 27B base quants `{xhigh, medium, low}`, Spark
+   `{high, low}`, and the three entries this workspace leans on read nothing
+   (`llama-bench-runner/measurements/reasoning-effort-templates.md`). Being a request field it
+   travels in `filters.setParamsByID`, so a variant costs one line and no second `cmd`. It is
+   **not** swept per role: it is offered for the tests that run into the ceiling. Open:
+   measure Spark at `low` against the `high` its template defaults to, then decide whether
+   the `:low` variant earns its own id.
