@@ -133,10 +133,11 @@ quants** accept `{xhigh, medium, low}` — **no `high` at all**, so the ladder h
 and no middle step — and `xhigh` is reported as that family's most effective tier, which makes
 it a contender rather than a last resort: `medium` first, `low` as the cheaper fallback,
 `xhigh` as the serious candidate **with a budget behind it**, because that is the tier most
-likely to spend 900 s. The **reference, the 35B and the served 27B fine-tune read nothing**, so
-for those the effort is not a lever at all and DRY/budget are all there is — and note the
-precondition for the 27B work: the entry the host actually serves is the Turbo-Brilliance
-fine-tune, not a base quant, so the effort only exists there if that entry is changed.
+likely to spend 900 s. The **reference and the 35B read nothing**, so for those the effort is not
+a lever at all and DRY/budget are all there is. On the 27B the field is **already served** by
+two entries — `Ukisai Swift 1.5 Qwen3.8 27B … mtp` and `Prism ML Ternary Bonsai 2 27B Q2_0` —
+while the third, `David AU Qwen3.8 27B TBrill … mtp`, reads nothing; pick the entry, not the
+size class.
 
 DRY 0 and `presence_penalty` 0 are a **correction of this GGUF** (copy-fidelity
 round of 2026-11-16), not role axes: moving them per role would confound a role
