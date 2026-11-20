@@ -109,12 +109,21 @@ default is `medium`, which the 27B accepts and Spark rejects with a 400, so the 
 clamps it up to `high`.
 
 **Order of the loop levers — decided 2026-11-20, conditional on the measurement below.**
-Where the template implements the effort, **`low` comes first**: it is the model's own
-instruction, injected by its template, so it changes the plan the model follows instead of
-rewriting its output. **DRY and `reasoning_budget` are the second line**, for when `low` costs
-too much quality and a higher tier is mandatory: DRY penalises repeated sequences and the
-budget truncates the thinking block by force, so both are external corrections to a model that
-is already misbehaving. Reaching for them before the effort is reaching for the heavier tool.
+The progression over the tiers is **`medium` → `low` → `high` → `xhigh`**, filtered by what the
+template accepts: the two cheap tiers are the preferred ones, and `high`/`xhigh` are the
+exception, taken only when quality forces them. **DRY and `reasoning_budget` attach to that
+expensive end**, not to the cheap one: they are what keeps `high` or `xhigh` inside a 900 s
+ceiling when the quality demands the tier. And where the template implements the effort,
+**the effort comes before both**: it is the model's own instruction, injected by its template,
+so it changes the plan the model follows, while DRY penalises repeated sequences and the
+budget truncates the thinking block by force — external corrections to a model that is already
+misbehaving.
+
+Applied to what this host serves: **Spark** accepts `{high, low}`, so its progression starts at
+`low` and only escalates to `high` with DRY or a budget behind it; the **27B base quants**
+accept `{xhigh, medium, low}`, so they start at `medium`, fall to `low`, and reach `xhigh`
+only with that support. The **reference, the 35B and the served 27B fine-tune read nothing**,
+so for those three the effort is not a lever at all and DRY/budget are all there is.
 
 DRY 0 and `presence_penalty` 0 are a **correction of this GGUF** (copy-fidelity
 round of 2026-11-16), not role axes: moving them per role would confound a role
