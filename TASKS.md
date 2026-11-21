@@ -22,15 +22,14 @@ moves to the file that owns it.
    `forgejo-runner-ci` (`hosts/nixos-ci/modules/forgejo-runner.nix`); until that
    reaches the host, the workflow prepends `/run/current-system/sw/bin`, and
    that prepend can be removed after the host's `nixos-rebuild switch`.
-5. **The 35B serves 163840 from the six roles, and its baseline is stale.** `--ctx-size 163840`
-   (ceiling 196608 at load; 229376 misses by 34 MiB) with the battery in its header. The CORE
-   `k=3` of 2026-11-20 gave **45/96** (`cross` 12/12, `planner` 2/12), but it was taken with
-   `default = agent`; the file now serves `profiles.roles` and nothing inherited, so the bare
-   id runs on llama.cpp's server defaults and **that CORE has to be repeated** as its real
-   baseline. Threads are settled (`-t 1`: `pp512` 348, `pp4096` 302). **The spec is closed**:
-   no MTP layers, and `ngram-mod`'s best triple peaks at 1.014× for ~300 MiB, so the entry
-   serves `--spec-type none` — there is nothing left to try on it.
-   **Not deployed yet.**
+5. **The 35B is fully served and baselined.** `--ctx-size 163840` (ceiling 196608, re-measured
+   with the spec inside: 13681 MiB, 655 MiB of margin), `-t 1`, `-b 2048 -ub 512`, **ngram-mod
+   24:32:48 universal**, the six roles with budgets and the forced message, and a bare id with no
+   filter. CORE `k=3`: **54/96** — `supervisor` 23/30, `integrator` 4/6, `cross` 9/12, `planner`
+   4/12, `implementer` 11/30, `reviewer` 3/6 (`ai-tests/measurements/qwen3.6-35b-a3b-reap-48-v2.md`).
+   **Open: `cross` fell from 12/12 to 9/12 in the same deploy that added the roles and the spec,
+   so the fall cannot be attributed** — one single-knob repeat of `t07 + t11` decides whether it
+   was the sampler or the draft. Nothing else is owed on it.
 6. **`reasoning_effort` is a lever, and it travels from the client (decided 2026-11-20).** It
    exists only where the GGUF template implements it: the 27B base quants and two served 27B
    entries (`Ukisai Swift 1.5`, `Ternary Bonsai 2 27B`) declare `{xhigh, medium, low}` and
