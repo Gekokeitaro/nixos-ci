@@ -69,6 +69,31 @@ open questions are the **chain order** (temperature first, as the community says
 implies) and **`min_p` at 0.05-0.1 instead of 0**, both on the Gemma entries, both judged by
 CORE rather than by feel.
 
+## How people actually run them
+
+Observed practice, not opinion — the configurations serious local users publish and the request
+llama.cpp's own WebUI sends:
+
+- **The defaults are `temp 0.8 · top_p 0.95 · min_p 0.05 · top_k 40`** (the WebUI issue documents
+  the request it emits). That is what an unfiltered id serves: our 35B and Spark bare ids.
+- **Practitioners keep the card and add one thing**: a Qwen3-Coder 30B runs `0.7 / 0.8 / 20 /
+  min_p 0`, exactly the card, **plus `--repeat-penalty 1.05`** and `--flash-attn on` with
+  **`-ctk q8_0 -ctv q8_0`**. So the KV quantisation the host refuses is routine for them, because
+  they pair it with flash attention — which is the rule we found in the code.
+- **"min_p only" is a real style**: llama.cpp's own gpt-oss guide is `--temp 1.0 --top-p 1.0
+  --top-k 0 --min-p 0.001` — temperature and one relative cutoff, everything else off.
+- **Gemma keeps its 64**: the Gemma macro in the same guide is `top_p 0.95 top_k 64` and no
+  temperature argument, i.e. the card's 1.0 by default.
+
+And the observation that matters most, from someone who tuned four models across two servers and
+two coding agents:
+
+> "I put a proxy in the middle and found that a lot of that tuning never took effect."
+
+**That is this host's `reasoning_effort` story, found independently.** A gateway between the agent
+and the model rewrites or drops sampling, the agent's settings never arrive, and the user measures
+the proxy. It is a known failure class, not a quirk of OmniRoute.
+
 ## Where our roles sit, and the gap
 
 | role | the field says | our profile | gap |
