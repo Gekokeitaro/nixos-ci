@@ -60,6 +60,8 @@ deterministic and prone to loops. Otherwise `--seed` makes a run reproducible.
 The per-family values are a starting point, not a source of truth: they come from
 the model card on Hugging Face, and the first token of the model file name is the
 publisher's account. Hardware and the llama.cpp version move them, so re-check.
+What each card actually says, and where this host departs from it:
+[`references/per-family.md`](references/per-family.md).
 
 What is still open on this host is in
 [`hosts/llamaswap-lxc/MEMORY.md`](../../hosts/llamaswap-lxc/MEMORY.md).
