@@ -5,7 +5,7 @@ State of this host and what is still open. Mechanics live in
 [`../../skills/model-files/SKILL.md`](../../skills/model-files/SKILL.md); what is
 deployed on the host, in [`../../MEMORY.md`](../../MEMORY.md).
 
-Last updated: 2026-11-19.
+Last updated: 2026-11-22.
 
 ## Variants
 
@@ -29,6 +29,21 @@ Last updated: 2026-11-19.
   `:supervisor`, `:integrator`, `:instruct`), generic from `modelLib.profiles.roles`.
   `:instruct` changed meaning here: it used to be `noThink` alone at the `cmd`'s 0.6 and
   is now the library's role, same closed thinking block at 0.7.
+
+## Qwen3.6 35B A3B REAP 48 v2, served from 2026-11-20
+
+- Battery and window: `-t 1 -b 2048 -ub 512 -ctk/-ctv f16` at `--ctx-size 163840`, from
+  `../../../llama-bench-runner/measurements/qwen3.6-35b-a3b-reap-48-v2.md`. `-ub 512` is
+  +47 % on prompt processing, `-t 1` wins on the `-p 512,4096` pair, and a 32k session
+  peaks at 14207 MiB — 129 MiB inside the frame — so 163840 leaves about 1.9 GiB.
+- **No MTP**: the GGUF carries none, and the loader says so (`context type MTP requested
+  but model doesn't contain MTP layers`). `ngram-mod` 24:32:48 is the measured triple —
+  universal, code **1.600**, prose 0.977, global 1.008 — and the `--spec-*` flags live in
+  `cmd`, never in `filters`.
+- The six factory roles are served from `modelLib.profiles.roles`; the legacy `agent`,
+  `thinking`, `coding` and `instruct` filters are gone. **Since 2026-11-22 the bare id is
+  pinned to the vendor `thinking` preset** (`6e4f369`), so it no longer runs on llama.cpp's
+  defaults: that retires the 54/96 CORE of 2026-11-21 for the bare id, not for the roles.
 
 ## Sampling
 
@@ -101,16 +116,16 @@ trait or axis each role carries, and why, is commented in `models/lib/default.ni
 stage: its proposed suite — extraction, triage and edition tests plus `annex`, judged on
 hits and median seconds per turn — lives as pending item 1 in `ai-tests/MEMORY.md`.
 
-**Open: `enable_thinking` as a request parameter has not been read back.** It is
+**`enable_thinking` as a request parameter: exercised, not read back in this file.** It is
 documented in llama.cpp 1.0.0 and three model files already carry the `noThink`
-filter, but the only form this repo has put through a running server is the flag,
-and Gemma's instruct entry sets it to `true` there. The first request against
-`:instruct` must show in its own output that the thinking block is really closed;
-if it is not, the fallback is a `cmd` flag, which would mean a second entry.
+filter. The `:instruct` runs record `enable_thinking=false` in their `batches.tsv`
+(`../../ai-tests/TASKS.md`), and the closing gate — one request showing the block really
+closed — is that note; a later run keeps the trace beside it. If the block ever stays open,
+the fallback is a `cmd` flag, which would mean a second entry.
 
 Refresh `pi`'s catalog (`pi update --models`, `/omni sync`) before any run: an id
 absent from the snapshot cannot be addressed, and the snapshot expires after 60
-minutes. Measuring the roles one at a time is session 8 of the workspace `PLAN.md`.
+minutes. Refining the roles one at a time is session 8b of the workspace `PLAN.md`.
 
 ## The reference model's preset: deployed and gated
 
@@ -136,6 +151,7 @@ minutes. Measuring the roles one at a time is session 8 of the workspace `PLAN.m
   [`speculative-decoding.md`](../../skills/sampling/references/speculative-decoding.md));
   what is still unmeasured is its speedup in an agentic session, which belongs to
   a speculative-decoding benchmark.
-- Two model files use it: `Prism-ML-Ternary-Bonsai-2-9B` (`ngram-mod`) and
-  `Unsloth-gemma-4-E4B` (`ngram-mod,draft-mtp`). The combo pays the MTP stack
+- Four entries carry it: `Prism-ML-Ternary-Bonsai-2-9B` (`ngram-mod`),
+  `Unsloth-gemma-4-E4B` (`ngram-mod,draft-mtp`), the 35B (`ngram-mod`) and the reference
+  (`draft-mtp,ngram-mod`). The combo pays the MTP stack
   (~608 MiB) and is correct: on novel text ngram has no match and MTP drafts.

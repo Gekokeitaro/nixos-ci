@@ -5,27 +5,24 @@
 > Rules in `AGENTS.md`, decisions in `DECISIONS.md`, addresses and ports in
 > `INFRA.md`, open work in `TASKS.md`, workspace state in the root `MEMORY.md`.
 
-Last updated: 2026-11-19.
+Last updated: 2026-11-22.
 
 ## Working tree
 
-Clean: everything is committed. The branch is ahead of `origin/main` and
-unpushed; read its exact HEAD with `git log -1`. `origin/main` is `c010038`,
-committed on 2026-11-19 at 20:27, so the deployed configuration is `c010038` and
-these docs are not on the host until someone pushes them (a push to `main`
-deploys: see `AGENTS.md`). The pushes of 2026-11-15 (`697c811` at 18:17, `035d7d1`
-at 18:29) ran the workflow and switched the host. The rendered config read on the
-host on 2026-11-19 matches `c010038` — the ids HEAD's model files define, the
-`cmd` flags of the reference and Spark, the `modelLib.profiles` filters — and
-llama-swap had restarted at 19:49:34 UTC, twenty minutes after that commit. The
-job log, not this file, records the revision the host runs.
+Clean, and `HEAD` equals `origin/main` as last fetched: the repo is pushed. The push of
+2026-11-22 09:20 (`6e4f369 FEATURE - Pin the 35B bare id to its vendor preset`) is a deploy
+event, and a push to `main` deploys: **the job log records whether the switch ran**, and it,
+not this file, holds the revision the host runs. The rendered config was last read on
+2026-11-19 against `c010038`, the revision then deployed: the ids the committed model files
+defined, the `cmd` flags of the reference and Spark, the `modelLib.profiles` filters. Earlier
+pushes that ran the workflow and switched the host: `697c811` and `035d7d1` on 2026-11-15.
 
 ## Hosts
 
 | Host | Service | Deployed | Status |
 |---|---|---|---|
 | `nixos-ci` | builds LXC images and runs the Forgejo runners | repo configuration | runs the deploy workflow; its last observed run switched `nixos-llamaswap-rocm` on 2026-11-19 |
-| `nixos-llamaswap-rocm` | llama-swap + llama.cpp (ROCm) | `c010038`, by the rendered config read on 2026-11-19; the tree pins llama.cpp `v1.0.0` | serving GGUFs |
+| `nixos-llamaswap-rocm` | llama-swap + llama.cpp (ROCm) | repo `HEAD`, pushed 2026-11-22 as a deploy event; last rendered-config read `c010038` on 2026-11-19; the tree pins llama.cpp `v1.0.0` | serving GGUFs |
 | `nixos-pi-agent` | `pi` sessions against OmniRoute | configuration on `main` | manual deployment; `models.json` needs normalising (see `TASKS.md`) |
 
 `nixos-forgejo` hosts Forgejo with Actions active and registration closed;
@@ -69,7 +66,11 @@ the record of what each deploy resolved (see `AGENTS.md`).
 `:supervisor`, `:integrator` and `:instruct`; the file writes those flags itself,
 the combo spanning two spec types. `e9d4069` landed the preset, `f9a1c32`
 corrected its header, and it was deployed on 2026-11-18. Spark X2.6 4B serves at
-`196608` with the default chain and no spec. The numbers behind both presets are
-in `../llama-bench-runner/measurements/qwen3.5-9b-ud-q4_k_xl/` and
-`spark-x2.6-4b-q8_0.md`. Host tuning and open items:
-`hosts/llamaswap-lxc/MEMORY.md`.
+`196608` with the default chain and no spec. `Unsloth Qwen3.6 35B A3B REAP 48 v2`
+serves `--ctx-size 163840`, `-t 1 -b 2048 -ub 512`, `ngram-mod` 24:32:48 and the
+six roles, with **no MTP: the GGUF carries none**; its bare id was pinned to the
+vendor's `thinking` preset on 2026-11-22 (`6e4f369`), which retires the no-filter
+CORE the 54/96 was measured on. The numbers behind the three presets are in
+`../llama-bench-runner/measurements/` (`qwen3.5-9b-ud-q4_k_xl/`,
+`spark-x2.6-4b-q8_0.md`, `qwen3.6-35b-a3b-reap-48-v2.md`). Host tuning and open
+items: `hosts/llamaswap-lxc/MEMORY.md`.

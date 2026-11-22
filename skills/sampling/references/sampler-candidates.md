@@ -34,7 +34,8 @@ Ordered by what each would prove per row of GPU spent.
 `default = profiles.thinking` — `temp 1.0, top_p 0.95, top_k 20, min_p 0, presence 1.5`. Its
 CORE and its `cross` ran on llama.cpp's defaults (`0.8 / 0.95 / 0.05 / 40`), which nobody chose.
 **Proves:** whether the `cross` wobble (12/12 → 9/12 → 11/12) was the sampler. Same 12 rows, one
-line of config.
+line of config. **Result 2026-11-22: 11/12 on the pin, and 11/12 on a repeat of the no-filter
+config**, so the wobble is repetition noise on `t07`; no gain, no regression, the pin stands.
 
 ### 2. `repeat_penalty 1.05` on the implementer (its own group, 30 rows)
 

@@ -22,14 +22,17 @@ moves to the file that owns it.
    `forgejo-runner-ci` (`hosts/nixos-ci/modules/forgejo-runner.nix`); until that
    reaches the host, the workflow prepends `/run/current-system/sw/bin`, and
    that prepend can be removed after the host's `nixos-rebuild switch`.
-5. **The 35B is fully served and baselined.** `--ctx-size 163840` (ceiling 196608, re-measured
+5. **The 35B is served and its roles are baselined.** `--ctx-size 163840` (ceiling 196608, re-measured
    with the spec inside: 13681 MiB, 655 MiB of margin), `-t 1`, `-b 2048 -ub 512`, **ngram-mod
-   24:32:48 universal**, the six roles with budgets and the forced message, and a bare id with no
-   filter. CORE `k=3`: **54/96** — `supervisor` 23/30, `integrator` 4/6, `cross` 9/12, `planner`
+   24:32:48 universal**, the six roles with budgets and the forced message, and a bare id pinned to
+   the vendor `thinking` preset since 2026-11-22 (`6e4f369`). No MTP: the GGUF carries none.
+   CORE `k=3`: **54/96** — `supervisor` 23/30, `integrator` 4/6, `cross` 9/12, `planner`
    4/12, `implementer` 11/30, `reviewer` 3/6 (`ai-tests/measurements/qwen3.6-35b-a3b-reap-48-v2.md`).
-   **Open: `cross` fell from 12/12 to 9/12 in the same deploy that added the roles and the spec,
-   so the fall cannot be attributed** — one single-knob repeat of `t07 + t11` decides whether it
-   was the sampler or the draft. Nothing else is owed on it.
+   **Closed 2026-11-22: `cross` reads 12/12 → 9/12 → 11/12 → 11/12 and the last two are the
+   same 12 rows under the same no-filter config, so the wobble was repetition noise on `t07`,
+   not the sampler.** The pinned `thinking` id ties at 11/12. That 54/96 was taken on the
+   **no-filter** bare id, so the six role rows stand and the bare id owes a fresh CORE; nothing
+   else is owed on it.
 6. **`reasoning_effort` is a lever, and it travels from the client (decided 2026-11-20).** It
    exists only where the GGUF template implements it: the 27B base quants and two served 27B
    entries (`Ukisai Swift 1.5`, `Ternary Bonsai 2 27B`) declare `{xhigh, medium, low}` and
@@ -37,5 +40,7 @@ moves to the file that owns it.
    (`llama-bench-runner/measurements/reasoning-effort-templates.md`). **No variant is created**:
    it is sent by `pi` (`PI_EXTRA='--thinking <tier>'`) and the factory is the place that will
    eventually send it, so nothing has to change on the host. It is **not** swept per role — it
-   is offered for the tests that run into the ceiling. Open: measure Spark at `low` against the
-   `high` its template defaults to, then repeat at the top tier on a served 27B.
+   is offered for the tests that run into the ceiling. **Spark's `low` has been measured** —
+   `0 of 9` on `t04`/`t05`/`t12` over `:implementer`, nine timeouts, so the cheap tier does not
+   stop that loop and the budget remains the brake (`ai-tests/measurements/spark.md`). Open: the
+   clean single-knob pair on the bare id at `high` against `low`, and the top tier on a served 27B.
