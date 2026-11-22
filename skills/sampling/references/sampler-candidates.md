@@ -49,7 +49,9 @@ is the implementer's baseline for candidate 3.
 
 The "min_p only" style: temperature plus one relative cutoff, everything else disabled. **Proves:**
 whether the adaptive cutoff beats a fixed `top_k 20` on the tests where the model loops — it is the
-only cutoff that tightens when the model is confident and opens when it is not.
+only cutoff that tightens when the model is confident and opens when it is not. **Result 2026-11-22:
+14/30 on the 35B implementer against the 18/30 incumbent — rejected.** It dropped `t06` 3/3 → 1/3,
+one row each in `t03`, `t04` and `t28`, and kept `t05` at 0/3; `top_k 0` is not worth another run.
 
 ### 4. Gemma, card against host (triage, k=1, both configs)
 
