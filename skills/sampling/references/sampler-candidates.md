@@ -41,7 +41,9 @@ config**, so the wobble is repetition noise on `t07`; no gain, no regression, th
 
 The card says 1.0; every practitioner's coder macro says **1.05**. One number, no other change.
 **Proves:** whether repetition is costing rows the model nearly passes — `t02` scored 11-13/14
-three times and still failed, and `t16`/`t01` are near misses.
+three times and still failed, and `t16`/`t01` are near misses. **Result 2026-11-22: 18/30
+against 11/30, no row lost** (`t02` 2/3, `t04` 1/3, `t16` and `t03`/`t06` clean); kept, and it
+is the implementer's baseline for candidate 3.
 
 ### 3. `min_p 0.05` with `top_p 1.0` and `top_k 0` (one role group)
 
