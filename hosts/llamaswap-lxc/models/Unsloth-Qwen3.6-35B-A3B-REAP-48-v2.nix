@@ -41,7 +41,17 @@
     # filter** — it runs on llama.cpp's server defaults, which is the same shape Spark serves.
     # Consequence, stated so nobody is surprised: the 45/96 CORE of 2026-11-20 was taken with
     # `default = agent` and is **stale** from this commit on.
-    filters = modelLib.mkFilters modelLib.profiles.roles;
+    filters = modelLib.mkFilters (
+      modelLib.profiles.roles
+      // {
+        # The bare id pinned to the vendor's preset instead of llama.cpp's defaults. Its CORE
+        # and its cross block ran with no filter, i.e. `temp 0.8 / top_p 0.95 / min_p 0.05 /
+        # top_k 40` — nobody's choice. `thinking` is Qwen's thinking-general for this family
+        # (1.0 / 0.95 / 20 / presence 1.5), and pinning it is candidate 1 of
+        # skills/sampling/references/sampler-candidates.md.
+        default = modelLib.profiles.thinking;
+      }
+    );
 
     ttl = 600;
   };
