@@ -51,12 +51,21 @@
         # skills/sampling/references/sampler-candidates.md.
         default = modelLib.profiles.thinking;
 
-        # Candidate 2, one knob and an experiment, 2026-11-22: the card says `repeat_penalty 1.0`
-        # and every practitioner's coder macro says 1.05. It runs on `:implementer` only, its own
-        # group, 30 rows; the win condition is a row it nearly passed (`t02` read 11-13/14 three
-        # times, `t16`/`t01` are near misses) and the loss condition is any row the baseline
-        # passes. Revert this line if it loses.
-        implementer = modelLib.profiles.roles.implementer // {repeat_penalty = 1.05;};
+        # Candidate 2, kept 2026-11-22: the card says `repeat_penalty 1.0` and the coder macros
+        # say 1.05. That one knob on `:implementer` took the role from 11/30 to 18/30 with no row
+        # the baseline passed lost: t02 0/3 -> 2/3, t04 0/3 -> 1/3, t03/t06/t16 clean. Numbers:
+        # ai-tests/measurements/qwen3.6-35b-a3b-reap-48-v2.md.
+        #
+        # Candidate 3, same group, 2026-11-22: the min_p-only style — `min_p 0.05` with
+        # `top_p 1.0` and `top_k 0` — against the fixed `top_k 20`. It is the only cutoff that
+        # tightens when the model is confident, and the target is t05/t12, the two rows that still
+        # time out. Stacks on 1.05; revert to 1.05 alone if it loses a row.
+        implementer = modelLib.profiles.roles.implementer // {
+          repeat_penalty = 1.05;
+          min_p = 0.05;
+          top_p = 1.0;
+          top_k = 0;
+        };
       }
     );
 
