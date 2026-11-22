@@ -50,6 +50,13 @@
         # (1.0 / 0.95 / 20 / presence 1.5), and pinning it is candidate 1 of
         # skills/sampling/references/sampler-candidates.md.
         default = modelLib.profiles.thinking;
+
+        # Candidate 2, one knob and an experiment, 2026-11-22: the card says `repeat_penalty 1.0`
+        # and every practitioner's coder macro says 1.05. It runs on `:implementer` only, its own
+        # group, 30 rows; the win condition is a row it nearly passed (`t02` read 11-13/14 three
+        # times, `t16`/`t01` are near misses) and the loss condition is any row the baseline
+        # passes. Revert this line if it loses.
+        implementer = modelLib.profiles.roles.implementer // {repeat_penalty = 1.05;};
       }
     );
 
