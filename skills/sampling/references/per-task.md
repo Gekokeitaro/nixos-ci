@@ -3,6 +3,10 @@
 The cards say what a *model* likes; the field says what a *task* needs, and the two disagree by
 a factor of three. Both are right in their domain.
 
+**Archive, not research.** These are positions already collected from outside the repo, with their
+sources; the skill's first step is research on the web, and a new family or harness needs new
+sources with their dates, not this table alone.
+
 ## What the field converges on
 
 | task | temperature | truncation | source |

@@ -11,23 +11,31 @@ the per-variant values in `filters.setParamsByID`.
 Measured at llama.cpp 0.9.0. `llama-server --help` is the source of truth;
 re-check it after a version bump.
 
-## Before choosing any value: the card, then the users, then the test
+## Before choosing any value: the internet, then the test
 
-Every base and per-role sampler starts from published values, never from a guess. In this order:
+Every base and per-role sampler starts from **research outside this repository**, never from what
+is already written here and never from a guess. In this order:
 
-1. **The model card** — the publisher's `temperature`, `top_p`, `top_k`, `min_p`, presence and
-   repeat values, and the template or system prompt they ask for. They are per family, not per
-   GGUF, and the family is not uniform: [`references/per-family.md`](references/per-family.md) holds
-   what each card says and where this host departs from it.
-2. **User configurations** — how practitioners actually run that family: the quantiser's page, the
-   card's discussion, published agent and coding macros, the runtime presets of popular frontends.
+1. **The model card, on the web** — the publisher's `temperature`, `top_p`, `top_k`, `min_p`,
+   presence and repeat values, the template and system prompt they ask for, and the sample code
+   they ship (HF model page, the technical report, the vendor's docs).
+2. **User configurations and opinions, on the web** — how practitioners actually run that family:
+   the HF Community tab and discussions, the quantiser's model page and README, Reddit and forum
+   threads, published agent and coding presets, frontend/runtime defaults, evaluation write-ups.
    A card is written for chat; a harness has different needs, and this is where those needs show
-   up: [`references/per-task.md`](references/per-task.md) collects the positions worth testing.
+   up. **Variety is the point:** at least two independent sources per value, disagreeing ones
+   included, and record the URLs with the date they were read.
 3. **Then the measurement**, on this GGUF, because a value is per GGUF and neither the card nor a
    stranger's macro knows this harness.
 
-The card value and the practitioner value are recorded next to the result, so a later reader sees
-what was chosen and against what. A value that matches neither is a candidate, and says so.
+The files in `references/` are the **archive of what was already found**, not the research:
+[`references/per-family.md`](references/per-family.md) holds card values already collected and
+[`references/per-task.md`](references/per-task.md) the practitioner positions already tested. Read
+them to avoid repeating work, then go to the internet for what is missing or newer. A value that
+matches neither the card nor two user sources is a candidate, and says so.
+
+The card value, the user values and their links are recorded next to the result, so a later reader
+sees what was chosen and against what.
 
 ## Gotchas
 

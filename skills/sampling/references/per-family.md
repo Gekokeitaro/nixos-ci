@@ -3,6 +3,10 @@
 What the publisher recommends, and where this host departs from it. It is a starting point, not
 evidence: the card describes the family, the measurement describes the GGUF.
 
+**Archive, not research.** The research happens on the web and is dated; this file keeps what was
+collected so it is not looked up twice. When a value here is older than the model or the quant it
+describes, the skill's first step is to go back to the card and to the users outside the repo.
+
 ## Qwen 3.5 / 3.6 — the reference and the 35B
 
 Four presets, straight from the Qwen card, and the last one is the card's own oddity:
@@ -32,8 +36,25 @@ temperature = 1.0   top_p = 0.95   top_k = 64
 
 **The host does not serve that.** Both Gemma 4 entries carry `--temp .6 --top-p 0.95 --top-k 20`,
 which is Qwen's coding preset, and the 12B also spells a `--samplers` chain of its own. Nothing
-measured says the card is better here — but a family served at another family's preset is a
+measured says the card is better here - but a family served at another family's preset is a
 deviation nobody chose deliberately, and it is the first thing to test for these two.
+
+**Web research, 2026-11-23 — four independent sources agree on the card's trio.** Google's model
+card and its best-practices page (`gemma.ai/models/gemma-4/model-card`,
+`raw.githubusercontent.com/google-gemma/docs/main/docs/get-started/best-practices.md`), Unsloth's
+run guide (`unsloth.ai/docs/models/gemma-4`), Ollama's library page (`ollama.com/library/gemma4:12b`,
+whose `params` read exactly `{"temperature": 1, "top_k": 64, "top_p": 0.95}`) and a local-run guide
+(`7minai.com/how-to-run-gemma-4-12b-locally`, 2026-06-04) all print `temperature 1.0, top_p 0.95,
+top_k 64` as **the** configuration, "across all use cases", and the last one warns that leaving
+`0.7` or dropping `top_k` makes the model look worse than it is.
+
+Two findings from the same pass that the host has not applied:
+
+- **Thinking is opt-in through the system prompt.** It is triggered by the `<|think|>` token at the
+  start of the system prompt, and turned off by removing it — not by a sampler. Our base entries
+  never add it; `:instruct` uses `chat_template_kwargs.enable_thinking=false`.
+- **No thinking blocks in history.** The card says previous turns' thoughts must not be replayed
+  (tool-call turns excepted), which the harness's session handling does not currently distinguish.
 
 ## LFM3 — 1.7B
 
