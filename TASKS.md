@@ -44,3 +44,17 @@ moves to the file that owns it.
    `0 of 9` on `t04`/`t05`/`t12` over `:implementer`, nine timeouts, so the cheap tier does not
    stop that loop and the budget remains the brake (`ai-tests/measurements/spark.md`). Open: the
    clean single-knob pair on the bare id at `high` against `low`, and the top tier on a served 27B.
+7. **Apply and measure the `pi` LoRA on the Qwen3.8 27B entries (noted 2026-11-23).**
+   `/models/Qwen3.8-27B-pi-lora-F16.gguf`, 318,802,304 B, sha256
+   `a64f91844f19e67da500d8628bdf9383aa334e61b7ab687805802e7d272d7b67`, `adapter.type lora`,
+   FFN-only tensors, `general.architecture = qwen35` — the architecture all three served 27B GGUFs
+   report. Plan: add `--lora /models/Qwen3.8-27B-pi-lora-F16.gguf` to the `cmd` of
+   `DavidAU-Qwen3.8-27B-TBrill-50X-…` and `Ukisai-Swift-1.5-Qwen3.8-27B-…`; the Prism ternary
+   entry only after the first two show a win. Measure it as a candidate, same GGUF at scale 0
+   against 1.0, CORE or the role suites against its own baseline, never mixed with another knob.
+   The two-arm A/B can avoid a redeploy with `--lora-init-without-apply` plus
+   `POST /upstream/<model>/lora-adapters` once that POST is proven through llama-swap. Procedure:
+   `skills/model-files/references/lora-adapters.md`. **Applied 2026-11-23 at scale 1.0 in both
+   entries**; the deploy is the one pending. After it: prove the POST, then measure scale 0
+   against scale 1 on the same tests (the bare id has no role suite, so start with `--triage` on
+   the DavidAU entry and only spend a CORE if it does not lose).
