@@ -21,6 +21,10 @@
       --temp 0.7 --top-k 64 --min-p 0.05 --top-p 0.95 --repeat-penalty 1.05
       --lora /models/Qwen3.8-27B-pi-lora-F16.gguf
     '';
+    # The six roles from the library, so the parity suites can run on this id; the bare id keeps
+    # the DavidAU tester settings in `cmd` (temp .5-1, top_k 64, min_p .05, top_p .95) and the
+    # card's tool-calling range (.6-.7). Research: Qwen3.8 card 2026-11-23.
+    filters = modelLib.mkFilters modelLib.profiles.roles;
     ttl = 600;
   };
 }

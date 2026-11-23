@@ -5,6 +5,15 @@ moves to the file that owns it.
 
 ## Pending
 
+0. **Roles for the parity run, prepared 2026-11-23 (pending deploy).** The six roles from
+   `modelLib.profiles.roles` are now declared on `Unsloth-gemma-4-12B-…` (replacing its
+   instruct-only filter), `Unsloth-gemma-4-E4B-…`, `DavidAU-Qwen3.8-27B-…` and
+   `Ukisai-Swift-1.5-Qwen3.8-27B-…` (the last keeps its bare id on `profiles.thinking` with
+   presence 0). Their bare ids keep the sampling their `cmd` carries. Sampler research for the
+   family, 2026-11-23: Qwen3.8 card `1.0/0.95/20` thinking and `0.7/0.80/20` instruct; DavidAU
+   tester settings `temp .5-1, top_k 64, min_p .05, top_p .95` and tools at `.6-.7`; Gemma 4 card
+   `1.0/0.95/64` (four independent sources). The roles still use the library's geometry until
+   session 8b tunes them per model.
 1. Normalize `hosts/nixos-pi-agent/config/`. In `models.json`, `baseUrl` has a
    double slash (`...:20128//v1`), the API key is in clear text, and every
    `contextWindow` (262144, or 131072 for the 27B) is larger than the

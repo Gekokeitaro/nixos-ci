@@ -20,10 +20,13 @@
       --lora /models/Qwen3.8-27B-pi-lora-F16.gguf
     '';
 
-    filters = modelLib.mkFilters {
-      default = modelLib.profiles.thinking // {presence_penalty = 0.0;};
-      instruct = modelLib.profiles.instruct;
-    };
+    filters = modelLib.mkFilters (
+      modelLib.profiles.roles
+      // {
+        # The bare id keeps the vendor's thinking preset, with presence off, as it served before.
+        default = modelLib.profiles.thinking // {presence_penalty = 0.0;};
+      }
+    );
 
     ttl = 600;
   };

@@ -19,9 +19,7 @@
   hostCmd = ''${commonCmd} --temp .6 --top-p 0.95 --top-k 20
     --samplers "top_k;top_p;min_p;temperature;dry;typ_p;xtc"'';
 
-  commonFilters = modelLib.mkFilters {
-    instruct = modelLib.profiles.noThink;
-  };
+  commonFilters = modelLib.mkFilters modelLib.profiles.roles;
 in {
   "Unsloth Gemma 4 12B QAT UD Q4_K_XL" = {
     name = "Unsloth Gemma 4 12B QAT UD Q4_K_XL";
