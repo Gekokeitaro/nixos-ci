@@ -11,6 +11,24 @@ the per-variant values in `filters.setParamsByID`.
 Measured at llama.cpp 0.9.0. `llama-server --help` is the source of truth;
 re-check it after a version bump.
 
+## Before choosing any value: the card, then the users, then the test
+
+Every base and per-role sampler starts from published values, never from a guess. In this order:
+
+1. **The model card** — the publisher's `temperature`, `top_p`, `top_k`, `min_p`, presence and
+   repeat values, and the template or system prompt they ask for. They are per family, not per
+   GGUF, and the family is not uniform: [`references/per-family.md`](references/per-family.md) holds
+   what each card says and where this host departs from it.
+2. **User configurations** — how practitioners actually run that family: the quantiser's page, the
+   card's discussion, published agent and coding macros, the runtime presets of popular frontends.
+   A card is written for chat; a harness has different needs, and this is where those needs show
+   up: [`references/per-task.md`](references/per-task.md) collects the positions worth testing.
+3. **Then the measurement**, on this GGUF, because a value is per GGUF and neither the card nor a
+   stranger's macro knows this harness.
+
+The card value and the practitioner value are recorded next to the result, so a later reader sees
+what was chosen and against what. A value that matches neither is a candidate, and says so.
+
 ## Gotchas
 
 - `--dry-sequence-breaker` **replaces** the default breakers (newline, `:`, `"`,
