@@ -13,10 +13,12 @@
       -md /models/mtp-gemma-4-E4B-it-Q8_0.gguf
       ${modelLib.deviceArgs}
       -b 256 -ub 128 -ctk f16 -ctv f16
-      # Window 2026-11-24, measured with the draft: 262144 costs 9364 MiB at load, and the 64k
-      # session pass peaks at 6413 MiB. llama-bench-runner/measurements/
-      # gemma-4-e4b-it-qat-ud-q4-k-xl.md.
-      --ctx-size 262144
+      # Window 2026-11-24: the GGUF's training context is 131072, and llama.cpp caps anything above
+      # it ("the slot context (262144) exceeds the training context of the model (131072) - capping"),
+      # so 131072 is the real ceiling and the config says it. Load 9364 MiB with the draft; the 64k
+      # session pass peaks at 6413 MiB.
+      # llama-bench-runner/measurements/gemma-4-e4b-it-qat-ud-q4-k-xl.md.
+      --ctx-size 131072
       --temp 1 --top-p 0.95 --top-k 64
     '';
     # The six roles, from the shared library, so the parity suites can run on this id. The card's

@@ -80,9 +80,12 @@ vendor's `thinking` preset on 2026-11-22 (`6e4f369`), which retires the no-filte
 CORE the 54/96 was measured on. **Gemma 4 12B** serves the card's preset
 (`--temp 1 --top-p 0.95 --top-k 64`) on the bare id and, on the `MTP` entry, the measured
 two-family combination (`ngram-mod,draft-mtp`, `--spec-draft-n-max 8 --spec-draft-p-min 0.4`,
-ngram 12:32:64, 3.604× global at temp 1); both entries carry the six roles. **Gemma 4 E4B**
-serves the tuned draft (`draft-mtp`, n-max 2, p-min 0.8, `greedy`) at `65536` with the card's
-sampling and the six roles; `ngram-mod` was dropped after reading 1.684× against the draft's
+ngram 12:32:64, 3.604× global at temp 1); both entries carry the six roles and both serve
+`--ctx-size 262144`, confirmed on the served entry (`/props` `n_ctx: 262144`), where the combo
+peaks at 12879 MiB at load. **Gemma 4 E4B**
+serves the tuned draft (`draft-mtp`, n-max 2, p-min 0.8, `greedy`) at `--ctx-size 131072` —
+its GGUF's training context, which llama.cpp capped 262144 down to — with the card's sampling
+and the six roles; `ngram-mod` was dropped after reading 1.684× against the draft's
 1.847×. **`David AU TBrill 50X`** serves `draft-mtp` n-max 2 (embedded heads) and
 **`Ukisai Swift 1.5`** serves `ngram-mod` 12:32:64 (no draft), both at `32768` with the six roles
 and `--lora /models/Qwen3.8-27B-pi-lora-F16.gguf` at scale 1.0. **Both 27Bs serve 64k by decision
