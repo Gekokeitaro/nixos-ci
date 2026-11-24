@@ -5,24 +5,27 @@
 > Rules in `AGENTS.md`, decisions in `DECISIONS.md`, addresses and ports in
 > `INFRA.md`, open work in `TASKS.md`, workspace state in the root `MEMORY.md`.
 
-Last updated: 2026-11-22.
+Last updated: 2026-11-24.
 
 ## Working tree
 
-Clean, and `HEAD` equals `origin/main` as last fetched: the repo is pushed. The push of
-2026-11-22 09:20 (`6e4f369 FEATURE - Pin the 35B bare id to its vendor preset`) is a deploy
-event, and a push to `main` deploys: **the job log records whether the switch ran**, and it,
-not this file, holds the revision the host runs. The rendered config was last read on
-2026-11-19 against `c010038`, the revision then deployed: the ids the committed model files
-defined, the `cmd` flags of the reference and Spark, the `modelLib.profiles` filters. Earlier
-pushes that ran the workflow and switched the host: `697c811` and `035d7d1` on 2026-11-15.
+Clean, and `HEAD` equals `origin/main` as last fetched: the repo is pushed. The deploy of
+**`8644dc7` on 2026-11-24 07:59:26 UTC** is the last one read on the host: the system generation
+changed to `f7qacldz…`, and the rendered config at that moment carries the six roles on the Gemma
+12B/E4B and on both Qwen3.8 27B entries, the 12B MTP entry with the measured
+`ngram-mod,draft-mtp` preset, and `--lora /models/Qwen3.8-27B-pi-lora-F16.gguf` on the two 27Bs.
+A push to `main` deploys: **the job log records whether the switch ran**, and it, not this file,
+holds the revision. An hourly mirror sync also arrives as a push event, so a restart of
+`llama-swap` alone is not proof of a deploy — the **generation** is
+(`readlink -f /run/current-system`). Earlier switches read here: `f2ed2c4` on 2026-11-23 21:16,
+`9944b2c` at 19:00, `6e4f369` at 11:59.
 
 ## Hosts
 
 | Host | Service | Deployed | Status |
 |---|---|---|---|
-| `nixos-ci` | builds LXC images and runs the Forgejo runners | repo configuration | runs the deploy workflow; its last observed run switched `nixos-llamaswap-rocm` on 2026-11-19 |
-| `nixos-llamaswap-rocm` | llama-swap + llama.cpp (ROCm) | repo `HEAD`, pushed 2026-11-22 as a deploy event; last rendered-config read `c010038` on 2026-11-19; the tree pins llama.cpp `v1.0.0` | serving GGUFs |
+| `nixos-ci` | builds LXC images and runs the Forgejo runners | repo configuration | runs the deploy workflow; its last observed run switched `nixos-llamaswap-rocm` on 2026-11-24 |
+| `nixos-llamaswap-rocm` | llama-swap + llama.cpp (ROCm) | `8644dc7`, generation `f7qacldz…`, switch at 2026-11-24 07:59:26 UTC; the tree pins llama.cpp `v1.0.0` | serving GGUFs |
 | `nixos-pi-agent` | `pi` sessions against OmniRoute | configuration on `main` | manual deployment; `models.json` needs normalising (see `TASKS.md`) |
 
 `nixos-forgejo` hosts Forgejo with Actions active and registration closed;
@@ -70,7 +73,14 @@ corrected its header, and it was deployed on 2026-11-18. Spark X2.6 4B serves at
 serves `--ctx-size 163840`, `-t 1 -b 2048 -ub 512`, `ngram-mod` 24:32:48 and the
 six roles, with **no MTP: the GGUF carries none**; its bare id was pinned to the
 vendor's `thinking` preset on 2026-11-22 (`6e4f369`), which retires the no-filter
-CORE the 54/96 was measured on. The numbers behind the three presets are in
-`../llama-bench-runner/measurements/` (`qwen3.5-9b-ud-q4_k_xl/`,
-`spark-x2.6-4b-q8_0.md`, `qwen3.6-35b-a3b-reap-48-v2.md`). Host tuning and open
-items: `hosts/llamaswap-lxc/MEMORY.md`.
+CORE the 54/96 was measured on. **Gemma 4 12B** serves the card's preset
+(`--temp 1 --top-p 0.95 --top-k 64`) on the bare id and, on the `MTP` entry, the measured
+two-family combination (`ngram-mod,draft-mtp`, `--spec-draft-n-max 8 --spec-draft-p-min 0.4`,
+ngram 12:32:64, 3.604× global at temp 1); both entries carry the six roles. **Gemma 4 E4B**
+serves `ngram-mod,draft-mtp` at `65536` with the card's sampling and, since `8644dc7`, the six
+roles. **The two Qwen3.8 27B entries** (`David AU TBrill 50X`, `Ukisai Swift 1.5`) serve at
+`32768` with the six roles and `--lora /models/Qwen3.8-27B-pi-lora-F16.gguf` at scale 1.0; neither
+has a measured window, session pass or LoRA A/B yet. The numbers behind the presets are in
+`../llama-bench-runner/measurements/` (`qwen3.5-9b-ud-q4_k_xl/`, `spark-x2.6-4b-q8_0.md`,
+`qwen3.6-35b-a3b-reap-48-v2.md`, `gemma-4-12b-it-qat-ud-q4-k-xl.md`, and the 27B file). Host
+tuning and open items: `hosts/llamaswap-lxc/MEMORY.md`.
