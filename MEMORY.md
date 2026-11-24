@@ -10,15 +10,16 @@ Last updated: 2026-11-24.
 ## Working tree
 
 Clean, and `HEAD` equals `origin/main` as last fetched: the repo is pushed. The deploy of
-**`8644dc7` on 2026-11-24 07:59:26 UTC** is the last one read on the host: the system generation
-changed to `f7qacldz…`, and the rendered config at that moment carries the six roles on the Gemma
-12B/E4B and on both Qwen3.8 27B entries, the 12B MTP entry with the measured
-`ngram-mod,draft-mtp` preset, and `--lora /models/Qwen3.8-27B-pi-lora-F16.gguf` on the two 27Bs.
+**`f84b0fc` on 2026-11-24 18:10:42 UTC** is the last one read on the host: generation
+`bwnqr6k…`, and the rendered config carries the four measured speculative presets — Gemma 12B
+`ngram-mod,draft-mtp` at n-max 8 / p-min 0.4 / ngram 12:32:64, Gemma E4B `draft-mtp` at n-max 2 /
+p-min 0.8, DavidAU 27B `draft-mtp` at n-max 2, Ukisai 27B `ngram-mod` 12:32:64 — each with
+`--spec-draft-sampling greedy` where it has a draft, and the `pi` LoRA on the two 27Bs.
 A push to `main` deploys: **the job log records whether the switch ran**, and it, not this file,
 holds the revision. An hourly mirror sync also arrives as a push event, so a restart of
 `llama-swap` alone is not proof of a deploy — the **generation** is
-(`readlink -f /run/current-system`). Earlier switches read here: `f2ed2c4` on 2026-11-23 21:16,
-`9944b2c` at 19:00, `6e4f369` at 11:59.
+(`readlink -f /run/current-system`). Earlier switches read here: `8644dc7` on 2026-11-24 07:59,
+`f2ed2c4` on 2026-11-23 21:16, `9944b2c` at 19:00, `6e4f369` at 11:59.
 
 ## Hosts
 
@@ -77,10 +78,12 @@ CORE the 54/96 was measured on. **Gemma 4 12B** serves the card's preset
 (`--temp 1 --top-p 0.95 --top-k 64`) on the bare id and, on the `MTP` entry, the measured
 two-family combination (`ngram-mod,draft-mtp`, `--spec-draft-n-max 8 --spec-draft-p-min 0.4`,
 ngram 12:32:64, 3.604× global at temp 1); both entries carry the six roles. **Gemma 4 E4B**
-serves `ngram-mod,draft-mtp` at `65536` with the card's sampling and, since `8644dc7`, the six
-roles. **The two Qwen3.8 27B entries** (`David AU TBrill 50X`, `Ukisai Swift 1.5`) serve at
-`32768` with the six roles and `--lora /models/Qwen3.8-27B-pi-lora-F16.gguf` at scale 1.0; neither
-has a measured window, session pass or LoRA A/B yet. The numbers behind the presets are in
+serves the tuned draft (`draft-mtp`, n-max 2, p-min 0.8, `greedy`) at `65536` with the card's
+sampling and the six roles; `ngram-mod` was dropped after reading 1.684× against the draft's
+1.847×. **`David AU TBrill 50X`** serves `draft-mtp` n-max 2 (embedded heads) and
+**`Ukisai Swift 1.5`** serves `ngram-mod` 12:32:64 (no draft), both at `32768` with the six roles
+and `--lora /models/Qwen3.8-27B-pi-lora-F16.gguf` at scale 1.0. **Neither 27B has a measured
+window or session pass yet**, nor a LoRA A/B, and Ukisai still owes its base battery. The numbers behind the presets are in
 `../llama-bench-runner/measurements/` (`qwen3.5-9b-ud-q4_k_xl/`, `spark-x2.6-4b-q8_0.md`,
 `qwen3.6-35b-a3b-reap-48-v2.md`, `gemma-4-12b-it-qat-ud-q4-k-xl.md`, and the 27B file). Host
 tuning and open items: `hosts/llamaswap-lxc/MEMORY.md`.
