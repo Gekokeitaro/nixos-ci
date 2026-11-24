@@ -17,12 +17,11 @@
       --temp 1 --top-p 0.95 --top-k 64
     '';
     # The six roles, from the shared library, so the parity suites can run on this id. The card's
-    # trio (1.0 / 0.95 / 64, web research 2026-11-23) is what the bare id serves and, since
-    # 2026-11-24, what every role serves too: Google gives one preset for all use cases, and the
-    # library's role geometry is Qwen's.
+    # verified truncation applies to every role — top_p 0.95, top_k 64, min_p 0, presence 0 — while
+    # the per-role temperature stays the library's (per-task evidence). Measured: the bare id serves
+    # 1.0/0.95/64; the implementer at 0.6 against 1.0 is a later question.
     filters = modelLib.mkFilters (
       builtins.mapAttrs (_: role: role // {
-        temperature = 1.0;
         top_p = 0.95;
         top_k = 64;
         min_p = 0.0;

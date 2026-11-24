@@ -14,11 +14,12 @@
   # in ai-tests/measurements/gemma-12b.md.
   cardCmd = ''${commonCmd} --temp 1 --top-p 0.95 --top-k 64'';
 
-  # The card's trio applies to every role: Google gives one sampling configuration for all use
-  # cases (1.0 / 0.95 / 64, four independent sources), and the library's role geometry is Qwen's.
-  # The role's own budgets, DRY and the closed thinking block of `instruct` are kept.
+  # The family's verified truncation applies to every role — top_p 0.95, top_k 64, min_p 0,
+  # presence 0, from Google's card (four independent sources). The per-role temperature stays the
+  # library's, which comes from the per-task evidence (code 0.0-0.2, reasoning 0.3-0.5): the card's
+  # "one preset for all use cases" is read for truncation, not to flatten the task axis. Measuring
+  # the implementer at 0.6 against 1.0 is a later question.
   gemmaRoles = builtins.mapAttrs (_: role: role // {
-    temperature = 1.0;
     top_p = 0.95;
     top_k = 64;
     min_p = 0.0;
