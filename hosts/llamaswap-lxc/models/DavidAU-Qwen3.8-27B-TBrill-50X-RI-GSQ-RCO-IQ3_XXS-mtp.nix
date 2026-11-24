@@ -21,7 +21,11 @@
       ${modelLib.deviceArgs}
       ${modelLib.checkpointArgs}
       -b 256 -ub 128 -ctk f16 -ctv f16
-      --ctx-size 32768
+      --ctx-size 65536
+      # Window 2026-11-24, by decision: 64k. Measured at load, 65536 peaks at 15507 MiB — over the
+      # 14336 frame (16 GiB budget minus the 2048 reserve) but under the 16 GiB soft ceiling; the
+      # session pass (rss-ladder at 65536) is owed before any wider window is claimed.
+      # llama-bench-runner/measurements/qwen3.8-27b-turbo-brilliance-50x-ri-gsq-rco-iq3_xxs-mtp.md.
       --temp 0.7 --top-k 64 --min-p 0.05 --top-p 0.95 --repeat-penalty 1.05
       --lora /models/Qwen3.8-27B-pi-lora-F16.gguf
     '';

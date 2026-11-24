@@ -13,7 +13,12 @@
       ${modelLib.deviceArgs}
       --cache-ram 0 --ctx-checkpoints 4
       -b 256 -ub 128 -ctk f16 -ctv f16
-      --ctx-size 32768
+      --ctx-size 65536
+      # Window 2026-11-24, by decision: 64k. Same weights class as the DavidAU 27B, whose 65536
+      # peaks at 15507 MiB at load — under the 16 GiB soft ceiling, over the 14336 frame; the
+      # session pass at 65536 is owed. Never probe this GGUF's grid above 65536: 229376 killed the
+      # container (CEILING=65536 from now on).
+      # llama-bench-runner/measurements/swift-1.5-qwen3.8-27b-gsq-rco-iq3_xxs-mtp.md.
       --reasoning-preserve
       --reasoning-format deepseek
       --reasoning-effort medium
