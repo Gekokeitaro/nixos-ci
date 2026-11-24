@@ -18,6 +18,12 @@
       --reasoning-format deepseek
       --reasoning-effort medium
       --lora /models/Qwen3.8-27B-pi-lora-F16.gguf
+      # Spec 2026-11-24, measured with the LoRA at temp 1.0: ngram-mod 12:32:64 reads 1.487x
+      # (code 1.870, json 1.582, prose 1.040, acceptance 0.416, +263 MiB). The embedded MTP point
+      # (n-max 3, p-min 0.8) read 1.445x and the combination 1.383x, so no draft is served.
+      # llama-bench-runner/measurements/swift-1.5-qwen3.8-27b-gsq-rco-iq3_xxs-mtp.md.
+      --spec-type ngram-mod
+      --spec-ngram-mod-n-match 12 --spec-ngram-mod-n-min 32 --spec-ngram-mod-n-max 64
     '';
 
     filters = modelLib.mkFilters (
