@@ -9,10 +9,13 @@
     cmd = ''
       ${llama-server} --port ''${PORT}
       --model /models/Qwen3.8-27B-Turbo-Brilliance-50X-RI-GSQ-RCO-IQ3_XXS-mtp.gguf
+      # Spec 2026-11-24, measured with the pi LoRA at 1.0 at this sampling: n-max 2 reads 1.394x
+      # (code 1.493, json 1.406, prose 1.045, acceptance 0.645); the vendor's n-max 8 read 1.303x
+      # and p-min made it slower. Embedded MTP heads (`mtp=embedded`), no draft model.
+      # llama-bench-runner/measurements/qwen3.8-27b-turbo-brilliance-50x-ri-gsq-rco-iq3_xxs-mtp.md.
       ${modelLib.specArgs.mtp {
         nMin = 2;
-        nMax = 8;
-        pMin = 0.6;
+        nMax = 2;
       }}
       ${modelLib.deviceArgs}
       ${modelLib.checkpointArgs}
