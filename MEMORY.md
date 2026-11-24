@@ -82,8 +82,10 @@ serves the tuned draft (`draft-mtp`, n-max 2, p-min 0.8, `greedy`) at `65536` wi
 sampling and the six roles; `ngram-mod` was dropped after reading 1.684× against the draft's
 1.847×. **`David AU TBrill 50X`** serves `draft-mtp` n-max 2 (embedded heads) and
 **`Ukisai Swift 1.5`** serves `ngram-mod` 12:32:64 (no draft), both at `32768` with the six roles
-and `--lora /models/Qwen3.8-27B-pi-lora-F16.gguf` at scale 1.0. **Neither 27B has a measured
-window or session pass yet**, nor a LoRA A/B, and Ukisai still owes its base battery. The numbers behind the presets are in
+and `--lora /models/Qwen3.8-27B-pi-lora-F16.gguf` at scale 1.0. **Both 27Bs serve 64k by decision
+(2026-11-24)**: the load peak is 15507 MiB, over the 14336 frame and under the 16 GiB soft ceiling,
+and the user chose to keep 64k even if the session pass runs thin. Neither has a LoRA A/B, and
+Ukisai still owes its base battery. The numbers behind the presets are in
 `../llama-bench-runner/measurements/` (`qwen3.5-9b-ud-q4_k_xl/`, `spark-x2.6-4b-q8_0.md`,
 `qwen3.6-35b-a3b-reap-48-v2.md`, `gemma-4-12b-it-qat-ud-q4-k-xl.md`, and the 27B file). Host
 tuning and open items: `hosts/llamaswap-lxc/MEMORY.md`.
