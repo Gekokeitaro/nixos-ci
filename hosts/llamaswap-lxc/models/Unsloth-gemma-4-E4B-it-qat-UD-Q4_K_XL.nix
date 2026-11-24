@@ -17,9 +17,18 @@
       --temp 1 --top-p 0.95 --top-k 64
     '';
     # The six roles, from the shared library, so the parity suites can run on this id. The card's
-    # trio (1.0 / 0.95 / 64, web research 2026-11-23) is what the bare id serves; the roles keep
-    # the library's per-role geometry until session 8b tunes them.
-    filters = modelLib.mkFilters modelLib.profiles.roles;
+    # trio (1.0 / 0.95 / 64, web research 2026-11-23) is what the bare id serves and, since
+    # 2026-11-24, what every role serves too: Google gives one preset for all use cases, and the
+    # library's role geometry is Qwen's.
+    filters = modelLib.mkFilters (
+      builtins.mapAttrs (_: role: role // {
+        temperature = 1.0;
+        top_p = 0.95;
+        top_k = 64;
+        min_p = 0.0;
+        presence_penalty = 0.0;
+      }) modelLib.profiles.roles
+    );
     ttl = 600;
   };
 }

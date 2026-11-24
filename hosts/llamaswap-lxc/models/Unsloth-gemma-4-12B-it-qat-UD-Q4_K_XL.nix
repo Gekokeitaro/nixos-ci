@@ -14,7 +14,18 @@
   # in ai-tests/measurements/gemma-12b.md.
   cardCmd = ''${commonCmd} --temp 1 --top-p 0.95 --top-k 64'';
 
-  commonFilters = modelLib.mkFilters modelLib.profiles.roles;
+  # The card's trio applies to every role: Google gives one sampling configuration for all use
+  # cases (1.0 / 0.95 / 64, four independent sources), and the library's role geometry is Qwen's.
+  # The role's own budgets, DRY and the closed thinking block of `instruct` are kept.
+  gemmaRoles = builtins.mapAttrs (_: role: role // {
+    temperature = 1.0;
+    top_p = 0.95;
+    top_k = 64;
+    min_p = 0.0;
+    presence_penalty = 0.0;
+  }) modelLib.profiles.roles;
+
+  commonFilters = modelLib.mkFilters gemmaRoles;
 in {
   "Unsloth Gemma 4 12B QAT UD Q4_K_XL" = {
     name = "Unsloth Gemma 4 12B QAT UD Q4_K_XL";

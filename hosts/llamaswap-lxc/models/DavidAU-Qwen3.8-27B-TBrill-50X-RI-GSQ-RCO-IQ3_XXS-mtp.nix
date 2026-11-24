@@ -31,8 +31,16 @@
     '';
     # The six roles from the library, so the parity suites can run on this id; the bare id keeps
     # the DavidAU tester settings in `cmd` (temp .5-1, top_k 64, min_p .05, top_p .95) and the
-    # card's tool-calling range (.6-.7). Research: Qwen3.8 card 2026-11-23.
-    filters = modelLib.mkFilters modelLib.profiles.roles;
+    # card's tool-calling range (.6-.7). Since 2026-11-24 the roles carry the vendor's truncation
+    # too — top_k 64, min_p .05, top_p .95 — with the library's per-role temperatures and budgets.
+    # Research: Qwen3.8 card and the DavidAU card, 2026-11-23.
+    filters = modelLib.mkFilters (
+      builtins.mapAttrs (_: role: role // {
+        top_k = 64;
+        min_p = 0.05;
+        top_p = 0.95;
+      }) modelLib.profiles.roles
+    );
     ttl = 600;
   };
 }
