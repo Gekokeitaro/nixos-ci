@@ -9,6 +9,7 @@
       # llama-bench-runner/measurements/gemma-4-e4b-it-qat-ud-q4-k-xl.md.
       --spec-type draft-mtp
       --spec-draft-n-max 2 --spec-draft-p-min 0.8
+      --spec-draft-sampling greedy
       -md /models/mtp-gemma-4-E4B-it-Q8_0.gguf
       ${modelLib.deviceArgs}
       -b 256 -ub 128 -ctk f16 -ctv f16

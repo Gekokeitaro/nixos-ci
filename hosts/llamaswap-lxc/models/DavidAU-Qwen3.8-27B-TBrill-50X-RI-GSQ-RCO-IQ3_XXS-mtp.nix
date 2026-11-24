@@ -17,6 +17,7 @@
         nMin = 2;
         nMax = 2;
       }}
+      --spec-draft-sampling greedy
       ${modelLib.deviceArgs}
       ${modelLib.checkpointArgs}
       -b 256 -ub 128 -ctk f16 -ctv f16

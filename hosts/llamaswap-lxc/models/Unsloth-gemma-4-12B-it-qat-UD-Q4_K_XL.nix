@@ -36,6 +36,7 @@ in {
       ${cardCmd}
       --spec-type ngram-mod,draft-mtp
       --spec-draft-n-max 8 --spec-draft-p-min 0.4
+      --spec-draft-sampling greedy
       -md /models/mtp-gemma-4-12B-it-Q8_0.gguf
       --spec-ngram-mod-n-match 12 --spec-ngram-mod-n-min 32 --spec-ngram-mod-n-max 64
     '';
