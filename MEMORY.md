@@ -10,16 +10,19 @@ Last updated: 2026-11-24.
 ## Working tree
 
 Clean, and `HEAD` equals `origin/main` as last fetched: the repo is pushed. The deploy of
-**`f84b0fc` on 2026-11-24 18:10:42 UTC** is the last one read on the host: generation
-`bwnqr6k…`, and the rendered config carries the four measured speculative presets — Gemma 12B
-`ngram-mod,draft-mtp` at n-max 8 / p-min 0.4 / ngram 12:32:64, Gemma E4B `draft-mtp` at n-max 2 /
-p-min 0.8, DavidAU 27B `draft-mtp` at n-max 2, Ukisai 27B `ngram-mod` 12:32:64 — each with
-`--spec-draft-sampling greedy` where it has a draft, and the `pi` LoRA on the two 27Bs.
+**`4803b6d` on 2026-11-24 18:50 UTC** (generation 145) is the last one read on the host: it serves
+both Qwen3.8 27Bs at **`--ctx-size 65536`**, with the four measured speculative presets from
+`f84b0fc` — Gemma 12B `ngram-mod,draft-mtp` at n-max 8 / p-min 0.4 / ngram 12:32:64, Gemma E4B
+`draft-mtp` at n-max 2 / p-min 0.8, DavidAU 27B `draft-mtp` at n-max 2, Ukisai 27B `ngram-mod`
+12:32:64 — each with `--spec-draft-sampling greedy` where it has a draft, and the `pi` LoRA on the
+two 27Bs. **The host went down at 18:3x** when a `ctx-ceiling` load at 229376 OOM'd the container;
+it was restarted from Proxmox and `llama-swap` came back active on the served config. The walk is
+now bottom-up (`llama-bench-runner` `39817b7`), which reaches the host on the next deploy.
 A push to `main` deploys: **the job log records whether the switch ran**, and it, not this file,
 holds the revision. An hourly mirror sync also arrives as a push event, so a restart of
 `llama-swap` alone is not proof of a deploy — the **generation** is
-(`readlink -f /run/current-system`). Earlier switches read here: `8644dc7` on 2026-11-24 07:59,
-`f2ed2c4` on 2026-11-23 21:16, `9944b2c` at 19:00, `6e4f369` at 11:59.
+(`readlink -f /run/current-system`). Earlier switches read here: `f84b0fc` at 18:10, `8644dc7` at
+07:59, `f2ed2c4` on 2026-11-23 21:16.
 
 ## Hosts
 
