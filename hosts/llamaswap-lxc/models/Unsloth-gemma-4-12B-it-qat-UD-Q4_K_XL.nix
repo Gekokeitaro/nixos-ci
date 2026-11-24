@@ -6,7 +6,12 @@
     ${modelLib.deviceArgs}
     ${modelLib.checkpointArgs}
     -b 256 -ub 128 -ctk f16 -ctv f16
-    --ctx-size 32768
+    # Window 2026-11-24, measured at load with the speculative stack this file serves: 262144
+    # peaks at 12879 MiB (bare 11885), margin 1457 MiB under the 14336 allowance, and the 32k
+    # session pass peaks at 10529 MiB with both families drafting. The full-fill pass at 262144
+    # is owed, and the margin is what it is measured for: checkpoints grow in a session.
+    # llama-bench-runner/measurements/gemma-4-12b-it-qat-ud-q4-k-xl.md.
+    --ctx-size 262144
   '';
 
   # The card's preset, 2026-11-23: temp 1.0, top_p 0.95, top_k 64, one preset for everything and
