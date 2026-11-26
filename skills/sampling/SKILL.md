@@ -1,6 +1,6 @@
 ---
 name: sampling
-description: Changes what a model samples on the llama-swap host — the order of the sampler chain, `--temp`, `--top-k`, `--top-p`, `--min-p`, XTC, the DRY and repetition penalties, `reasoning_budget`, and whether a value belongs in `cmd` or in `filters` for one variant. Use when tuning repetition, loops, creativity, a cut-off thinking block, an inert `--repeat-penalty`, a `--samplers`/`--sampler-seq` list, or the `top_n_sigma`/`typ_p` stages — even when the user never says "sampling". Not for creating or archiving the entry (`model-files`), nor for measuring — the battery, the spec grid and the gates belong to `llama-bench-runner`.
+description: Changes what a model samples on the llama-swap host — the order of the sampler chain, `--temp`, `--top-k`, `--top-p`, `--min-p`, XTC, the DRY and repetition penalties, `reasoning_budget_tokens`, and whether a value belongs in `cmd` or in `filters` for one variant. Use when tuning repetition, loops, creativity, a cut-off thinking block, an inert `--repeat-penalty`, a `--samplers`/`--sampler-seq` list, or the `top_n_sigma`/`typ_p` stages — even when the user never says "sampling". Not for creating or archiving the entry (`model-files`), nor for measuring — the battery, the spec grid and the gates belong to `llama-bench-runner`.
 ---
 
 # Sampling
@@ -44,7 +44,7 @@ sees what was chosen and against what.
 - `--repeat-penalty` is inert in a chain that has no `penalties` stage: a
   `--samplers` list that omits that stage makes the flag do nothing.
 - `:instruct` turns reasoning off through `chat_template_kwargs`, not through
-  `reasoning_budget`. Budget 0 is a different change. The `profiles.instruct`
+  `reasoning_budget_tokens`. Budget 0 is a different change. The `profiles.instruct`
   filter is sampling only and leaves reasoning on.
 
 ## Where a value goes
@@ -56,7 +56,7 @@ Two places, and they are not interchangeable:
   `commonCmd` in the file is only a shared string, not a second place: the value
   still reaches the server through `cmd`.
 - **`filters.setParamsByID`** — request parameters for one variant
-  (`dry_multiplier`, `reasoning_budget`…), applied when the client id carries the
+  (`dry_multiplier`, `reasoning_budget_tokens`…), applied when the client id carries the
   suffix.
 
 Sampling cannot be tuned by measuring speed: `llama-bench` has no sampler flags,
@@ -154,7 +154,7 @@ while writing: the captured server log shows a row producing a **valid file at 6
 generating to the ceiling. When the loop is in the writing, the brake is the budget and its
 forced message, not the tier.
 
-**DRY and `reasoning_budget` attach to the expensive end**, not to the cheap one: they are what
+**DRY and `reasoning_budget_tokens` attach to the expensive end**, not to the cheap one: they are what
 keeps `high` or `xhigh` inside a 900 s ceiling when the quality forces the tier. Where the
 template implements the effort, **the effort comes before both**: it is the model's own
 instruction, injected by its template, so it changes the plan the model follows, while DRY
@@ -198,7 +198,7 @@ that asks for a different value composes it into the one role it applies to
   `--repeat-penalty`, `--presence-penalty`, `--frequency-penalty` or any
   `--dry-*` flag.
 - Read [`references/reasoning-budget.md`](references/reasoning-budget.md) when you
-  set `reasoning_budget` or work on a `:instruct` variant.
+  set `reasoning_budget_tokens` or work on a `:instruct` variant.
 - Read [`references/speculative-decoding.md`](references/speculative-decoding.md)
   when you add or read a `--spec-*` flag.
 
