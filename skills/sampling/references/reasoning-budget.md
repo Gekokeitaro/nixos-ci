@@ -47,3 +47,35 @@ is still time to write**. At Spark's 13.5 t/s, 6144 tokens is ~455 s of a 900 s 
 thinking over a 900 s ceiling is the same as no budget. The general form is
 `budget ≈ t/s × (900 − 300)`, and it is per GGUF.
 
+
+## The key is `reasoning_budget_tokens`, and the short one is ignored
+
+Measured 2026-11-26 against the served 27B, request-level, same prompt:
+
+| field sent | thinking block | forced message |
+|---|---:|---|
+| nothing | 1 270 chars (~317 tok) | no |
+| `reasoning_budget: 600` | 3 501 chars (~875 tok) | **no** |
+| **`reasoning_budget_tokens: 600`** | 2 574 chars (~643 tok) | **yes** |
+
+The server reads the long name and only the long name. At this host's commit
+(build `b11960`, `8642541`), `tools/server/server-common.cpp` does:
+
+```cpp
+int reasoning_budget = json_value(body, "reasoning_budget_tokens", opt.reasoning_budget);
+```
+
+So a request carrying `reasoning_budget` — which is what `mkRoles` sent until 2026-11-26 — is a
+request with **no budget at all**: the sampler is never told a number, nothing forces the close, and
+the thinking block runs until `max_tokens`, the harness timeout, or the model's own loop. That is
+why no role budget ever braked anything on any model, and why `/props` never shows the field: the
+defaults carry no budget, and the value only exists per request.
+
+`reasoning_budget_message` is correct as it stands; the message is what gets forced in, token by
+token, once the budget expires. The start and end tags come from the session's own thinking
+delimiters, which is why `--reasoning-format` has to be right for the parser to find them.
+
+**How to check it without a deploy**: send a prompt that thinks long with
+`reasoning_budget_tokens: 600` and `reasoning_budget_message` set; the block must end near 600
+tokens with that message as its last thought. A response that thinks straight past the number is a
+budget that did not land.

@@ -64,16 +64,26 @@
   # request-level: one `cmd`, one speculative preset, no reload between them. Each role
   # moves exactly one axis off the `roleBase` it is given — `instruct` is the exception:
   # it adds the thinking-off trait instead. The axis and its reason are stated on each
-  # entry. `reasoning_budget` is the field that bounds a thinking block, and every role that
-  # carries one also carries `budgetMessage`, defined above: the forced text is part of the
+  # entry. `reasoning_budget_tokens` is the field that bounds a thinking block, and every role
+  # that carries one also carries `budgetMessage`, defined above: the forced text is part of the
   # brake, not decoration, so it travels with the budget instead of being a variant.
+  #
+  # The key is `reasoning_budget_tokens`, NOT `reasoning_budget`. The server reads it by that name
+  # (`tools/server/server-common.cpp`, `json_value(body, "reasoning_budget_tokens", …)` at the
+  # commit this host builds, b11960 / 8642541), so the shorter key this library shipped until
+  # 2026-11-26 was silently ignored: no budget was ever applied, in any role, on any model.
+  # Measured against the served model that day: `reasoning_budget: 600` left a thinking block at
+  # ~875 tokens with no forced message, and `reasoning_budget_tokens: 600` cut it at ~643 and
+  # injected the message (`forced=YES`). The message key `reasoning_budget_message` is correct as
+  # it stands. `/props` shows the defaults and never lists a budget, so the field cannot be checked
+  # from there — only from the forcing, which is what the probe looked for.
   mkRoles = {roleBase, noThinkParams, budgetMessage}: {
     # Plans. Axis: budget 6144, the larger of the two budgets this library ships,
     # because this role writes the longest single thinking block. Temperature stays
     # at `thinking`'s 1.0 — a plan explores, and the budget bounds it instead.
     planner = roleBase // {
       temperature = 1.0;
-      reasoning_budget = 6144;
+      reasoning_budget_tokens = 6144;
       reasoning_budget_message = budgetMessage;
     };
 
@@ -86,7 +96,7 @@
     # 0/6 and its failures were timeouts, which is what a budget cuts.
     reviewer = roleBase // {
       temperature = 0.6;
-      reasoning_budget = 4096;
+      reasoning_budget_tokens = 4096;
       reasoning_budget_message = budgetMessage;
     };
 
@@ -95,7 +105,7 @@
     # entry relies on.
     supervisor = roleBase // {
       temperature = 0.7;
-      reasoning_budget = 4096;
+      reasoning_budget_tokens = 4096;
       reasoning_budget_message = budgetMessage;
     };
 
