@@ -5,6 +5,21 @@ moves to the file that owns it.
 
 ## Pending
 
+0. **The Vulkan profile is the fallback this host may need, and it is unstable.**
+   `nixos-llamaswap-vulkan` exists and is applied by hand (it is the second flake output of the
+   same `configuration.nix`), so switching the model host to Vulkan is a decision, not a rebuild.
+   The reason to keep it on the table: at least one family we want to serve **aborts on ROCm with
+   our GPU class** — PrismML's ternary Bonsai says so in its own `KNOWN_ISSUES.md` (*“ROCm/HIP aborts
+   on consumer RDNA2 GPUs (for example gfx1030)”*, status open, no HIP workaround, *try the Vulkan
+   build*), and this host is `gfx1035` presented as `gfx1030`. The reason not to switch today: the
+   Vulkan profile has been the unstable one, and nothing here has measured it since the
+   llama.cpp 1.0.0 batteries. **What changed is that the workspace can now attack that**: the
+   battery, `spec-bench`, the context grid, the health gate (`tg` against a per-GGUF baseline) and
+   the `dmesg` page-fault signature all exist, so instability can be measured instead of argued
+   about. Task: one GGUF (the reference 9B, whose ROCm numbers are the yardstick), the same battery
+   on both profiles, the same health gate, and a fault/tg64 table over a multi-hour run. Only then
+   is a model with no ROCm path — Bonsai, or anything else that aborts — served on Vulkan.
+
 0. **Roles for the parity run, prepared 2026-11-23 (pending deploy).** The six roles from
    `modelLib.profiles.roles` are now declared on `Unsloth-gemma-4-12B-…` (replacing its
    instruct-only filter), `Unsloth-gemma-4-E4B-…`, `DavidAU-Qwen3.8-27B-…` and
