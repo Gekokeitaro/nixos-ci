@@ -35,7 +35,7 @@ separates them:
 |---|---|---|
 | `let` binding | a constant several fragments share; the value is in scope everywhere in the file | `roleBase`, `noThinkParams`, `dryParams` |
 | builder function | a fragment composes another: take it as a parameter, so the dependency sits in the signature instead of the surrounding scope | `budgetRoles = {label, budget}:`, `dryVariants = {budgets ? …}:`, `mkFilters = roles:`, `mkRoles = {roleBase, noThinkParams}:`, `overrideAttrs (oldAttrs: …)` |
-| `rec { … }` | the set genuinely refers to itself | one instance: `oldAttrs: rec { … }` in `packages/llama-cpp/default.nix` |
+| `rec { … }` | the set genuinely refers to itself | not used here: `packages/llama-cpp/default.nix` dropped its `rec` when the pins moved to `versions.nix` |
 | `lib.fix (self: …)` | a self-referential set that must also stay overridable | not used here; `lib.fix` appears nowhere in this repo |
 
 The dominant idiom is the builder, so a fragment that composes another takes it as

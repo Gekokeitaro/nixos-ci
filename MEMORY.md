@@ -39,13 +39,19 @@ rest (`nixos-n8n`, `nixos-n8n-runner`, `nixos-omniroute`, `nixos-postgresql`,
 
 ## llama.cpp
 
-The tree pins `v1.0.0`: `llamacppVersion` in
-`hosts/llamaswap-lxc/packages/llama-cpp/default.nix`, set by `3c8de35 CHORE -
-Bump llamacpp version`. The host runs it: the delayed wrapper read there on
-2026-11-19 execs a `llama-cpp-v1.0.0` store path. `v0.9.0` (build 8642541, the
-previous confirmed state) no longer runs there: the 2026-11-12 battery and the
-`v0.9.0` spec sweep were measured on it, and their numbers are in
-`../llama-bench-runner/`. The store path changes with every version: take the
+The tree pins **`v1.1.0`**. The values that change on an upgrade — `version`, `rev`, `hash`,
+`npmHash` — plus `buildNumber`, live in `hosts/llamaswap-lxc/packages/llama-cpp/versions.nix`, and
+`nix run .#update-llama-cpp` is its only writer (`e39465a FIX - Derive llama.cpp build info from a
+single pinned commit`). `rev` is the **commit behind the annotated tag**, and `buildCommit` and
+`buildNumber` are derived from it instead of inherited: until 2026-11-27 the package kept nixpkgs'
+`b11960`/`8642541` — the metadata of **0.8.0** — so `/props` reported `b11960-v1.0.0`, a pair that
+belonged to no release of ours. Expected once this pin is built: **`b12774-1715275`**.
+
+The host still runs **`v1.0.0`** (deployed 2026-11-27 at `44b1b19`, before the pin landed), so its
+`build_info` is still the wrong pair until the next switch. `v0.9.0` (build 8642541, the previous
+confirmed state) no longer runs there: the 2026-11-12 battery and the `v0.9.0` spec sweep were
+measured on it, and their numbers are in `../llama-bench-runner/`. The store path changes with every
+version: take the
 newest of `ls -lut /nix/store | grep llamacpp` before quoting what serves today.
 
 The committed benchmark-scripts pin is `llamaBenchRunner`, rev
