@@ -45,74 +45,79 @@ in
       vulkanSupport = !isLlamacppRocm;
     }
   )
-  .overrideAttrs (
-    oldAttrs: let
+  .overrideAttrs (oldAttrs: {
+    version = versions.version;
+    inherit src;
+
+    npmDepsHash = versions.npmHash;
+
+    # Pinned, not inherited: the web UI moves between majors. nixpkgs still
+    # points at tools/ui, while v1.1.0 moved it to ui/apps/chat. The value
+    # travels with the version it belongs to, and the updater verified it
+    # exists at that commit before writing it.
+    npmRoot = versions.uiPath;
+
+    nativeCheckInputs =
+      [(pkgs.python3.withPackages (ps: [ps.numpy ps.torch ps.safetensors ps.transformers]))]
+      ++ (oldAttrs.nativeCheckInputs or []);
+
+    # nixpkgs' pair is filtered out of `cmakeFlags` below; these two are the
+    # only build metadata the compiler sees, and both come from versions.nix.
+    preConfigure = ''
+      prependToVar cmakeFlags "-DLLAMA_BUILD_NUMBER:STRING=${buildNumber}"
+      prependToVar cmakeFlags "-DLLAMA_BUILD_COMMIT:STRING=${buildCommit}"
+    '';
+
+    # https://github.com/ggml-org/llama.cpp/issues/21724
+    # https://drakerossman.com/blog/how-to-patch-a-package-source-on-nixos
+    # 30-May-26: In my case, DeviceLost is only fixed with the value set to 1, at the cost of a significant performance loss.
+    # The viable workaround is still raising lockup_timeout.
+    # However I have found performance gains experimenting with nodes_per_submit, so I keep the patch for fine-tuning.
+    # 24-Jun-26: https://github.com/ggml-org/llama.cpp/pull/24872 -> FIXED b9782
+    #postPatch = ''
+    #  substituteInPlace ggml/src/ggml-vulkan/ggml-vulkan.cpp \
+    #  --replace-fail "int nodes_per_submit = 100;" "int nodes_per_submit = 1;"
+    #'';
+
+    # Enable native CPU optimizations (AVX, AVX2, etc.)
+    #
+    # The check on nixpkgs' own pair sits HERE, inside the value, and not as an
+    # assert beside the overlay set: nixpkgs builds `cmakeFlags` with
+    # `(cmakeBool "LLAMA_BUILD_TESTS" (finalAttrs.finalPackage.doCheck or false))`,
+    # so reading it demands `finalPackage` — and forcing it while the overlay is
+    # being assembled recurses (measured 2026-11-27: infinite recursion at
+    # make-derivation.nix). Forced here, lazily, the cycle is the one nixpkgs
+    # already resolves.
+    cmakeFlags = let
       # nixpkgs supplies this pair from its own pin (llama.cpp 0.8.0:
       # `-DLLAMA_BUILD_NUMBER:STRING=11960`, `-DLLAMA_BUILD_COMMIT:STRING=8642541`),
       # which is the whole reason `/props` once answered `b11960-v1.0.0`. The pair
-      # is dropped in `cmakeFlags` and replaced from `versions.nix` in
-      # `preConfigure`: a leftover would win over ours and put the stale values
-      # back, silently.
+      # is dropped below and replaced from `versions.nix` in `preConfigure`: a
+      # leftover would win over ours and put the stale values back, silently.
       inheritedBuildFlags =
         builtins.filter
         (flag: lib.hasPrefix "-DLLAMA_BUILD_NUMBER" flag || lib.hasPrefix "-DLLAMA_BUILD_COMMIT" flag)
         (oldAttrs.cmakeFlags or []);
       hasFlag = prefix: lib.any (flag: lib.hasPrefix prefix flag) inheritedBuildFlags;
     in
-      assert lib.assertMsg (builtins.length inheritedBuildFlags == 2 && hasFlag "-DLLAMA_BUILD_NUMBER" && hasFlag "-DLLAMA_BUILD_COMMIT")
+      assert lib.assertMsg
+      (builtins.length inheritedBuildFlags == 2 && hasFlag "-DLLAMA_BUILD_NUMBER" && hasFlag "-DLLAMA_BUILD_COMMIT")
       "llama-cpp: expected nixpkgs to pass one -DLLAMA_BUILD_NUMBER and one -DLLAMA_BUILD_COMMIT, found [${lib.concatStringsSep " " inheritedBuildFlags}]. If upstream dropped or renamed them, drop the filter in cmakeFlags and keep preConfigure; if it changed their shape, update that filter.";
-      {
-        version = versions.version;
-        inherit src;
-
-        npmDepsHash = versions.npmHash;
-
-        # Pinned, not inherited: the web UI moves between majors. nixpkgs still
-        # points at tools/ui, while v1.1.0 moved it to ui/apps/chat. The value
-        # travels with the version it belongs to, and the updater verified it
-        # exists at that commit before writing it.
-        npmRoot = versions.uiPath;
-
-        nativeCheckInputs =
-          [(pkgs.python3.withPackages (ps: [ps.numpy ps.torch ps.safetensors ps.transformers]))]
-          ++ (oldAttrs.nativeCheckInputs or []);
-
-        # nixpkgs' pair is filtered out of `cmakeFlags` above; these two are the
-        # only build metadata the compiler sees, and both come from versions.nix.
-        preConfigure = ''
-          prependToVar cmakeFlags "-DLLAMA_BUILD_NUMBER:STRING=${buildNumber}"
-          prependToVar cmakeFlags "-DLLAMA_BUILD_COMMIT:STRING=${buildCommit}"
-        '';
-
-        # https://github.com/ggml-org/llama.cpp/issues/21724
-        # https://drakerossman.com/blog/how-to-patch-a-package-source-on-nixos
-        # 30-May-26: In my case, DeviceLost is only fixed with the value set to 1, at the cost of a significant performance loss.
-        # The viable workaround is still raising lockup_timeout.
-        # However I have found performance gains experimenting with nodes_per_submit, so I keep the patch for fine-tuning.
-        # 24-Jun-26: https://github.com/ggml-org/llama.cpp/pull/24872 -> FIXED b9782
-        #postPatch = ''
-        #  substituteInPlace ggml/src/ggml-vulkan/ggml-vulkan.cpp \
-        #  --replace-fail "int nodes_per_submit = 100;" "int nodes_per_submit = 1;"
-        #'';
-
-        # Enable native CPU optimizations (AVX, AVX2, etc.)
-        cmakeFlags =
-          # Drop the stale build metadata and the flag's default value so it does
-          # not build for every architecture.
-          (builtins.filter
-            (f:
-              !(lib.hasPrefix "-DLLAMA_BUILD_NUMBER" f)
-              && !(lib.hasPrefix "-DLLAMA_BUILD_COMMIT" f)
-              && !(lib.hasPrefix "-DCMAKE_HIP_ARCHITECTURES" f))
-            oldAttrs.cmakeFlags or [])
-          ++ [
-            "-DCMAKE_BUILD_TYPE=Release"
-            "-DGGML_NATIVE=ON"
-            "-DGGML_CUDA_FA_ALL_QUANTS=ON"
-          ]
-          ++ lib.optionals isLlamacppRocm [
-            "-DCMAKE_HIP_ARCHITECTURES=${targetGPU}"
-            "-DGPU_TARGETS=${targetGPU}"
-          ];
-      }
-  )
+      # Drop the stale build metadata and the flag's default value so it does
+      # not build for every architecture.
+      (builtins.filter
+        (f:
+          !(lib.hasPrefix "-DLLAMA_BUILD_NUMBER" f)
+          && !(lib.hasPrefix "-DLLAMA_BUILD_COMMIT" f)
+          && !(lib.hasPrefix "-DCMAKE_HIP_ARCHITECTURES" f))
+        (oldAttrs.cmakeFlags or []))
+      ++ [
+        "-DCMAKE_BUILD_TYPE=Release"
+        "-DGGML_NATIVE=ON"
+        "-DGGML_CUDA_FA_ALL_QUANTS=ON"
+      ]
+      ++ lib.optionals isLlamacppRocm [
+        "-DCMAKE_HIP_ARCHITECTURES=${targetGPU}"
+        "-DGPU_TARGETS=${targetGPU}"
+      ];
+  })
