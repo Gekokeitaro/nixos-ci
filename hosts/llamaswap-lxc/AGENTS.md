@@ -27,11 +27,11 @@ flake outputs: `nixos-llamaswap-vulkan` and `nixos-llamaswap-rocm`.
 
 - GPU on the Proxmox host, passed through via `/dev/dri` (see Constraints).
 - GGUF models mounted at `/models/` (outside Nix, on Proxmox host).
-- `packages/llama-cpp` — parameterized override; version/hash are `let`
-  variables at the top of `packages/llama-cpp/default.nix`.
+- `packages/llama-cpp` — parameterized override; every mutable value lives in
+  `packages/llama-cpp/versions.nix`, and the build metadata is derived from it.
 - `utils/update-llama-cpp.nix` — script exposed as `nix run .#update-llama-cpp`;
-  queries GitHub for latest llama.cpp release and updates
-  `packages/llama-cpp/default.nix` in place.
+  queries GitHub for latest llama.cpp release and rewrites
+  `packages/llama-cpp/versions.nix` whole.
 
 ## Secrets
 
@@ -101,10 +101,14 @@ Adding or archiving a model has prerequisites and gotchas: see
 nix run .#update-llama-cpp
 ```
 
-This script queries the GitHub API for the latest llama.cpp release, prefetches
-the source hash, forces the npm-deps hash mismatch to discover the new value,
-and updates `llamacppVersion`, `llamacppHash` and `llamacppNpmHash` in place.
-It needs a machine with `nix` installed, because it evaluates `pkg.npmDeps`.
+`packages/llama-cpp/versions.nix` holds the only mutable values, and this
+updater is its only writer: it replaces the file whole and restores the previous
+copy if any step fails. A major bump can break on `npmRoot`, pinned explicitly in
+`default.nix` — the UI moved from `tools/ui` to `ui/apps/chat` in v1.1.0 — so
+the `pathExists` assert fires before the build does. After every deploy, compare
+`/props`'s `build_info` with the pin — it must read `<buildNumber>-<7 of rev>`,
+so `b12774-1715275` for v1.1.0. It needs a machine with `nix` installed, because
+it evaluates `pkg.npmDeps`.
 
 ### Updating the benchmark scripts
 
