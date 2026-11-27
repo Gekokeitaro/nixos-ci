@@ -77,7 +77,18 @@ No sops-nix configuration. GPU/cache paths are not secret.
   `packages/llama-cpp/default.nix` for a different GPU.
 - On slow iGPUs, `lockup_timeout` may need raising on the Proxmox host
   (see README). Outside Nix scope.
-- `hostName` specialArg is mandatory — the module has no default.
+- **The carve-out is 4 GiB and the BIOS cannot raise it (2026-11-26).** The GEEKOM A6
+  firmware (BIOS 2.39, 2025-04) has `UMA Frame Buffer Size` set to 16G by hand, and the
+  kernel still reports `amdgpu … VRAM: 4096M … BAR=4096M`: the option is decorative
+  without `Above 4G Decoding` / `Re-Size BAR`, and neither toggle exists in that BIOS. So
+  4 GiB is the only GPU-pinned memory this host has, and everything above it is mapped
+  through the **GTT** (13.9 GiB at 27 GiB of RAM). **That GTT is the real ceiling**: the
+  27B sessions peak at 15.5-16.8 GiB, over it, and `dmesg` answers with
+  `[gfxhub] page fault … UTCL2 … RW: 0x1` from `llama-server`, which kills the process
+  (`signal: aborted`) and cuts the stream mid-write — the harness records that as
+  `ERR_API`. Raise the window with `amdgpu.gttsize=16384 ttm.pages_limit=4194304` on the
+  Proxmox kernel (`pages_limit` is in 4 KiB pages), or keep the model inside 13.9 GiB.
+- `hostName` specialArg is mandatory - the module has no default.
 
 ## Modification guide
 

@@ -5,27 +5,31 @@
 > Rules in `AGENTS.md`, decisions in `DECISIONS.md`, addresses and ports in
 > `INFRA.md`, open work in `TASKS.md`, workspace state in the root `MEMORY.md`.
 
-Last updated: 2026-11-19.
+Last updated: 2026-11-24.
 
 ## Working tree
 
-Clean: everything is committed. The branch is ahead of `origin/main` and
-unpushed; read its exact HEAD with `git log -1`. `origin/main` is `c010038`,
-committed on 2026-11-19 at 20:27, so the deployed configuration is `c010038` and
-these docs are not on the host until someone pushes them (a push to `main`
-deploys: see `AGENTS.md`). The pushes of 2026-11-15 (`697c811` at 18:17, `035d7d1`
-at 18:29) ran the workflow and switched the host. The rendered config read on the
-host on 2026-11-19 matches `c010038` — the ids HEAD's model files define, the
-`cmd` flags of the reference and Spark, the `modelLib.profiles` filters — and
-llama-swap had restarted at 19:49:34 UTC, twenty minutes after that commit. The
-job log, not this file, records the revision the host runs.
+Clean, and `HEAD` equals `origin/main` as last fetched: the repo is pushed. The deploy of
+**`4803b6d` on 2026-11-24 18:50 UTC** (generation 145) is the last one read on the host: it serves
+both Qwen3.8 27Bs at **`--ctx-size 65536`**, with the four measured speculative presets from
+`f84b0fc` — Gemma 12B `ngram-mod,draft-mtp` at n-max 8 / p-min 0.4 / ngram 12:32:64, Gemma E4B
+`draft-mtp` at n-max 2 / p-min 0.8, DavidAU 27B `draft-mtp` at n-max 2, Ukisai 27B `ngram-mod`
+12:32:64 — each with `--spec-draft-sampling greedy` where it has a draft, and the `pi` LoRA on the
+two 27Bs. **The host went down at 18:3x** when a `ctx-ceiling` load at 229376 OOM'd the container;
+it was restarted from Proxmox and `llama-swap` came back active on the served config. The walk is
+now bottom-up (`llama-bench-runner` `39817b7`), which reaches the host on the next deploy.
+A push to `main` deploys: **the job log records whether the switch ran**, and it, not this file,
+holds the revision. An hourly mirror sync also arrives as a push event, so a restart of
+`llama-swap` alone is not proof of a deploy — the **generation** is
+(`readlink -f /run/current-system`). Earlier switches read here: `f84b0fc` at 18:10, `8644dc7` at
+07:59, `f2ed2c4` on 2026-11-23 21:16.
 
 ## Hosts
 
 | Host | Service | Deployed | Status |
 |---|---|---|---|
-| `nixos-ci` | builds LXC images and runs the Forgejo runners | repo configuration | runs the deploy workflow; its last observed run switched `nixos-llamaswap-rocm` on 2026-11-19 |
-| `nixos-llamaswap-rocm` | llama-swap + llama.cpp (ROCm) | `c010038`, by the rendered config read on 2026-11-19; the tree pins llama.cpp `v1.0.0` | serving GGUFs |
+| `nixos-ci` | builds LXC images and runs the Forgejo runners | repo configuration | runs the deploy workflow; its last observed run switched `nixos-llamaswap-rocm` on 2026-11-24 |
+| `nixos-llamaswap-rocm` | llama-swap + llama.cpp (ROCm) | `8644dc7`, generation `f7qacldz…`, switch at 2026-11-24 07:59:26 UTC; the tree pins llama.cpp `v1.0.0` | serving GGUFs |
 | `nixos-pi-agent` | `pi` sessions against OmniRoute | configuration on `main` | manual deployment; `models.json` needs normalising (see `TASKS.md`) |
 
 `nixos-forgejo` hosts Forgejo with Actions active and registration closed;
@@ -69,7 +73,25 @@ the record of what each deploy resolved (see `AGENTS.md`).
 `:supervisor`, `:integrator` and `:instruct`; the file writes those flags itself,
 the combo spanning two spec types. `e9d4069` landed the preset, `f9a1c32`
 corrected its header, and it was deployed on 2026-11-18. Spark X2.6 4B serves at
-`196608` with the default chain and no spec. The numbers behind both presets are
-in `../llama-bench-runner/measurements/qwen3.5-9b-ud-q4_k_xl/` and
-`spark-x2.6-4b-q8_0.md`. Host tuning and open items:
-`hosts/llamaswap-lxc/MEMORY.md`.
+`196608` with the default chain and no spec. `Unsloth Qwen3.6 35B A3B REAP 48 v2`
+serves `--ctx-size 163840`, `-t 1 -b 2048 -ub 512`, `ngram-mod` 24:32:48 and the
+six roles, with **no MTP: the GGUF carries none**; its bare id was pinned to the
+vendor's `thinking` preset on 2026-11-22 (`6e4f369`), which retires the no-filter
+CORE the 54/96 was measured on. **Gemma 4 12B** serves the card's preset
+(`--temp 1 --top-p 0.95 --top-k 64`) on the bare id and, on the `MTP` entry, the measured
+two-family combination (`ngram-mod,draft-mtp`, `--spec-draft-n-max 8 --spec-draft-p-min 0.4`,
+ngram 12:32:64, 3.604× global at temp 1); both entries carry the six roles and both serve
+`--ctx-size 262144`, confirmed on the served entry (`/props` `n_ctx: 262144`), where the combo
+peaks at 12879 MiB at load. **Gemma 4 E4B**
+serves the tuned draft (`draft-mtp`, n-max 2, p-min 0.8, `greedy`) at `--ctx-size 131072` —
+its GGUF's training context, which llama.cpp capped 262144 down to — with the card's sampling
+and the six roles; `ngram-mod` was dropped after reading 1.684× against the draft's
+1.847×. **`David AU TBrill 50X`** serves `draft-mtp` n-max 2 (embedded heads) and
+**`Ukisai Swift 1.5`** serves `ngram-mod` 12:32:64 (no draft), both at `32768` with the six roles
+and `--lora /models/Qwen3.8-27B-pi-lora-F16.gguf` at scale 1.0. **Both 27Bs serve 64k by decision
+(2026-11-24)**: the load peak is 15507 MiB, over the 14336 frame and under the 16 GiB soft ceiling,
+and the user chose to keep 64k even if the session pass runs thin. Neither has a LoRA A/B, and
+Ukisai still owes its base battery. The numbers behind the presets are in
+`../llama-bench-runner/measurements/` (`qwen3.5-9b-ud-q4_k_xl/`, `spark-x2.6-4b-q8_0.md`,
+`qwen3.6-35b-a3b-reap-48-v2.md`, `gemma-4-12b-it-qat-ud-q4-k-xl.md`, and the 27B file). Host
+tuning and open items: `hosts/llamaswap-lxc/MEMORY.md`.

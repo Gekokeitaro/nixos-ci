@@ -1,6 +1,6 @@
 ---
 name: sampling
-description: Changes what a model samples on the llama-swap host — the order of the sampler chain, `--temp`, `--top-k`, `--top-p`, `--min-p`, XTC, the DRY and repetition penalties, `reasoning_budget`, and whether a value belongs in `cmd` or in `filters` for one variant. Use when tuning repetition, loops, creativity, a cut-off thinking block, an inert `--repeat-penalty`, a `--samplers`/`--sampler-seq` list, or the `top_n_sigma`/`typ_p` stages — even when the user never says "sampling". Not for creating or archiving the entry (`model-files`), nor for measuring — the battery, the spec grid and the gates belong to `llama-bench-runner`.
+description: Changes what a model samples on the llama-swap host — the order of the sampler chain, `--temp`, `--top-k`, `--top-p`, `--min-p`, XTC, the DRY and repetition penalties, `reasoning_budget_tokens`, and whether a value belongs in `cmd` or in `filters` for one variant. Use when tuning repetition, loops, creativity, a cut-off thinking block, an inert `--repeat-penalty`, a `--samplers`/`--sampler-seq` list, or the `top_n_sigma`/`typ_p` stages — even when the user never says "sampling". Not for creating or archiving the entry (`model-files`), nor for measuring — the battery, the spec grid and the gates belong to `llama-bench-runner`.
 ---
 
 # Sampling
@@ -11,6 +11,32 @@ the per-variant values in `filters.setParamsByID`.
 Measured at llama.cpp 0.9.0. `llama-server --help` is the source of truth;
 re-check it after a version bump.
 
+## Before choosing any value: the internet, then the test
+
+Every base and per-role sampler starts from **research outside this repository**, never from what
+is already written here and never from a guess. In this order:
+
+1. **The model card, on the web** — the publisher's `temperature`, `top_p`, `top_k`, `min_p`,
+   presence and repeat values, the template and system prompt they ask for, and the sample code
+   they ship (HF model page, the technical report, the vendor's docs).
+2. **User configurations and opinions, on the web** — how practitioners actually run that family:
+   the HF Community tab and discussions, the quantiser's model page and README, Reddit and forum
+   threads, published agent and coding presets, frontend/runtime defaults, evaluation write-ups.
+   A card is written for chat; a harness has different needs, and this is where those needs show
+   up. **Variety is the point:** at least two independent sources per value, disagreeing ones
+   included, and record the URLs with the date they were read.
+3. **Then the measurement**, on this GGUF, because a value is per GGUF and neither the card nor a
+   stranger's macro knows this harness.
+
+The files in `references/` are the **archive of what was already found**, not the research:
+[`references/per-family.md`](references/per-family.md) holds card values already collected and
+[`references/per-task.md`](references/per-task.md) the practitioner positions already tested. Read
+them to avoid repeating work, then go to the internet for what is missing or newer. A value that
+matches neither the card nor two user sources is a candidate, and says so.
+
+The card value, the user values and their links are recorded next to the result, so a later reader
+sees what was chosen and against what.
+
 ## Gotchas
 
 - `--dry-sequence-breaker` **replaces** the default breakers (newline, `:`, `"`,
@@ -18,7 +44,7 @@ re-check it after a version bump.
 - `--repeat-penalty` is inert in a chain that has no `penalties` stage: a
   `--samplers` list that omits that stage makes the flag do nothing.
 - `:instruct` turns reasoning off through `chat_template_kwargs`, not through
-  `reasoning_budget`. Budget 0 is a different change. The `profiles.instruct`
+  `reasoning_budget_tokens`. Budget 0 is a different change. The `profiles.instruct`
   filter is sampling only and leaves reasoning on.
 
 ## Where a value goes
@@ -30,7 +56,7 @@ Two places, and they are not interchangeable:
   `commonCmd` in the file is only a shared string, not a second place: the value
   still reaches the server through `cmd`.
 - **`filters.setParamsByID`** — request parameters for one variant
-  (`dry_multiplier`, `reasoning_budget`…), applied when the client id carries the
+  (`dry_multiplier`, `reasoning_budget_tokens`…), applied when the client id carries the
   suffix.
 
 Sampling cannot be tuned by measuring speed: `llama-bench` has no sampler flags,
@@ -60,6 +86,10 @@ deterministic and prone to loops. Otherwise `--seed` makes a run reproducible.
 The per-family values are a starting point, not a source of truth: they come from
 the model card on Hugging Face, and the first token of the model file name is the
 publisher's account. Hardware and the llama.cpp version move them, so re-check.
+What each card actually says, and where this host departs from it:
+[`references/per-family.md`](references/per-family.md). What the task literature says, which
+runs colder than every card, and the gap against our roles:
+[`references/per-task.md`](references/per-task.md).
 
 What is still open on this host is in
 [`hosts/llamaswap-lxc/MEMORY.md`](../../hosts/llamaswap-lxc/MEMORY.md).
@@ -85,6 +115,68 @@ verified rather than assumed: on one prompt the bare id spent 1393 characters in
 `reasoning_content` and answered nothing in 400 tokens, while `:instruct`
 produced 0 reasoning characters and 1521 characters of answer.
 
+**`reasoning_effort` is not a universal knob.** A chat template either enumerates its values
+and raises on anything else, or ignores the field — there is no middle, and which one it is
+belongs to the GGUF, not the family. Ask the template, with no GPU involved:
+`reasoning-efforts.sh /models/<model.gguf` (in `llama-bench-runner`) prints the accepted set
+and its default. The set does not follow the family — measured 2026-11-20: the **27B base
+quants** declare `{xhigh, medium, low}` defaulting to `xhigh`, the **27B Turbo-Brilliance
+fine-tune of the same family declares nothing**, and `Spark-X2.6-4B` declares `{high, low}`
+defaulting to `high`. The three entries this workspace leans on — the reference
+`Qwen3.5-9B-UD`, the 35B and the served 27B fine-tune — **do not read the field at all**. The
+sweep is `llama-bench-runner/measurements/reasoning-effort-templates.md`. Two consequences:
+the field can bound loops on a model that implements it, and **a gateway in front can rewrite
+it** — OmniRoute clamps an unlisted value to the nearest accepted tier and retries, so the
+model receives `high` although the client asked for `medium`. Trust the gateway's own
+`… | effort=<value>` log line over the flag that was passed.
+
+**It is a lever, not an axis — decided 2026-11-20.** The effort is *not* swept per role: it is
+offered for the tests that run into the ceiling, and only there. **It travels from the client**
+— `pi`'s thinking level, `PI_EXTRA='--thinking low'` in the harness — and not from a variant of
+the model: no `:low` id is created, and the factory is the place that will eventually send it.
+Consequences of that choice: the model host records nothing about it, so the run's `--note` and
+the gateway's `… | effort=<value>` line are the only evidence, and two tiers of the same id
+share one client id, so the folder is quarantined between them.
+
+**Order of the loop levers — decided 2026-11-20, bottom-up.** The progression over the tiers is
+**`medium` → `low` → `high` → `xhigh`**, filtered by what the template accepts, and the
+direction is **up only on evidence**: start at the cheapest preferred tier, and climb only when
+it loses a test the tier below passed. The reason is not taste — **a tier that times out
+returns `score=none`, and `none` is not a zero**: it is a row that cannot answer the quality
+question, so a top-down sweep spends hours of GPU on ceilings and learns nothing. A finished
+row at `low` is worth more than a `TIMEOUT` at `xhigh`.
+
+**The cheap tier was measured on 2026-11-20 and did not brake the loop.** Spark at
+`reasoning_effort=low` — the gateway log confirms `effort=low`, so the value reached llama.cpp —
+returned **0 of 9 on `t04`/`t05`/`t12`, every row at the 900 s ceiling**, the same 0/9 the
+default `high` gives on those tests. The effort is a *thinking* instruction, and those rows fail
+while writing: the captured server log shows a row producing a **valid file at 691 s** and still
+generating to the ceiling. When the loop is in the writing, the brake is the budget and its
+forced message, not the tier.
+
+**DRY and `reasoning_budget_tokens` attach to the expensive end**, not to the cheap one: they are what
+keeps `high` or `xhigh` inside a 900 s ceiling when the quality forces the tier. Where the
+template implements the effort, **the effort comes before both**: it is the model's own
+instruction, injected by its template, so it changes the plan the model follows, while DRY
+penalises repeated sequences and the budget truncates the thinking block by force.
+
+**And the climb is judged blind where the evaluator cannot see.** A cheap tier that keeps the
+`OK` count can still ship a worse artefact: on the coarse tests (`t10`, `t15-B`, `t08`) the
+checks do not separate them, so a tier that is about to be adopted goes through the frozen
+rubric and the blind pair before it is quoted.
+
+Applied to what this host serves: **Spark** accepts `{high, low}`, so it starts at `low` and
+escalates to `high` only if `low` loses a test — with DRY or a budget behind it. The **27B base
+quants** accept `{xhigh, medium, low}` — **no `high` at all**, so the ladder has three rungs
+and no middle step — and `xhigh` is reported as that family's most effective tier, which makes
+it a contender rather than a last resort: `medium` first, `low` as the cheaper fallback,
+`xhigh` as the serious candidate **with a budget behind it**, because that is the tier most
+likely to spend 900 s. The **reference and the 35B read nothing**, so for those the effort is not
+a lever at all and DRY/budget are all there is. On the 27B the field is **already served** by
+two entries — `Ukisai Swift 1.5 Qwen3.8 27B … mtp` and `Prism ML Ternary Bonsai 2 27B Q2_0` —
+while the third, `David AU Qwen3.8 27B TBrill … mtp`, reads nothing; pick the entry, not the
+size class.
+
 DRY 0 and `presence_penalty` 0 are a **correction of this GGUF** (copy-fidelity
 round of 2026-11-16), not role axes: moving them per role would confound a role
 with the correction. XTC is a roleplay sampler and stays out.
@@ -106,7 +198,7 @@ that asks for a different value composes it into the one role it applies to
   `--repeat-penalty`, `--presence-penalty`, `--frequency-penalty` or any
   `--dry-*` flag.
 - Read [`references/reasoning-budget.md`](references/reasoning-budget.md) when you
-  set `reasoning_budget` or work on a `:instruct` variant.
+  set `reasoning_budget_tokens` or work on a `:instruct` variant.
 - Read [`references/speculative-decoding.md`](references/speculative-decoding.md)
   when you add or read a `--spec-*` flag.
 

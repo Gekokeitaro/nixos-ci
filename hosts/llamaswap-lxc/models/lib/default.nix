@@ -36,6 +36,15 @@
     dry_multiplier = 0.0;
   };
 
+  # The words the sampler forces into the thinking block when a budget runs out. They are not
+  # cosmetic: llama.cpp forces the message token by token with every other logit at -inf and
+  # then forces the closing tag, so it becomes the model's own last thought. Hence the first
+  # person (the model must read it as its own conclusion), the named failure instead of the
+  # symptom, and an imperative ending with no negation — a "don't loop" primes the pattern it
+  # fights. Decided 2026-11-20 from the two alternatives in
+  # skills/sampling/references/reasoning-budget.md.
+  budgetMessage = "I'm repeating myself and learning nothing. Act now and finish the task.";
+
   # Reasoning off through the chat template, not through a sampling value. The server
   # defaults carry the sampling; this only closes the thinking block. It reaches the
   # `instruct` role as an argument of `mkRoles` below, not by sitting in whatever set
@@ -55,16 +64,27 @@
   # request-level: one `cmd`, one speculative preset, no reload between them. Each role
   # moves exactly one axis off the `roleBase` it is given — `instruct` is the exception:
   # it adds the thinking-off trait instead. The axis and its reason are stated on each
-  # entry. `reasoning_budget` is the field that bounds a thinking block, with no
-  # forcing message here: the message variants are gone, and a budget is a property of
-  # the role it brakes.
-  mkRoles = {roleBase, noThinkParams}: {
+  # entry. `reasoning_budget_tokens` is the field that bounds a thinking block, and every role
+  # that carries one also carries `budgetMessage`, defined above: the forced text is part of the
+  # brake, not decoration, so it travels with the budget instead of being a variant.
+  #
+  # The key is `reasoning_budget_tokens`, NOT `reasoning_budget`. The server reads it by that name
+  # (`tools/server/server-common.cpp`, `json_value(body, "reasoning_budget_tokens", …)` at the
+  # commit this host builds, b11960 / 8642541), so the shorter key this library shipped until
+  # 2026-11-26 was silently ignored: no budget was ever applied, in any role, on any model.
+  # Measured against the served model that day: `reasoning_budget: 600` left a thinking block at
+  # ~875 tokens with no forced message, and `reasoning_budget_tokens: 600` cut it at ~643 and
+  # injected the message (`forced=YES`). The message key `reasoning_budget_message` is correct as
+  # it stands. `/props` shows the defaults and never lists a budget, so the field cannot be checked
+  # from there — only from the forcing, which is what the probe looked for.
+  mkRoles = {roleBase, noThinkParams, budgetMessage}: {
     # Plans. Axis: budget 6144, the larger of the two budgets this library ships,
     # because this role writes the longest single thinking block. Temperature stays
     # at `thinking`'s 1.0 — a plan explores, and the budget bounds it instead.
     planner = roleBase // {
       temperature = 1.0;
-      reasoning_budget = 6144;
+      reasoning_budget_tokens = 6144;
+      reasoning_budget_message = budgetMessage;
     };
 
     # Writes the code. Axis: temperature 0.6, `coding`'s value. No budget: a chain
@@ -76,7 +96,8 @@
     # 0/6 and its failures were timeouts, which is what a budget cuts.
     reviewer = roleBase // {
       temperature = 0.6;
-      reasoning_budget = 4096;
+      reasoning_budget_tokens = 4096;
+      reasoning_budget_message = budgetMessage;
     };
 
     # Dispatches and triages. Axis: budget 4096, at `agent`'s temperature 0.7. It is
@@ -84,7 +105,8 @@
     # entry relies on.
     supervisor = roleBase // {
       temperature = 0.7;
-      reasoning_budget = 4096;
+      reasoning_budget_tokens = 4096;
+      reasoning_budget_message = budgetMessage;
     };
 
     # Resolves a merge between two written sides. Axis: temperature 0.7, from
@@ -239,9 +261,9 @@ in {
       repeat_penalty = 1.1;
     };
 
-    # The roles of a coding loop, built by `mkRoles`: the two fragments it composes
-    # travel as arguments, so this key depends on nothing that surrounds it.
-    roles = mkRoles {inherit roleBase noThinkParams;};
+    # The roles of a coding loop, built by `mkRoles`: the fragments it composes travel as
+    # arguments, so this key depends on nothing that surrounds it.
+    roles = mkRoles {inherit roleBase noThinkParams budgetMessage;};
   };
 
   # `{setParamsByID = …;}` for exactly the roles it is given: `default` renders as

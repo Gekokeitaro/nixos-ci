@@ -56,6 +56,16 @@ under `rec`. The deploy of 2026-11-18 failed with `error: undefined variable
 'noThink'` because `profiles.roles.instruct` composed a sibling key; `roleBase` had
 worked only because it lived in the `let`.
 
+## LoRA adapters
+
+An adapter rides on a served GGUF and goes in the same `cmd`:
+`--lora /models/<file>.gguf` at scale 1.0, or `--lora-scaled /models/<file>.gguf:0.8` when a scale
+is being chosen. It applies to **every role of that entry** (the roles are request-level filters),
+it costs generation throughput, and it is not versioned by Git — quote its `sha256` next to any
+measurement. Compatibility is by `general.architecture`, not by the derivative's name. Loading,
+the scale-0/scale-1 A/B, and the Qwen3.8 27B targets:
+[`references/lora-adapters.md`](references/lora-adapters.md).
+
 ## Add a model
 
 - [ ] create `models/<Account>-<model>-<quant>.nix` opening with
