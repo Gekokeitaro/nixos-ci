@@ -31,8 +31,13 @@ in
   "llama-cpp: versions.rev must be exactly 40 lowercase hex characters; got '${versions.rev}'.";
   assert lib.assertMsg (builtins.match "b[0-9]+" versions.buildNumber != null)
   "llama-cpp: versions.buildNumber must look like b12359; got '${versions.buildNumber}'.";
-  assert lib.assertMsg (builtins.pathExists "${src}/ui/apps/chat")
-  "llama-cpp: ${versions.version} has no ui/apps/chat. The web UI moves between majors (v1.1.0 took it from tools/ui), so npmRoot and this assert need the path of the version being pinned.";
+  # The UI path is NOT checked here with `pathExists "${src}/…"`: that forces an
+  # import-from-derivation while the package is being evaluated, and inside the
+  # overrideAttrs chain it recurses ("infinite recursion encountered" at
+  # make-derivation.nix, measured 2026-11-27). The check lives in the updater,
+  # which has the network, and its verdict is written to `versions.uiPath`.
+  assert lib.assertMsg (builtins.match "[a-z0-9_/-]+" versions.uiPath != null)
+  "llama-cpp: versions.uiPath looks wrong ('${versions.uiPath}'); it is a repository path such as ui/apps/chat.";
   (
     pkgs.llama-cpp.override {
       rocmSupport = isLlamacppRocm;
@@ -63,9 +68,10 @@ in
         npmDepsHash = versions.npmHash;
 
         # Pinned, not inherited: the web UI moves between majors. nixpkgs still
-        # points at tools/ui, while v1.1.0 moved it to ui/apps/chat. This is the
-        # line that fails on a major bump, after the pathExists assert above.
-        npmRoot = "ui/apps/chat";
+        # points at tools/ui, while v1.1.0 moved it to ui/apps/chat. The value
+        # travels with the version it belongs to, and the updater verified it
+        # exists at that commit before writing it.
+        npmRoot = versions.uiPath;
 
         nativeCheckInputs =
           [(pkgs.python3.withPackages (ps: [ps.numpy ps.torch ps.safetensors ps.transformers]))]

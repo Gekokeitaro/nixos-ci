@@ -94,6 +94,25 @@ pkgs.writeShellApplication {
       esac
     fi
 
+    # The web UI moves between majors (`tools/ui` until v1.0.0, `ui/apps/chat`
+    # from v1.1.0), and the package builds it from `versions.uiPath`. The check
+    # needs the network, so it lives here: an eval-time `pathExists` on the source
+    # would force an import-from-derivation and recurse inside overrideAttrs.
+    echo "Locating the web UI at $SOURCE_REV..."
+    UI_PATH=""
+    for candidate in ui/apps/chat tools/ui; do
+      if curl -sf "$API/contents/$candidate?ref=$SOURCE_REV" >/dev/null; then
+        UI_PATH="$candidate"
+        break
+      fi
+    done
+    if [ -z "$UI_PATH" ]; then
+      echo "Error: neither ui/apps/chat nor tools/ui exists at $SOURCE_REV." >&2
+      echo "The web UI moved again: add its new path to this loop and to npmRoot in default.nix." >&2
+      exit 1
+    fi
+    echo "  web UI:      $UI_PATH"
+
     # All-or-nothing: the file is replaced whole, and the previous copy comes back
     # untouched if any later step fails.
     BACKUP=$(mktemp)
@@ -127,6 +146,9 @@ pkgs.writeShellApplication {
       npmHash = "$npm_hash";
       # Upstream build number of that commit, from the release's nightly-tag.txt.
       buildNumber = "$NIGHTLY_TAG";
+      # Directory the web UI is built from at this commit; checked over the
+      # network above, because the package cannot check it without recursing.
+      uiPath = "$UI_PATH";
     }
     EOF
       chmod 644 "$tmp"
