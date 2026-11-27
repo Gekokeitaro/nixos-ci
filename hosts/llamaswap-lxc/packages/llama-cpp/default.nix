@@ -3,9 +3,9 @@
   isLlamacppRocm,
 }: let
   lib = pkgs.lib;
-  llamacppVersion = "v1.0.0";
-  llamacppHash = "sha256-aYziwYzK9Zj7sopAEsrANhMGs4BO0F2g0cDCGmYLxDA=";
-  llamacppNpmHash = "sha256-0OJIueUN5oD/V2NtVcXTiRW59u2tJIG3OxW8aJ8JDBY=";
+  llamacppVersion = "v1.1.0";
+  llamacppHash = "sha256-0O3An2dgjy3HGF6T3ZDiEPwnv26+6B8os7htE6ocG8I=";
+  llamacppNpmHash = "sha256-5NCbd2NT4xSo5dCaLndj/FVorm82fUN3iv1BTwurMy4=";
   targetGPU = "gfx1035";
 in
   (
@@ -25,6 +25,7 @@ in
       };
 
       npmDepsHash = llamacppNpmHash;
+      npmRoot = "ui/apps/chat";
 
       nativeCheckInputs =
         [(pkgs.python3.withPackages (ps: [ps.numpy ps.torch ps.safetensors ps.transformers]))]
